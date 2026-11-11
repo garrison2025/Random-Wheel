@@ -22,16 +22,16 @@ The confidential full keyword worksheet is distributed separately to the reposit
 | Coverage state | Number of keywords | Explanation |
 |---|---:|---|
 | Maps to built original pages | 535 | URL exists, not evidence of a Google ranking |
-| Maps to newly built P0 candidates | 122 | URL exists, hard noindex until quality and intent approval |
-| Maps to later/unbuilt pages | 169 | Feature and page not automatically approved |
+| Maps to built P0/P1 candidates | 150 | 122 mapped to P0 number candidates + 28 mapped to new P1 alphabet/Yes-No tools, all held noindex |
+| Maps to later/unbuilt pages | 141 | Feature or page still not implemented; review before adding |
 | Unmapped / ambiguous | 72 | Manually inspect SERP intent before targeting |
 | **Total** | **898** | Source keyword inventory preserved without counting duplicate keywords |
 
-The 4 newly implemented candidate pages are `/random-number-wheel/1-2/`, `/random-number-wheel/1-8/`, `/random-number-wheel/1-10/`, and `/random-number-wheel/1-50/`.
+Six noindex candidate tools are implemented: `/random-number-wheel/1-2/`, `/random-number-wheel/1-8/`, `/random-number-wheel/1-10/`, `/random-number-wheel/1-50/`, `/random-letter-wheel/` and `/yes-or-no-wheel/`.
 
 Keyword-to-URL mapping is heuristic, not rank evidence; queries may have navigation/AI Overview/direct-answer intent. URL index policy must not be inferred from P0/P1/P2 keyword labels. The full workbook also includes original Volume, KD and competitor estimated traffic and an additional implementation status sheet.
 
-The original 13-route sitemap/index whitelist is unchanged until manually approved for production. The four candidate routes always output `noindex` even when production global index settings are later enabled.
+The original 13-route sitemap/index whitelist is unchanged until manually approved for production. All six candidate routes always output `noindex` even when production global index settings are later enabled. Counts reconcile to 535 + 150 + 141 + 72 = 898; these are keyword-to-URL assignments, not achieved rankings.
 
 ## New P1 distinct-intent tools (2026-11-11)
 
