@@ -439,3 +439,43 @@ test('capture word wheel and 10000-number preset screenshots',async({page},testI
   await page.goto('/random-number-wheel/1-10000/');
   await page.screenshot({path:testInfo.outputPath('number-10000-mobile.png'),fullPage:true,animations:'disabled'});
 });
+
+
+test('parameter range shortcuts open the real generic wheel without creating standalone HTML pages',async({page})=>{
+  await page.goto('/random-number-wheel/?min=1&max=9');
+  await expect(page.locator('[data-role=min]')).toHaveValue('1');
+  await expect(page.locator('[data-role=max]')).toHaveValue('9');
+  await expect(page.locator('[data-role=feedback]')).toContainText('Range 1–9 loaded');
+  await page.locator('[data-action=pick]').click();
+  const result=Number((await page.locator('[data-role=result]').textContent())?.trim());
+  expect(result).toBeGreaterThanOrEqual(1);
+  expect(result).toBeLessThanOrEqual(9);
+  await page.goto('/random-number-wheel/?min=1&max=14');
+  await expect(page.locator('[data-role=max]')).toHaveValue('14');
+});
+
+test('explicit range query overrides saved generic settings but never overwrites saved setup',async({page})=>{
+  await page.goto('/random-number-wheel/');
+  await page.locator('[data-role=max]').fill('5');
+  await page.locator('[data-role=max]').dispatchEvent('change');
+  await page.locator('[data-action=save]').click();
+  await page.goto('/random-number-wheel/?min=1&max=9');
+  await expect(page.locator('[data-role=max]')).toHaveValue('9');
+  await page.goto('/random-number-wheel/');
+  await expect(page.locator('[data-role=max]')).toHaveValue('5');
+  await page.goto('/random-number-wheel/?min=1&max=10001');
+  await expect(page.locator('[data-role=max]')).toHaveValue('5');
+  await page.goto('/random-number-wheel/?min=1&min=2&max=9');
+  await expect(page.locator('[data-role=max]')).toHaveValue('5');
+});
+
+test('exact range query does not change the static page canonical or index status',async({request})=>{
+  const plain=await request.get('/random-number-wheel/');
+  const preset=await request.get('/random-number-wheel/?min=1&max=14');
+  expect(plain.ok()).toBe(true);
+  expect(preset.ok()).toBe(true);
+  const html=await preset.text();
+  expect(html).toContain('noindex, nofollow');
+  expect(html).not.toContain('<link rel="canonical"');
+  expect(await plain.text()).toContain('<h1>Random Number Wheel</h1>');
+});

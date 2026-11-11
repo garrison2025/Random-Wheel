@@ -24,6 +24,10 @@ jobs:
               && grep -Fq 'Random Number Generator 1 to 100' /tmp/rw-number.html \
               && grep -Fq 'data-role="batch"' /tmp/rw-number.html \
               && grep -Fq 'data-action="export-csv"' /tmp/rw-number.html \
+              && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-number-wheel/?sha=$GITHUB_SHA" -o /tmp/rw-general-number.html \
+              && grep -Fq 'Other exact number ranges' /tmp/rw-general-number.html \
+              && grep -Fq 'Pick 1–9' /tmp/rw-general-number.html \
+              && grep -Fq 'Pick 1–14' /tmp/rw-general-number.html \
               && grep -Fq 'data-action="shuffle"' /tmp/rw-home.html \
               && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-letter-wheel/?sha=$GITHUB_SHA" -o /tmp/rw-letters.html \
               && grep -Fq 'Random Letter Wheel' /tmp/rw-letters.html \

@@ -3,6 +3,7 @@ import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, dr
 import {historyAsCsv,historyAsText} from '../lib/export';
 import {letterChoices,yesNoChoices} from '../lib/choice-presets';
 import {wordChoices} from '../lib/word-presets';
+import {parseNumericRangeQuery} from '../lib/range-query';
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
@@ -492,12 +493,25 @@ function init(root: HTMLElement) {
     if(location.hash.startsWith('#wheel=')){
       applyConfig(JSON.parse(decodeURIComponent(location.hash.slice(7))));
     }else{
-      let saved:string|null=null;
-      try{saved=localStorage.getItem(savedKey);}catch{}
-      if(saved){
-        applyConfig(JSON.parse(saved));
-        status('Your saved wheel is ready.');
-      }else refresh();
+      // Explicit 1–N shortcut takes precedence over a saved generic range.
+      // A shared #wheel config still takes precedence over query parameters.
+      const queryRange=isNumbers && location.pathname==='/random-number-wheel/'
+        ? parseNumericRangeQuery(location.search) : null;
+      if(queryRange){
+        const minInput=get<HTMLInputElement>(root,'[data-role="min"]');
+        const maxInput=get<HTMLInputElement>(root,'[data-role="max"]');
+        if(minInput)minInput.value=String(queryRange.min);
+        if(maxInput)maxInput.value=String(queryRange.max);
+        refresh();
+        status('Range '+queryRange.min+'–'+queryRange.max+' loaded from your link. Use Quick Pick or Spin Wheel.');
+      }else{
+        let saved:string|null=null;
+        try{saved=localStorage.getItem(savedKey);}catch{}
+        if(saved){
+          applyConfig(JSON.parse(saved));
+          status('Your saved wheel is ready.');
+        }else refresh();
+      }
     }
   }catch{
     refresh();
