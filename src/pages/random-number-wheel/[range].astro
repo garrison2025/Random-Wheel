@@ -10,7 +10,7 @@ interface Props{page:RangePage}
 const {page}=Astro.props;
 const path='/random-number-wheel/'+page.slug+'/';
 ---
-<BaseLayout path={path} title={page.title} description={page.description}>
+<BaseLayout noindex={page.indexApproved===false} path={path} title={page.title} description={page.description}>
   <section class="hero"><div class="container">
     <span class="eyebrow">Instant number picker · 1 to {page.max}</span>
     <h1>{page.headline}</h1>

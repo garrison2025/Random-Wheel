@@ -1,6 +1,7 @@
+import {escapeCsvCell,historyAsCsv,historyAsText} from '../src/lib/export';
 
 import {describe,expect,it} from 'vitest';
-import {numberChoices,parseEntries,parseExclusions,pickEntry,secureIndex,weightedIndex,type RandomSource} from '../src/lib/random';
+import {numberChoices,parseEntries,parseExclusions,pickEntry,secureIndex,weightedIndex,drawIndices,shuffleSecure,type RandomSource} from '../src/lib/random';
 const source = (...values:number[]): RandomSource => {
   let i=0;
   return (buffer)=>{buffer[0]=values[i++] ?? 0;return buffer;};
@@ -42,5 +43,23 @@ describe('safe entry parsing',()=>{
     expect(()=>parseEntries('')).toThrow();
     expect(()=>parseEntries('Alex | -2')).toThrow();
     expect(()=>parseExclusions('4, x')).toThrow();
+  });
+});
+
+
+describe('batch draws and export safety',()=>{
+  it('supports repeated weighted picks',()=>expect(drawIndices([{label:'A',weight:1},{label:'B',weight:3}],3,false,source(0,2,3))).toEqual([0,1,1]));
+  it('draws distinct indices when not replacing winners',()=>expect(drawIndices([{label:'A',weight:1},{label:'B',weight:1},{label:'C',weight:1}],3,true,source(0,0,0))).toEqual([0,1,2]));
+  it('refuses invalid or impossible batches',()=>{
+    expect(()=>drawIndices([{label:'A',weight:1}],101)).toThrow();
+    expect(()=>drawIndices([{label:'A',weight:1}],2,true)).toThrow();
+    expect(()=>drawIndices([{label:'A',weight:0}],1)).toThrow();
+  });
+  it('shuffles deterministically with injected secure randomness',()=>expect(shuffleSecure(['A','B','C'],source(0,0))).toEqual(['B','C','A']));
+  it('escapes spreadsheet formulas and quotes in CSV cells',()=>{
+    expect(escapeCsvCell('=2+3')).toBe("\"'=2+3\"");
+    expect(escapeCsvCell('ab\"cd')).toBe("\"ab\"\"cd\"");
+    expect(historyAsCsv(['Alpha','Beta'])).toContain('1,"Alpha"\r\n2,"Beta"');
+    expect(historyAsText(['10','2'])).toBe('1. 10\n2. 2\n');
   });
 });

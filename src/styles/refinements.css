@@ -70,3 +70,17 @@
   .winner-sparks{display:none}
   .winner-spark{animation:none}
 }
+
+
+/* Batch draw and configurable spin settings */
+.batch-row{margin-top:13px;padding:10px 12px 13px;background:#f4f6fb;border:1px solid #e3e8f2;border-radius:12px}
+.batch-row .field{margin-top:0}
+.batch-row label{margin-bottom:6px}
+.batch-row input{max-width:126px;min-height:44px}
+.batch-row .field-hint{line-height:1.6}
+.sidebar .field select{
+  width:100%;min-height:44px;padding:10px 12px;
+  border:1px solid #dfe5ef;border-radius:10px;background:#fafbff;color:#2b3954
+}
+.shuffle-action{display:inline-flex;min-height:44px}
+.result-card .result-value{overflow-wrap:anywhere;word-break:break-word}

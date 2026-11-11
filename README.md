@@ -4,9 +4,9 @@ Astro + TypeScript free browser-based random wheel. Implements the Random Wheel 
 
 ## Initial scope
 
-Eight tool routes: home (custom choice wheel), random-number-wheel, and six range presets (1–3, 1–4, 1–5, 1–6, 1–20, 1–100); plus five supporting pages.
+Twelve tool routes: home (custom choice wheel), random-number-wheel, six original range presets, and four additional P0 candidates (1–2, 1–8, 1–10, 1–50). Four new candidates are noindex pending review; five support pages are also available.
 
-Features: Quick Pick, Spin Wheel, secure rejection sampling, integer weights, number exclusions and steps, no-repeat drawing, history, local storage, share links and CSV/text import.
+Features: Quick Pick, Spin Wheel, secure rejection sampling, integer weights, number exclusions and steps, no-repeat drawing, history, local storage, share links CSV/text import, securely shuffled entries, configurable spin duration, multi-number batch drawing (1–100), and CSV/TXT result downloads.
 
 ## Developer commands
 
@@ -38,3 +38,11 @@ Preview and initial build must remain non-indexable. DO NOT enable PUBLIC_INDEXA
 - docs/SEO-KEYWORD-MAP.md: sourced first-release keyword plan.
 
 Domain, Cloudflare production deployment, GSC data, indexing and ad approval are NOT confirmed by source code commits.
+
+## V1.5 additions
+- 1–100 number results per draw using secure browser randomness, with optional no-repeat selection and exhausted-pool checks.
+- Result history export to UTF-8 CSV or plain TXT; escaped spreadsheet formula injection in user-provided values.
+- Three wheel animation speed settings saved locally, and securely shuffled custom choices.
+- Four P0 candidate range routes (1–2, 1–8, 1–10, 1–50) remain noindex and excluded from the approved sitemap.
+- Initial 13 approved routes plus four candidate routes are audited as 17 statically generated pages.
+- A private 898-keyword implementation/SEO coverage workbook is delivered outside the public repo; proprietary Semrush data is not committed.

@@ -182,7 +182,7 @@ test('compact two-column mobile tool navigation has no horizontal overflow',asyn
     await page.goto('/');
     const cols=await page.locator('.tool-grid').first().evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
     expect(cols).toBe(2);
-    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(7);
+    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(11);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
   }
 });
@@ -190,4 +190,76 @@ test('compact two-column mobile tool navigation has no horizontal overflow',asyn
 test('Astro dev toolbar is disabled for screenshots and interactions',async({page})=>{
   await page.goto('/');
   await expect(page.locator('astro-dev-toolbar')).toHaveCount(0);
+});
+
+
+test('new P0 candidates have working first-load presets and remain noindex',async({request,page})=>{
+  for(const [range,max] of [['1-2','2'],['1-8','8'],['1-10','10'],['1-50','50']]){
+    const response=await request.get('/random-number-wheel/'+range+'/');
+    expect(response.ok()).toBeTruthy();
+    const html=await response.text();
+    expect(html).toContain('noindex, nofollow');
+    expect(html).toContain('name="description"');
+    await page.goto('/random-number-wheel/'+range+'/');
+    await expect(page.locator('[data-role=max]')).toHaveValue(max);
+    await page.locator('[data-action=pick]').click();
+    const n=Number(await page.locator('[data-role=result]').innerText());
+    expect(n).toBeGreaterThanOrEqual(1);expect(n).toBeLessThanOrEqual(Number(max));
+  }
+});
+
+test('batch 1–8 without replacement generates eight distinct numbers',async({page})=>{
+  await page.goto('/random-number-wheel/1-8/');
+  await page.locator('[data-role=batch]').fill('8');
+  await page.locator('[data-role=remove]').check();
+  await page.locator('[data-action=pick]').click();
+  await expect(page.locator('[data-role=feedback]')).toContainText('Generated 8 secure results');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('0 active');
+  const chunks=await page.locator('.history-chip').allTextContents();
+  expect(chunks).toHaveLength(8);
+  expect(new Set(chunks).size).toBe(8);
+  await page.locator('[data-action=pick]').click();
+  await expect(page.locator('[data-role=feedback]')).toContainText('No choices remain');
+  await page.locator('[data-action=reset]').click();
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('8 active');
+});
+
+test('invalid no-repeat batch is rejected before any draws',async({page})=>{
+  await page.goto('/random-number-wheel/1-2/');
+  await page.locator('[data-role=batch]').fill('3');
+  await page.locator('[data-role=remove]').check();
+  await page.locator('[data-action=pick]').click();
+  await expect(page.locator('[data-role=feedback]')).toContainText('not enough remaining choices');
+  await expect(page.locator('.history-chip')).toHaveCount(0);
+});
+
+test('results download as actual CSV and TXT',async({page})=>{
+  await page.goto('/random-number-wheel/1-8/');
+  await page.locator('[data-role=batch]').fill('8');
+  await page.locator('[data-role=remove]').check();
+  await page.locator('[data-action=pick]').click();
+  const [csvDownload]=await Promise.all([page.waitForEvent('download'),page.locator('[data-action=export-csv]').click()]);
+  expect(csvDownload.suggestedFilename()).toBe('wheelcanvas-results.csv');
+  const [txtDownload]=await Promise.all([page.waitForEvent('download'),page.locator('[data-action=export-txt]').click()]);
+  expect(txtDownload.suggestedFilename()).toBe('wheelcanvas-results.txt');
+});
+
+test('speed and saved number ranges stay isolated across presets',async({page})=>{
+  await page.goto('/random-number-wheel/1-3/');
+  await page.locator('[data-role=speed]').selectOption('fast');
+  await page.locator('[data-action=save]').click();
+  await page.reload();
+  await expect(page.locator('[data-role=speed]')).toHaveValue('fast');
+  await page.goto('/random-number-wheel/1-100/');
+  await expect(page.locator('[data-role=speed]')).toHaveValue('normal');
+  await expect(page.locator('[data-role=max]')).toHaveValue('100');
+});
+
+test('shuffle entries keeps all the same choices',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-role=entries]').fill('Alpha\nBeta\nGamma\nDelta');
+  await page.locator('[data-action=shuffle]').click();
+  const names=(await page.locator('[data-role=entries]').inputValue()).split('\n');
+  expect(names.slice().sort()).toEqual(['Alpha','Beta','Delta','Gamma']);
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('4 active');
 });

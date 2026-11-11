@@ -1,9 +1,47 @@
 
 export type RangePage = {
   slug:string; max:number; title:string; description:string; headline:string; intro:string;
-  context:string; guide:string; tip:string; queries:string[]; example:string;
+  context:string; guide:string; tip:string; queries:string[]; example:string; indexApproved?:boolean;
 };
 export const RANGE_PAGES: RangePage[] = [
+
+  {
+    slug:'1-2',max:2,indexApproved:false,title:'Pick a Number 1–2 | Fair Two-Choice Spinner',
+    description:'Pick 1 or 2 instantly or spin a balanced two-section wheel. Repeat choices or draw without replacement for free.',
+    headline:'Pick a Number from 1 to 2',intro:'Two options, equal chances. Get a clear binary decision now or reveal it with a wheel.',
+    context:'Useful for choosing between two numbered activities, alternating between two teams or assigning two tasks. Unlike a Yes/No question, both outputs are numeric.',
+    guide:'This preset starts with exactly 1 and 2. In Quick Pick mode one value appears immediately. In Spin Wheel mode two equally sized sectors represent the same fair draw.',
+    tip:'Turn on Remove winners to get both numbers once in a two-draw round; leave it off for independent picks.',
+    queries:['pick a number 1-2','1 or 2 wheel'],example:'A clear either-or result for two numbered choices.'
+  },
+  {
+    slug:'1-8',max:8,indexApproved:false,title:'Random Number 1–8 | Eight-Choice Spinner & Picker',
+    description:'Choose a fair random number from 1 to 8. Spin all eight equally weighted sections or pick instantly, with optional no-repeat draws.',
+    headline:'Random Number from 1 to 8',intro:'Eight numbered outcomes on one wheel, ready for small groups and activity rotations.',
+    context:'Assign one of eight stations, choose one of eight numbered cards or allocate turns in a small game without introducing preferences.',
+    guide:'Eight equal sectors are visible when the default 1–8 range is active. You can exclude an unavailable number or draw multiple numbers without replacement using Quick Pick.',
+    tip:'To assign all eight positions without repeats, choose eight results and enable Remove winners.',
+    queries:['random number 1-8','pick a number 1-8'],example:'Eight teams, eight stations or eight numbered challenges.'
+  },
+  {
+    slug:'1-10',max:10,indexApproved:false,title:'Pick a Number 1–10 | Ten-Choice Number Wheel',
+    description:'Draw a number between 1 and 10 immediately or spin a colorful fair wheel. Supports exclusions, repeat-free picks and a clear history.',
+    headline:'Pick a Number from 1 to 10',intro:'A clean ten-number picker for games, study groups and everyday selection.',
+    context:'Use a familiar 1–10 scale to randomly select a quiz prompt, a game position or one of ten numbered suggestions.',
+    guide:'Choose Quick Pick for an instant number, or Spin Wheel to visualize ten choices. Each active number has equal probability unless you exclude it.',
+    tip:'For an ordered ten-person draw, choose ten results with Remove winners enabled and export them as a CSV list.',
+    queries:['pick a number 1-10','random number 1 to 10'],example:'Ten choices, a fast result and an optional wheel.'
+  },
+  {
+    slug:'1-50',max:50,indexApproved:false,title:'Random Number 1–50 | Quick Picker for Groups',
+    description:'Generate a number between 1 and 50. Exclude unavailable numbers, make repeat-free batch draws or reveal one result with a simplified wheel.',
+    headline:'Random Number from 1 to 50',intro:'Pick from fifty numbers without clutter. Instant result first, animation available when you want it.',
+    context:'Suitable for assigning participation numbers across a large class, numbered worksheets or selecting from fifty tickets.',
+    guide:'The default quick picker samples all fifty numbers fairly. The animated wheel is a simplified visual display and does not omit candidates or pretend to show fifty readable labels.',
+    tip:'Enable Remove winners before drawing multiple numbers when a repeated assignment would cause confusion.',
+    queries:['random number generator 1-50','number generator 1-50'],example:'Fifty eligible numbers, without a crowded wheel.'
+  },
+
   {
     slug:'1-3',max:3,title:'Pick a Number 1–3 | Fair Random 1 to 3 Picker',
     description:'Instantly pick a random number from 1 to 3. Try a simple three-way spinner, remove picked numbers, or get an instant result.',

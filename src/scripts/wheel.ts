@@ -1,5 +1,6 @@
 
-import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, type Entry} from '../lib/random';
+import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, drawIndices, shuffleSecure, type Entry} from '../lib/random';
+import {historyAsCsv,historyAsText} from '../lib/export';
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
@@ -11,7 +12,7 @@ let paletteName='sunset';
 let COLORS=PALETTES.sunset!;
 const MAX_HASH_LENGTH = 1700;
 const get = <T extends Element>(root: ParentNode, selector: string): T | null => root.querySelector<T>(selector);
-const asValue = (el: Element | null) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : '';
+const asValue = (el: Element | null) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement ? el.value : '';
 function csvRows(content: string): string[][] {
   const rows: string[][]=[];let cells:string[]=[];let current='';let quoted=false;
   for (let i=0;i<content.length;i++){
@@ -53,7 +54,13 @@ function init(root: HTMLElement) {
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
-  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':'numbers');
+  // Number presets must not inherit a custom range saved on a different URL.
+  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
+  const speedMs=()=>{
+    const choice=asValue(get(root,'[data-role="speed"]'));
+    return choice==='fast'?1600:choice==='slow'?5500:3600;
+  };
+  const applySpinSpeed=()=>{disc.style.transition='transform '+speedMs()+'ms cubic-bezier(.15,.85,.15,1)';};
   function setPalette(name:string){
     if(!(name in PALETTES))return;
     paletteName=name;
@@ -89,8 +96,8 @@ function init(root: HTMLElement) {
   const setBusy=(busy:boolean)=>{
     locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
     if(centerButton) centerButton.disabled=busy;
-    root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('.sidebar input,.sidebar textarea').forEach(el=>{el.disabled=busy;});
-    root.querySelectorAll<HTMLButtonElement>('[data-template]').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
   };
   const updateModeLabels=()=>{
     pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
@@ -131,7 +138,7 @@ function init(root: HTMLElement) {
     resultCard?.classList.remove('is-picked');
     renderHistory();status(message);
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
-    render();void disc.offsetWidth;disc.style.transition='transform 3.6s cubic-bezier(.15,.85,.15,1)';
+    render();void disc.offsetWidth;applySpinSpeed();
   };
   function activeChoices(){
     const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
@@ -189,7 +196,7 @@ function init(root: HTMLElement) {
     }
   }
   function showWinner(label:string,index:number){
-    winningHistory.unshift(label);if(winningHistory.length>60)winningHistory.pop();
+    winningHistory.unshift(label);if(winningHistory.length>1000)winningHistory.pop();
     result.textContent=label;
     resultCard?.classList.remove('is-picked');
     // Restart a subtle reveal animation for successive draws.
@@ -212,7 +219,24 @@ function init(root: HTMLElement) {
       if(!active.length) throw new Error('No choices remain. Reset the round or change your settings.');
       if(mode==='spin' && pickedIndices.size && get<HTMLInputElement>(root,'[data-role="remove"]')?.checked){
         disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
-        render();void disc.offsetWidth;disc.style.transition='transform 3.6s cubic-bezier(.15,.85,.15,1)';
+        render();void disc.offsetWidth;applySpinSpeed();
+      }
+      const requested = isCustom ? 1 : Number(asValue(get(root,'[data-role="batch"]')) || '1');
+      if(!Number.isSafeInteger(requested)||requested<1||requested>100) throw new RangeError('Choose 1–100 numbers per draw.');
+      if(requested>1) {
+        const noRepeat=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
+        const drawn=drawIndices(active.map(a=>a.entry),requested,noRepeat);
+        const values=drawn.map(i=>active[i]!.entry.label);
+        if(noRepeat) for(const i of drawn) pickedIndices.add(active[i]!.index);
+        for(const label of values) winningHistory.unshift(label);
+        winningHistory=winningHistory.slice(0,1000);
+        clearSparks();
+        resultCard?.classList.remove('is-picked');
+        result.textContent=values.length<=7 ? values.join(' · ') : values.slice(0,7).join(' · ')+' … (+'+(values.length-7)+')';
+        resultCard?.classList.add('is-picked');
+        renderHistory();render();
+        status('Generated '+values.length+' secure results'+(noRepeat?' without repeats.':'.')+' Export CSV or TXT for the full history.');
+        return;
       }
       const selected=pickEntry(active.map(a=>a.entry));
       const chosen=active[selected]!;
@@ -240,7 +264,7 @@ function init(root: HTMLElement) {
       spinTimer=window.setTimeout(()=>{
         spinTimer=undefined;
         showWinner(chosen.entry.label,chosen.index);
-      },3650);
+      },speedMs()+50);
     } catch(error){
       setBusy(false);
       status(error instanceof Error?error.message:'Random selection failed.',true);
@@ -302,6 +326,33 @@ function init(root: HTMLElement) {
     });
   });
   resetButton.addEventListener('click',()=>{if(!locked)reset();});
+  get<HTMLSelectElement>(root,'[data-role="speed"]')?.addEventListener('change',()=>{
+    if(!locked){applySpinSpeed();status('Spin duration updated.');}
+  });
+  get<HTMLButtonElement>(root,'[data-action="shuffle"]')?.addEventListener('click',()=>{
+    if(locked)return;
+    const textarea=get<HTMLTextAreaElement>(root,'[data-role="entries"]');
+    if(!textarea)return;
+    const lines=textarea.value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if(lines.length<2){status('Add at least two entries to shuffle.',true);return;}
+    try{textarea.value=shuffleSecure(lines).join('\n');refresh();status('Choices securely shuffled.');}
+    catch(error){status(error instanceof Error?error.message:'Could not shuffle entries.',true);}
+  });
+  function downloadResults(type:'csv'|'txt'){
+    if(!winningHistory.length){status('Draw a result before exporting.');return;}
+    const ordered=[...winningHistory].reverse();
+    const content=type==='csv'?historyAsCsv(ordered):historyAsText(ordered);
+    const blob=new Blob([content],{type:type==='csv'?'text/csv;charset=utf-8':'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download='wheelcanvas-results.'+type;
+    document.body.append(link);link.click();link.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),5000);
+    status('Results exported to '+type.toUpperCase()+'.');
+  }
+  root.querySelectorAll<HTMLButtonElement>('[data-action="export-csv"],[data-action="export-txt"]').forEach(button=>button.addEventListener('click',()=>{
+    downloadResults(button.dataset.action==='export-csv'?'csv':'txt');
+  }));
   let editTimer:number|undefined;
   root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"]')
     .forEach(el=>{
@@ -339,18 +390,19 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    return isCustom ? {type:'custom',palette:paletteName,entries:asValue(get(root,'[data-role="entries"]'))}
-      :{type:'numbers',palette:paletteName,min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),
+    return isCustom ? {type:'custom',palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),entries:asValue(get(root,'[data-role="entries"]'))}
+      :{type:'numbers',palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),
          step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
   function applyConfig(value:unknown){
     if(!value || typeof value!=='object')throw new Error('Invalid saved setup.');
     const c=value as Record<string,unknown>;
     if(c.type!==(isCustom?'custom':'numbers'))throw new Error('The setup is for a different tool.');
-    const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
+    const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
     if(typeof c.palette==='string')setPalette(c.palette);
+    if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
     if(isCustom)setText('entries',c.entries);
-    else {for(const key of ['min','max','step','excluded'])setText(key,c[key]);}
+    else {for(const key of ['min','max','step','excluded'])setText(key,c[key]);if(typeof c.batch==='string'&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);}
     refresh();
   }
   get<HTMLButtonElement>(root,'[data-action="save"]')?.addEventListener('click',()=>{

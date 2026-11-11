@@ -70,3 +70,32 @@ export function parseEntries(input: string): Entry[] {
 export function pickEntry(entries: readonly Entry[], source: RandomSource = cryptoSource): number {
   return weightedIndex(entries.map(e => e.weight), source);
 }
+
+
+/** Draw 1–100 independent outcomes, optionally without replacement.
+ * The function operates on the active pool; its indices map to that pool.
+ * The source is injectable for reproducible testing.
+ */
+export function drawIndices(entries: readonly Entry[], count: number, withoutReplacement = false, source: RandomSource = cryptoSource): number[] {
+  if (!Number.isSafeInteger(count) || count < 1 || count > 100) throw new RangeError('Draw count must be between 1 and 100.');
+  const indices = entries.map((e,i)=>i).filter(i=>entries[i]!.weight>0);
+  if (!indices.length) throw new Error('No eligible choices.');
+  if (withoutReplacement && count>indices.length) throw new RangeError('There are not enough remaining choices for a no-repeat batch.');
+  const drawn:number[]=[];
+  for(let n=0;n<count;n++){
+    const selected=weightedIndex(indices.map(i=>entries[i]!.weight),source);
+    drawn.push(indices[selected]!);
+    if(withoutReplacement) indices.splice(selected,1);
+  }
+  return drawn;
+}
+
+/** Secure Fisher–Yates shuffle. */
+export function shuffleSecure<T>(input:readonly T[],source:RandomSource=cryptoSource):T[] {
+  const result=[...input];
+  for(let i=result.length-1;i>0;i--){
+    const j=secureIndex(i+1,source);
+    [result[i],result[j]]=[result[j]!,result[i]!];
+  }
+  return result;
+}
