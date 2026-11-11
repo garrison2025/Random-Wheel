@@ -1,4 +1,5 @@
 import {escapeCsvCell,historyAsCsv,historyAsText} from '../src/lib/export';
+import {letterChoices} from '../src/lib/choice-presets';
 
 import {describe,expect,it} from 'vitest';
 import {numberChoices,parseEntries,parseExclusions,pickEntry,secureIndex,weightedIndex,drawIndices,shuffleSecure,type RandomSource} from '../src/lib/random';
@@ -45,6 +46,7 @@ describe('safe entry parsing',()=>{
     expect(()=>parseEntries('Alex |')).toThrow();
     expect(()=>parseEntries('Alex |    ')).toThrow();
     expect(()=>parseEntries('Alex | garbage')).toThrow();
+    expect(()=>letterChoices('constructor','','upper')).toThrow('valid alphabet preset');
     expect(()=>parseExclusions('4, x')).toThrow();
   });
 });
