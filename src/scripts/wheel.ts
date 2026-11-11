@@ -34,6 +34,7 @@ function init(root: HTMLElement) {
   const disc=get<HTMLElement>(root,'[data-role="wheel-disc"]')!;
   const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
   const result=get<HTMLElement>(root,'[data-role="result"]')!;
+  const resultCard=get<HTMLElement>(root,'.result-card');
   const feedback=get<HTMLElement>(root,'[data-role="feedback"]')!;
   const history=get<HTMLElement>(root,'[data-role="history"]')!;
   const counter=get<HTMLElement>(root,'[data-role="candidate-count"]')!;
@@ -81,12 +82,27 @@ function init(root: HTMLElement) {
     history.textContent='';
     if (!winningHistory.length) {history.textContent='Your recent picks will appear here.';return;}
     const title=document.createElement('strong');
-    title.textContent='Round history: ';
-    history.append(title,document.createTextNode(winningHistory.join(' · ')));
+    title.className='history-title';
+    title.textContent='Recent picks';
+    history.append(title);
+    for(const item of winningHistory.slice(0,8)){
+      const chip=document.createElement('span');
+      chip.className='history-chip';
+      chip.textContent=item;
+      history.append(chip);
+    }
+    if(winningHistory.length>8){
+      const more=document.createElement('span');
+      more.className='history-more';
+      more.textContent='+'+(winningHistory.length-8)+' more';
+      history.append(more);
+    }
   }
   const reset=(message='New round ready.')=>{
     pickedIndices=new Set();winningHistory=[];
-    result.textContent='Ready when you are';renderHistory();status(message);
+    result.textContent='Ready when you are';
+    resultCard?.classList.remove('is-picked');
+    renderHistory();status(message);
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
     render();void disc.offsetWidth;disc.style.transition='transform 3.6s cubic-bezier(.15,.85,.15,1)';
   };
@@ -140,6 +156,7 @@ function init(root: HTMLElement) {
     } catch(error) {
       entries=[];pickedIndices.clear();winningHistory=[];renderHistory();
       result.textContent='Check your settings';
+      resultCard?.classList.remove('is-picked');
       status(error instanceof Error?error.message:'Invalid choices.',true);
       render();
     }
@@ -147,6 +164,10 @@ function init(root: HTMLElement) {
   function showWinner(label:string,index:number){
     winningHistory.unshift(label);if(winningHistory.length>60)winningHistory.pop();
     result.textContent=label;
+    resultCard?.classList.remove('is-picked');
+    // Restart a subtle reveal animation for successive draws.
+    void resultCard?.offsetWidth;
+    resultCard?.classList.add('is-picked');
     const removeWinner=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
     if(removeWinner) pickedIndices.add(index);
     renderHistory();status('Draw completed with browser-based secure randomness.');

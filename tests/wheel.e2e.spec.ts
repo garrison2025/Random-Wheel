@@ -159,3 +159,35 @@ test('brand colors use a cohesive pale-cobalt visual system',async({page})=>{
   await page.locator('[data-palette=candy]').click();
   await expect(page.locator('[data-palette=candy]')).toHaveAttribute('aria-pressed','true');
 });
+
+
+test('mobile results are legible and offer an edit shortcut',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/');
+  const jump=page.locator('.stage-edit-link');
+  await expect(jump).toBeVisible();
+  await expect(jump).toHaveAttribute('href','#wheel-settings');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.locator('[data-action=center]').click();
+  await expect(page.locator('.result-card')).toHaveClass(/is-picked/);
+  await expect(page.locator('.history-chip')).toHaveCount(1);
+  await page.locator('[data-action=reset]').click();
+  await expect(page.locator('.result-card')).not.toHaveClass(/is-picked/);
+  await expect(page.locator('.history-chip')).toHaveCount(0);
+});
+
+test('compact two-column mobile tool navigation has no horizontal overflow',async({page})=>{
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:844});
+    await page.goto('/');
+    const cols=await page.locator('.tool-grid').first().evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+    expect(cols).toBe(2);
+    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(7);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+  }
+});
+
+test('Astro dev toolbar is disabled for screenshots and interactions',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('astro-dev-toolbar')).toHaveCount(0);
+});

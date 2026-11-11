@@ -29,6 +29,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
       <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Every number included</div>
     </div>
     <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
+    <a class="stage-edit-link" href="#wheel-settings">✎ Edit wheel options</a>
     <div class="result-card" role="status" aria-live="polite" aria-atomic="true">
       <div><div class="result-kicker">THE WINNER IS…</div><div class="result-value" data-role="result">Ready when you are</div></div>
       <span class="result-icon" aria-hidden="true">✴</span>
@@ -40,7 +41,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
     <p class="feedback" role="status" data-role="feedback" aria-live="polite"></p>
     <div class="history" data-role="history" aria-label="Past results">Your recent picks will appear here.</div>
   </section>
-  <section class="panel sidebar" aria-label="Customize wheel">
+  <section class="panel sidebar" id="wheel-settings" aria-label="Customize wheel">
     <div class="sidebar-title-wrap">
       <div><span class="sidebar-kicker">YOUR STUDIO</span><h2>{kind==='custom'?'Make it yours.':'Set your range.'}</h2></div>
       <span style="font-size:24px;color:#6570c7" aria-hidden="true">✳</span>
