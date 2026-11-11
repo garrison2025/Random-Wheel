@@ -4,7 +4,7 @@
   "market": "US",
   "evidenceClass": "Public-web discoverability + source-page feature inspection, not geo-verified Google SERP top10 or rankings",
   "indexingApproval": false,
-  "releasePolicy": "All 13 remain noindex until domain, manual editorial, SERP and technical gates are passed",
+  "releasePolicy": "All 13 remain noindex. 1-8 and 1-30 UX ready for manual product/SEO validation, not independently approved for Google indexation.",
   "candidates": [
     {
       "path": "/random-number-wheel/1-2/",
@@ -25,12 +25,13 @@
       "mainQuery": "random number 1-8",
       "differentiator": "Up to 8 team names receive unique numbered stations and an exported assignment list",
       "weakness": "Primary generic query may favor instant dice-style pickers; station assignment is a secondary classroom intent.",
-      "action": "Keep simple eight-number draw first, then offer station assignment; verify US query clusters and teacher task uptake.",
+      "action": "Round-3 UX delivered: hero intent links; station-sorted pairing display, copy and CSV; stale-result invalidation. Still requires US geo-SERP top 10, teacher field UX and domain/GSC gate before indexing.",
       "competitors": [
-        "https://spinpicker.io/wheel/1-8",
-        "https://spinthewheel.io/random-number-1-8",
-        "https://wordineer.com/random-number-1-8"
-      ]
+        "https://namesonwheel.com/pick-a-number-1-8-wheel/",
+        "https://www.spinfetti.com/en/tools/team-picker",
+        "https://www.wheelpicker.io/"
+      ],
+      "reviewStage": "UX_READY_PENDING_EXTERNAL_EVIDENCE"
     },
     {
       "path": "/random-number-wheel/1-10/",
@@ -64,12 +65,14 @@
       "mainQuery": "random number 1-30",
       "differentiator": "Absent-number exclusion plus one-by-one call progression and full CSV attendance order",
       "weakness": "Existing educational tools support absence markings and elimination; our whole-order export and stepwise call are potentially useful, not yet proven superior.",
-      "action": "Make the classroom task discoverable immediately, label absent/current/remaining clearly, and validate teacher usability against competing class tools.",
+      "action": "Round-3 UX delivered: 30 toggleable absence tiles, progressive non-repeating calls, progress, undo and full-order CSV disclosure. Still requires US geo-SERP top 10, teacher field UX and domain/GSC gate before indexing.",
       "competitors": [
         "https://spinpicker.io/wheel/1-30",
+        "https://teach.peabody.kids/number/1-30",
         "https://teach.peabody.kids/wheel/numbers-1-30",
-        "https://namesonwheel.com/pick-a-number-1-30-wheel/"
-      ]
+        "https://tallyandtable.com/randomizers/random-name-picker/"
+      ],
+      "reviewStage": "UX_READY_PENDING_EXTERNAL_EVIDENCE"
     },
     {
       "path": "/random-number-wheel/1-1000/",

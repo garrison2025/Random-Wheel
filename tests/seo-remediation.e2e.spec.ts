@@ -137,3 +137,28 @@ test('Maybe mode completes three draws and can report ties',async({page})=>{
   const total=(await page.locator('[data-tally]').allTextContents()).reduce((sum,x)=>sum+Number(x),0);
   expect(total).toBe(3);
 });
+
+
+test('visual QA evidence for station allocation and attendance widgets',async({page},testInfo)=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/random-number-wheel/1-8/');
+  const station=page.locator('[data-number-task=stations]');
+  await station.locator('[data-task=generate]').click();
+  await station.screenshot({path:testInfo.outputPath('station-8-desktop.png'),animations:'disabled'});
+  await page.goto('/random-number-wheel/1-30/');
+  const attendance=page.locator('[data-number-task=attendance]');
+  await attendance.locator('[data-absent-number="3"]').click();
+  await attendance.locator('[data-absent-number="12"]').click();
+  await attendance.locator('[data-task=generate]').click();
+  await attendance.locator('[data-task=next]').click();
+  await attendance.screenshot({path:testInfo.outputPath('roll-30-desktop.png'),animations:'disabled'});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/random-number-wheel/1-8/');
+  await page.locator('[data-number-task=stations] [data-task=generate]').click();
+  await page.locator('[data-number-task=stations]').screenshot({path:testInfo.outputPath('station-8-mobile.png'),animations:'disabled'});
+  await page.goto('/random-number-wheel/1-30/');
+  await page.locator('[data-number-task=attendance] [data-absent-number="27"]').click();
+  await page.locator('[data-number-task=attendance] [data-task=generate]').click();
+  await page.locator('[data-number-task=attendance] [data-task=next]').click();
+  await page.locator('[data-number-task=attendance]').screenshot({path:testInfo.outputPath('roll-30-mobile.png'),animations:'disabled'});
+});

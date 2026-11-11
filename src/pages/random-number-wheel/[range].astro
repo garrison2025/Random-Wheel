@@ -19,6 +19,14 @@ const taskInfo=NUMBER_TASK_INFO[page.max];
     <h1>{page.headline}</h1>
     <p>{page.intro}</p>
     <div class="hero-points"><span>Fair, secure draw</span><span>Quick result or animation</span><span>All local—no login</span></div>
+    {page.max===8 && <nav class="range-quicknav" aria-label="1 to 8 tool shortcuts">
+      <a href="#start">Spin the 1–8 wheel</a>
+      <a href="#station-assignment">Assign teams to stations</a>
+    </nav>}
+    {page.max===30 && <nav class="range-quicknav" aria-label="1 to 30 tool shortcuts">
+      <a href="#start">Pick a number 1–30</a>
+      <a href="#classroom-roll-call">Classroom roll call</a>
+    </nav>}
   </div></section>
   <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max}/></div>
   {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 

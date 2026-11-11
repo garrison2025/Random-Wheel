@@ -31,8 +31,8 @@ export const RANGE_PAGES: RangePage[] = [
   },
   {
     slug:'1-30',max:30,indexApproved:false,
-    title:'Random Number 1–30 | Classroom and Number Draw',
-    description:'Pick one or more numbers from 1 to 30. Choose exclusions and without-replacement draws, or use a simplified visual wheel.',
+    title:'Random Number 1–30 | Classroom Roll Call & Wheel',
+    description:'Pick a random number 1–30, or mark absent students and run a repeat-free classroom roll call with progress, undo and CSV download.',
     headline:'Pick a Number from 1 to 30',
     intro:'Thirty available numbers for classroom participation, numbered cards and activity draws.',
     context:'Assign participation opportunities in a class of about thirty or select from numbered worksheet problems without favoring a particular person.',
@@ -89,8 +89,8 @@ export const RANGE_PAGES: RangePage[] = [
     queries:['pick a number 1-2','1 or 2 wheel'],example:'A clear either-or result for two numbered choices.'
   },
   {
-    slug:'1-8',max:8,indexApproved:false,title:'Random Number 1–8 | Eight-Choice Spinner & Picker',
-    description:'Choose a fair random number from 1 to 8. Spin all eight equally weighted sections or pick instantly, with optional no-repeat draws.',
+    slug:'1-8',max:8,indexApproved:false,title:'Random Number 1–8 | Wheel & Team Station Assignment',
+    description:'Spin a fair random number from 1 to 8, or assign up to eight teams to distinct numbered stations. Free instant picker, station list and CSV download.',
     headline:'Random Number from 1 to 8',intro:'Eight numbered outcomes on one wheel, ready for small groups and activity rotations.',
     context:'Assign one of eight stations, choose one of eight numbered cards or allocate turns in a small game without introducing preferences.',
     guide:'Eight equal sectors are visible when the default 1–8 range is active. You can exclude an unavailable number or draw multiple numbers without replacement using Quick Pick.',

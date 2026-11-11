@@ -1,4 +1,4 @@
-import {secureIndex} from '../lib/random';
+import {secureIndex,parseExclusions} from '../lib/random';
 import {escapeCsvCell} from '../lib/export';
 import {assignStations,namedRollCall,parseParticipantNames,sampleNumbers,shuffledCallOrder,type TaskResult} from '../lib/seo-workflows';
 
@@ -11,6 +11,12 @@ function init(section:HTMLElement){
   const results=find<HTMLElement>('results')!;
   const exportButton=find<HTMLButtonElement>('export')!;
   const nextButton=find<HTMLButtonElement>('next');
+  const undoButton=find<HTMLButtonElement>('undo');
+  const copyButton=find<HTMLButtonElement>('copy');
+  const stationHead=find<HTMLElement>('station-head');
+  const progressWrap=find<HTMLElement>('progress-wrap');
+  const progressBar=find<HTMLProgressElement>('progress');
+  const progressText=find<HTMLElement>('progress-text');
   let drawn:TaskResult[]=[];
   let progress=0;
 
@@ -22,29 +28,66 @@ function init(section:HTMLElement){
     status.textContent=message;
     status.classList.toggle('is-error',error);
   }
+  function updateProgress(){
+    if(!progressWrap || !progressBar || !progressText)return;
+    progressWrap.hidden=!drawn.length;
+    progressBar.max=drawn.length || 30;
+    progressBar.value=progress;
+    progressText.textContent=progress+' of '+drawn.length+' called · '+(drawn.length-progress)+' remaining';
+    if(undoButton)undoButton.disabled=progress<=0;
+  }
   function clear(){
     drawn=[];progress=0;
     exportButton.disabled=true;
     if(nextButton)nextButton.disabled=true;
+    if(undoButton)undoButton.disabled=true;
+    if(copyButton)copyButton.disabled=true;
+    if(stationHead)stationHead.hidden=true;
     results.replaceChildren();
     summary.hidden=true;
     summary.textContent='';
+    updateProgress();
+  }
+  function getAbsentNumbers():number[]{
+    const list=parseExclusions(value('absent'));
+    if(list.some(n=>n<1||n>30))throw new Error('Absent roll numbers must be between 1 and 30.');
+    return [...new Set(list)].sort((a,b)=>a-b);
+  }
+  function updateAbsenceButtons(){
+    if(task!=='attendance')return;
+    try{
+      const absent=new Set(getAbsentNumbers());
+      section.querySelectorAll<HTMLButtonElement>('[data-absent-number]').forEach(btn=>{
+        const n=Number(btn.dataset.absentNumber);
+        const isAbsent=absent.has(n);
+        btn.setAttribute('aria-pressed',String(isAbsent));
+        btn.setAttribute('aria-label',(isAbsent?'Mark roll number ':'Mark roll number ')+n+(isAbsent?' present':' absent'));
+        btn.classList.toggle('is-absent',isAbsent);
+      });
+      const count=find<HTMLElement>('absent-count');
+      if(count)count.textContent=absent.size+' absent · '+(30-absent.size)+' present';
+    }catch(error){
+      tell(error instanceof Error?error.message:'Invalid absent number.',true);
+    }
   }
   function showRows(rows:TaskResult[]){
     results.replaceChildren();
     const fragment=document.createDocumentFragment();
-    for(const row of rows){
+    const ordered=task==='stations'?[...rows].sort((a,b)=>a.number-b.number):rows;
+    for(const row of ordered){
       const item=document.createElement('div');
-      item.className='task-result-row';
+      item.className='task-result-row'+(task==='stations'?' is-station':'');
+      if(task==='stations')item.dataset.station=String(row.number);
       const pos=document.createElement('span');
       pos.className='task-position';
-      pos.textContent=String(row.position).padStart(2,'0');
+      pos.textContent=task==='stations'?'S'+String(row.number).padStart(2,'0'):String(row.position).padStart(2,'0');
       const label=document.createElement('span');
       label.className='task-result-label';
       label.textContent=row.label;
       const number=document.createElement('strong');
       number.className='task-result-number';
       number.textContent=String(row.number);
+      if(task==='stations')number.hidden=true;
       item.append(pos,label,number);
       fragment.append(item);
     }
@@ -69,8 +112,10 @@ function init(section:HTMLElement){
       }else if(task==='stations'){
         const teams=parseParticipantNames(value('participants'),8);
         drawn=assignStations(teams);
-        setSummary(teams.length+' teams assigned to unique stations');
-        tell('Each station is allocated at most once. Export the pairing as CSV.');
+        setSummary(teams.length+' teams assigned · '+(8-teams.length)+' unassigned stations');
+        tell('Each station is allocated at most once. Copy or export the station-sorted pairing list.');
+        if(copyButton)copyButton.disabled=false;
+        if(stationHead)stationHead.hidden=false;
       }else if(task==='ten'){
         drawn=sampleNumbers(10,fullOrder?10:1,'',fullOrder);
         setSummary(fullOrder?'Your randomized order from 1 to 10': 'Picked '+drawn[0]!.number+' from 1–10');
@@ -83,8 +128,9 @@ function init(section:HTMLElement){
       }else if(task==='attendance'){
         drawn=shuffledCallOrder(30,value('absent'));
         setSummary('Ready: '+drawn.length+' present students');
-        tell('Tap “Call next student” to advance without repeats.');
+        tell('Ready to call '+drawn.length+' present students; each appears only once.');
         nextButton!.disabled=false;
+        updateProgress();
       }else if(task==='batch'){
         const count=Number(value('count'));
         const unique=find<HTMLInputElement>('unique')?.checked??true;
@@ -111,12 +157,41 @@ function init(section:HTMLElement){
     setSummary('Now calling: '+next.label+' ('+progress+' of '+drawn.length+')');
     tell(progress===drawn.length?'All present students have been called.':'Students remaining: '+(drawn.length-progress));
     nextButton.disabled=progress>=drawn.length;
+    updateProgress();
+  });
+  undoButton?.addEventListener('click',()=>{
+    if(task!=='attendance'||!drawn.length||progress<=0)return;
+    progress-=1;
+    showRows(drawn.slice(0,progress));
+    if(progress>0){
+      setSummary('Now calling: '+drawn[progress-1]!.label+' ('+progress+' of '+drawn.length+')');
+    }else{
+      setSummary('Ready: '+drawn.length+' present students');
+    }
+    tell('Last call undone. '+(drawn.length-progress)+' students remain.');
+    if(nextButton)nextButton.disabled=false;
+    updateProgress();
+  });
+  copyButton?.addEventListener('click',async()=>{
+    if(task!=='stations'||!drawn.length)return;
+    const ordered=[...drawn].sort((a,b)=>a.number-b.number);
+    const text=ordered.map(row=>'Station '+row.number+': '+row.label).join('\n');
+    try{
+      if(!navigator.clipboard?.writeText)throw new Error('Clipboard access is unavailable');
+      await navigator.clipboard.writeText(text);
+      tell('Copied all '+ordered.length+' station assignments.');
+    }catch{
+      tell('Clipboard permission unavailable. Use Download CSV instead.',true);
+    }
   });
   exportButton.addEventListener('click',()=>{
     if(!drawn.length)return;
     const cells=(values:string[])=>values.map(escapeCsvCell).join(',');
-    const header=cells(['Position','Participant or choice','Selected number']);
-    const rows=drawn.map(row=>cells([String(row.position),row.label,String(row.number)]));
+    const ordered=task==='stations'?[...drawn].sort((a,b)=>a.number-b.number):drawn;
+    const header=task==='stations'?cells(['Station','Team']):cells(['Position','Participant or choice','Selected number']);
+    const rows=task==='stations'
+      ? ordered.map(row=>cells([String(row.number),row.label]))
+      : drawn.map(row=>cells([String(row.position),row.label,String(row.number)]));
     const csv='\uFEFF'+[header,...rows].join('\r\n')+'\r\n';
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
@@ -129,10 +204,33 @@ function init(section:HTMLElement){
   section.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('.task-fields input,.task-fields textarea').forEach(input=>{
     input.addEventListener('input',()=>{
       if(drawn.length){clear();tell('Settings changed. Generate a new result.');}
+      if(input.dataset.task==='absent')updateAbsenceButtons();
     });
     input.addEventListener('change',()=>{
       if(drawn.length){clear();tell('Settings changed. Generate a new result.');}
+      if(input.dataset.task==='absent')updateAbsenceButtons();
     });
   });
+  section.querySelectorAll<HTMLButtonElement>('[data-absent-number]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      try{
+        const absent=new Set(getAbsentNumbers());
+        const number=Number(button.dataset.absentNumber);
+        if(absent.has(number))absent.delete(number);else absent.add(number);
+        const input=find<HTMLInputElement>('absent');
+        if(input)input.value=[...absent].sort((a,b)=>a-b).join(', ');
+        if(drawn.length){clear();tell('Attendance changed. Generate a fresh roll-call order.');}
+        updateAbsenceButtons();
+      }catch(error){tell(error instanceof Error?error.message:'Invalid roll numbers.',true);}
+    });
+  });
+  find<HTMLButtonElement>('clear-absent')?.addEventListener('click',()=>{
+    const input=find<HTMLInputElement>('absent');
+    if(input)input.value='';
+    if(drawn.length)clear();
+    updateAbsenceButtons();
+    tell('Everyone is marked present. Generate a new order.');
+  });
+  updateAbsenceButtons();
 }
 document.querySelectorAll<HTMLElement>('[data-number-task]').forEach(init);

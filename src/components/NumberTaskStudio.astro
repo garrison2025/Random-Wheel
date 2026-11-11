@@ -19,7 +19,7 @@ const descriptions:{[key:string]:string}={
   batch:'Draw 1–100 numbers from 1 to 1,000, with optional exclusions and repeat protection. Export the entire sample.'
 };
 ---
-<section class="number-task container" data-number-task={task} data-range={max} aria-label={titles[task]}>
+<section class="number-task container" id={task==='stations'?'station-assignment':task==='attendance'?'classroom-roll-call':undefined} data-number-task={task} data-range={max} aria-label={titles[task]}>
   <div class="task-lead">
     <span class="task-kicker">PURPOSE-BUILT ACTIVITY</span>
     <h2>{titles[task]}</h2>
@@ -45,7 +45,7 @@ Team F
 Team G
 Team H</textarea>
         </label>
-        <p class="task-hint">Each listed team receives a unique station number. Empty stations remain unassigned.</p>
+        <p class="task-hint">Every team receives one unique station. Results are listed in station order so each group can find where to go. Names stay in this page, unless you choose to copy or export them.</p>
       </div>
     )}
     {task==='roster' && (
@@ -61,7 +61,15 @@ Team H</textarea>
         <label>Absent roll numbers (optional)
           <input type="text" data-task="absent" placeholder="3, 12, 27" autocomplete="off" />
         </label>
-        <p class="task-hint">Student numbers 1–30 are included except those you exclude. Press “Call next” to advance through the shuffled list.</p>
+        <p class="task-hint">Tap any number below to mark a student absent or present, or type a comma-separated list. Each present student will be called once.</p>
+        <div class="absence-toolbar">
+          <span class="absence-caption">Who is absent today? <strong data-task="absent-count">0 absent</strong></span>
+          <button type="button" class="absence-clear" data-task="clear-absent">Everyone is here</button>
+        </div>
+        <div class="absence-grid" role="group" aria-label="Toggle absent roll numbers">
+          {Array.from({length:30},(_,i)=><button type="button" data-absent-number={i+1} aria-pressed="false" aria-label={'Mark roll number '+(i+1)+' absent'} title={'Roll number '+(i+1)}>{i+1}</button>)}
+        </div>
+        <p class="task-hint">Selected numbers will be marked “away” and excluded. Generate a new order after changing attendance.</p>
       </div>
     )}
     {task==='batch' && (
@@ -79,11 +87,21 @@ Team H</textarea>
     <div class="task-controls">
       <button type="button" data-task="generate">{task==='two'?'Decide fairly':task==='stations'?'Assign stations':task==='ten'?'Pick instantly':task==='roster'?'Shuffle call order':task==='attendance'?'Generate roll call':'Sample numbers'}</button>
       {task==='ten' && <button type="button" data-task="full-order" class="task-outline">Shuffle 1–10 order</button>}
-      {task==='attendance' && <button type="button" data-task="next" class="task-outline" disabled>Call next student</button>}
-      <button type="button" data-task="export" class="task-outline" disabled>Download CSV</button>
+      {task==='attendance' && <>
+        <button type="button" data-task="next" class="task-outline" disabled>Call next student</button>
+        <button type="button" data-task="undo" class="task-outline" disabled>Undo last call</button>
+      </>}
+      {task==='stations' && <button type="button" data-task="copy" class="task-outline" disabled>Copy assignments</button>}
+      <button type="button" data-task="export" class="task-outline" disabled>{task==='attendance'?'Download full order CSV':'Download CSV'}</button>
     </div>
     <p class="task-status" data-task="status" role="status" aria-live="polite">Ready to generate a fair result.</p>
     <div class="task-summary" data-task="summary" role="status" aria-live="polite" hidden></div>
+    {task==='attendance' && <div class="roll-progress" data-task="progress-wrap" hidden>
+      <div class="roll-progress-title"><strong data-task="progress-text">0 of 30 called</strong><span>No student repeated</span></div>
+      <progress data-task="progress" max="30" value="0" aria-label="Classroom roll-call progress"></progress>
+      <p class="task-hint">Exporting the full order will reveal numbers that have not been called yet.</p>
+    </div>}
+    {task==='stations' && <p class="task-table-head" data-task="station-head" hidden>STATION <span>ASSIGNED TEAM</span></p>}
     <div class="task-results" data-task="results" aria-label="Generated ordered results"></div>
   </div>
 </section>
