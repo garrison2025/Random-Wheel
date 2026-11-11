@@ -1,112 +1,108 @@
+
 ---
 interface Props {kind?:'custom'|'numbers'; min?:number; max?:number}
 const {kind='numbers',min=1,max=100} = Astro.props;
+const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).toFixed(3),y:(50-47.2*Math.cos(i*Math.PI/16)).toFixed(3)}));
 ---
 <div class="workbench" data-wheel-app data-kind={kind} data-min={min} data-max={max}>
-  <section class="panel stage" id="start" aria-label="Random wheel tool">
+  <section class="panel stage" id="start" aria-label="Random wheel studio">
     <div class="stage-head">
       <div class="stage-title-group">
         <span class="stage-symbol" aria-hidden="true">✳</span>
-        <div>
-          <h2>{kind==='custom'?'Your decision wheel':'Your number wheel'}</h2>
-          <span class="hint" data-role="candidate-count">Your choices are ready</span>
-        </div>
+        <div><h2>{kind==='custom'?'The decision wheel':'The number wheel'}</h2><span class="hint" data-role="candidate-count">Ready to play</span></div>
       </div>
-      <span class="tag">Ready to play</span>
+      <div class="stage-actions">
+        <div class="palette-controls" role="group" aria-label="Wheel color scheme">
+          <button type="button" data-palette="sunset" aria-pressed="true" style="--swatch:linear-gradient(135deg,#ff765a 48%,#dfff77 52%)" title="Sunset colors" aria-label="Sunset colors"></button>
+          <button type="button" data-palette="ocean" aria-pressed="false" style="--swatch:linear-gradient(135deg,#277aee 48%,#33d1c2 52%)" title="Ocean colors" aria-label="Ocean colors"></button>
+          <button type="button" data-palette="candy" aria-pressed="false" style="--swatch:linear-gradient(135deg,#ec6abc 48%,#b1a1ff 52%)" title="Candy colors" aria-label="Candy colors"></button>
+        </div>
+        <button type="button" class="stage-icon-button" data-action="fullscreen" aria-label="Toggle fullscreen wheel" title="Fullscreen">⛶</button>
+      </div>
     </div>
-    <div class="wheel-wrap" data-role="wheel-wrap" aria-label="Visual random selection wheel">
+    <div class="stage-visual-tagline">THIS ONE IS UP TO CHANCE</div>
+    <div class="wheel-wrap" data-role="wheel-wrap" aria-label="Animated random selection wheel">
+      {lights.map(p=><span class="rim-light" aria-hidden="true" style={'left:'+p.x+'%;top:'+p.y+'%'}></span>)}
       <div class="wheel-disc" data-role="wheel-disc" aria-hidden="true"></div>
       <div class="wheel-pointer" aria-hidden="true"></div>
-      <button type="button" class="wheel-center" data-action="center" aria-label="Start a random draw">
-        <span class="wheel-center-inner"><span class="wheel-center-icon" aria-hidden="true">✦</span><span data-role="center-label">SPIN</span></span>
-      </button>
-      <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">All choices included</div>
+      <button type="button" class="wheel-center" data-action="center" aria-label="Start a random draw"><span class="wheel-center-inner"><span class="wheel-center-icon" aria-hidden="true">✦</span><span data-role="center-label">SPIN</span></span></button>
+      <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Every number included</div>
     </div>
-    <p class="stage-caption">{kind==='custom'?'Tap the wheel or use the button to choose a winner.':'Each eligible number gets a fair chance. The animated wheel is optional.'}</p>
+    <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
     <div class="result-card" role="status" aria-live="polite" aria-atomic="true">
-      <div>
-        <div class="result-kicker">Your result</div>
-        <div class="result-value" data-role="result">Ready when you are</div>
-      </div>
-      <span class="result-icon" aria-hidden="true">✦</span>
+      <div><div class="result-kicker">THE WINNER IS…</div><div class="result-value" data-role="result">Ready when you are</div></div>
+      <span class="result-icon" aria-hidden="true">✴</span>
     </div>
     <div class="action-bar">
-      <button class="primary" data-action="pick" type="button">Spin the wheel <span aria-hidden="true">↗</span></button>
-      <button class="secondary" data-action="reset" type="button"><span aria-hidden="true">↻</span> Reset round</button>
+      <button class="primary" data-action="pick" type="button">✳ Spin the wheel</button>
+      <button class="secondary" data-action="reset" type="button">↻ Start over</button>
     </div>
     <p class="feedback" role="status" data-role="feedback" aria-live="polite"></p>
     <div class="history" data-role="history" aria-label="Past results">Your recent picks will appear here.</div>
   </section>
-
-  <section class="panel sidebar" aria-label="Wheel settings">
+  <section class="panel sidebar" aria-label="Customize wheel">
     <div class="sidebar-title-wrap">
-      <h2>{kind==='custom'?'Customize your wheel':'Customize your numbers'}</h2>
-      <span aria-hidden="true" style="font-size:19px;color:#7a70d9">☷</span>
+      <div><span class="sidebar-kicker">YOUR STUDIO</span><h2>{kind==='custom'?'Make it yours.':'Set your range.'}</h2></div>
+      <span style="font-size:24px;color:#f27353" aria-hidden="true">✳</span>
     </div>
-    <p class="sidebar-intro">{kind==='custom'?'Add your options and make every decision a little more fun.':'Set the range, customize your draw and choose how to reveal the result.'}</p>
-    <div class="sidebar-label">01 / Drawing mode</div>
+    <p class="sidebar-intro">{kind==='custom'?'Edit the list, pick a look and give your wheel a spin.':'Pick a range, exclude numbers and decide how to reveal the result.'}</p>
+    <div class="sidebar-label">01 — THE DRAW</div>
     <div class="segment" role="group" aria-label="Selection style">
-      <button type="button" data-mode="quick" aria-pressed={kind==='numbers'?'true':'false'}>⚡ Quick Pick</button>
-      <button type="button" data-mode="spin" aria-pressed={kind==='custom'?'true':'false'}>✳ Spin Wheel</button>
+      <button type="button" data-mode="quick" aria-pressed={kind==='numbers'?'true':'false'}>⚡ Quick pick</button>
+      <button type="button" data-mode="spin" aria-pressed={kind==='custom'?'true':'false'}>✳ Spin wheel</button>
     </div>
-    <p class="option-help"><span aria-hidden="true">✦</span> Same fair selection in either mode.</p>
-
-    {kind==='numbers' ? (
+    <p class="option-help"><span>✦</span> Both modes use the same fair random draw.</p>
+    {kind==='numbers'? (
       <>
         <div class="field">
-          <div class="sidebar-label">02 / Number range</div>
+          <div class="sidebar-label">02 — NUMBER RANGE</div>
           <div class="range-inputs">
             <div><label for="min-field">From</label><input id="min-field" data-role="min" inputmode="numeric" type="number" step="1" value={min}/></div>
             <div><label for="max-field">To</label><input id="max-field" data-role="max" inputmode="numeric" type="number" step="1" value={max}/></div>
             <div><label for="step-field">Step</label><input id="step-field" data-role="step" inputmode="numeric" type="number" min="1" step="1" value="1"/></div>
           </div>
-          <p class="field-hint">Choose any range with up to 10,000 eligible numbers.</p>
+          <p class="field-hint">Choose any range with up to 10,000 eligible values.</p>
         </div>
         <div class="field">
-          <label for="excluded-field">Exclude numbers <span style="font-weight:500;color:#a0a9bb">(optional)</span></label>
+          <label for="excluded-field">Exclude numbers <span style="font-weight:500;color:#9b979b">(optional)</span></label>
           <input id="excluded-field" data-role="excluded" type="text" placeholder="e.g. 4, 7, 12" autocomplete="off" />
-          <p class="field-hint">Separate multiple numbers with commas.</p>
+          <p class="field-hint">Separate numbers with commas.</p>
         </div>
       </>
-    ) : (
+    ):(
       <>
         <div class="field">
-          <div class="sidebar-label">02 / Your entries</div>
-          <label for="entries-field">Choices <span style="font-weight:500;color:#a0a9bb">(one per line)</span></label>
+          <div class="sidebar-label">02 — THE CHOICES</div>
+          <label for="entries-field">Entries <span style="font-weight:500;color:#9b979b">(one per line)</span></label>
           <textarea id="entries-field" data-role="entries" spellcheck="false">Alex
 Jordan
 Taylor
 Morgan
 Casey
 Sam</textarea>
-          <p class="field-hint">Tip: add <strong>| 3</strong> after a choice to give it more weight.</p>
+          <p class="field-hint">Give extra weight with <strong>| 3</strong> after a choice.</p>
         </div>
-        <div class="template-picker" aria-label="Example wheels">
-          <button type="button" data-template="teams">Teams</button>
+        <div class="template-picker" aria-label="Try a sample wheel">
+          <button type="button" data-template="teams">4 teams</button>
           <button type="button" data-template="lunch">Lunch ideas</button>
-          <button type="button" data-template="yesno">Yes or no</button>
+          <button type="button" data-template="yesno">Yes / No</button>
         </div>
         <div class="field">
-          <label for="csv-field">Import choices <span style="font-weight:500;color:#a0a9bb">(optional)</span></label>
-          <input id="csv-field" type="file" data-role="file" accept=".txt,.csv,text/plain,text/csv" />
+          <label for="csv-field">Import your list <span style="font-weight:500;color:#9b979b">(optional)</span></label>
+          <input id="csv-field" type="file" data-role="file" accept=".txt,.csv,text/plain,text/csv"/>
         </div>
       </>
     )}
-    <label class="switch-row" for="remove-field">
-      <span>Remove winner after each pick</span><input data-role="remove" type="checkbox" id="remove-field" />
-    </label>
-    <div class="sidebar-label">03 / Save & share</div>
+    <label class="switch-row" for="remove-field"><span>Remove winners after each draw</span><input data-role="remove" type="checkbox" id="remove-field"/></label>
+    <div class="sidebar-label">03 — KEEP & SHARE</div>
     <div class="small-actions">
-      <button type="button" class="secondary" data-action="save">◉ Save wheel</button>
+      <button type="button" class="secondary" data-action="save">▣ Save wheel</button>
       <button type="button" class="secondary" data-action="share">↗ Share setup</button>
       <button type="button" class="secondary" data-action="copy">▤ Copy results</button>
-      <button type="button" class="secondary" data-action="clear">↻ Clear saved</button>
+      <button type="button" class="secondary" data-action="clear">↺ Clear saved</button>
     </div>
-    <div class="copy-block">
-      <strong>Fair choices, private by design</strong>
-      <div>All draws run in your browser. Shared links include your choices, so avoid personal or sensitive information. Large ranges use a simplified visual, not a reduced candidate pool.</div>
-    </div>
-    <div class="sidebar-footnote"><span class="dot"></span> No account. No uploads. Completely free.</div>
+    <div class="copy-block"><strong>Private, fair and free</strong><div>Your list stays in your browser. A shared link contains your options—avoid including personal information.</div></div>
+    <div class="sidebar-footnote"><span class="dot"></span>No account. No uploads. Unlimited spins.</div>
   </section>
 </div>
 <script>import '../scripts/wheel.ts';</script>

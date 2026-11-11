@@ -113,3 +113,36 @@ test('capture desktop and mobile visual QA views',async({page},testInfo)=>{
   await page.goto('/random-number-wheel/1-100/');
   await page.screenshot({path:testInfo.outputPath('mobile-numbers.png'),fullPage:true,animations:'disabled'});
 });
+
+
+test('Spin Studio has contrasting editorial wheel stage and working palettes',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('h1')).toContainText('Spin the wheel');
+  await expect(page.locator('.rim-light')).toHaveCount(32);
+  const stageColor=await page.locator('.stage').evaluate(el=>getComputedStyle(el).backgroundColor);
+  expect(stageColor).toBe('rgb(25, 26, 50)');
+  const oldGradient=await page.locator('[data-role="wheel-disc"]').evaluate(el=>getComputedStyle(el).backgroundImage);
+  await page.locator('[data-palette=ocean]').click();
+  await expect(page.locator('[data-palette=ocean]')).toHaveAttribute('aria-pressed','true');
+  const newGradient=await page.locator('[data-role="wheel-disc"]').evaluate(el=>getComputedStyle(el).backgroundImage);
+  expect(oldGradient).not.toBe(newGradient);
+});
+
+test('palette is included in local save and restored on reload',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-palette=candy]').click();
+  await page.locator('[data-action=save]').click();
+  await page.reload();
+  await expect(page.locator('[data-palette=candy]')).toHaveAttribute('aria-pressed','true');
+});
+
+test('fullscreen studio can enter and exit without blocking the wheel',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-action=fullscreen]').click();
+  await expect(page.locator('.stage')).toHaveCSS('position','fixed');
+  await page.keyboard.press('Escape');
+  await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(false);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.locator('[data-action=center]').click();
+  await expect(page.locator('[data-role=result]')).not.toHaveText('Ready when you are');
+});

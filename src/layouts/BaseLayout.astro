@@ -1,5 +1,7 @@
+
 ---
 import '../styles/global.css';
+import '../styles/studio.css';
 import { SITE_NAME, DOMAIN, INDEXABLE } from '../lib/site';
 interface Props {title:string; description:string; path:string; noindex?:boolean}
 const {title,description,path,noindex=false} = Astro.props;
@@ -11,7 +13,7 @@ const robots = INDEXABLE && !noindex ? 'index, follow, max-image-preview:large' 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f7f8fc" />
+  <meta name="theme-color" content="#f7f4ec" />
   <meta name="description" content={description} />
   <meta name="robots" content={robots} />
   <title>{title} | {SITE_NAME}</title>
@@ -26,11 +28,11 @@ const robots = INDEXABLE && !noindex ? 'index, follow, max-image-preview:large' 
   <header class="site-header">
     <div class="container nav-bar">
       <a href="/" class="brand" aria-label="WheelCanvas home"><span class="brand-mark" aria-hidden="true">✳</span><span>WheelCanvas</span></a>
-      <span class="header-meta">Free & browser-based</span>
+      <span class="header-meta">Free & private</span>
       <nav class="nav-links" aria-label="Main menu">
-        <a href="/random-number-wheel/">Number wheel</a>
-        <a href="/tools/">Explore tools</a>
-        <a class="nav-cta" href="/#start">Create a wheel <span aria-hidden="true">↗</span></a>
+        <a href="/random-number-wheel/">Number picker</a>
+        <a href="/tools/">All tools</a>
+        <a class="nav-cta" href="/#start">Start spinning ↗</a>
       </nav>
     </div>
   </header>
@@ -39,15 +41,9 @@ const robots = INDEXABLE && !noindex ? 'index, follow, max-image-preview:large' 
     <div class="container foot-flex">
       <div>
         <a href="/" class="brand" aria-label="WheelCanvas home"><span class="brand-mark" aria-hidden="true">✳</span><span>WheelCanvas</span></a>
-        <p>Make fair choices feel effortless.<br />Private, browser-based random wheels — free for everyone.</p>
+        <p>Little decisions, more fun.<br />Private browser-based random wheels, no signup needed.</p>
       </div>
-      <nav aria-label="Footer navigation">
-        <a href="/tools/">All tools</a>
-        <a href="/about/">About</a>
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
-        <a href="/contact/">Contact</a>
-      </nav>
+      <nav aria-label="Footer navigation"><a href="/tools/">All tools</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a></nav>
     </div>
   </footer>
 </body>

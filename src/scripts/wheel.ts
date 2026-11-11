@@ -1,7 +1,13 @@
 
 import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, type Entry} from '../lib/random';
 
-const COLORS = ['#6957e9','#ffbb65','#40bfae','#f67f99','#558ae5','#a97bdc','#f5b157','#42bfb2'];
+const PALETTES:Record<string,string[]>={
+  sunset:['#ff765a','#fac866','#55d0b5','#a18ae9','#f398a1','#b8d4ef','#9ccd75','#f3a46e'],
+  ocean:['#2586db','#43b7b0','#9ad6e8','#4c68cd','#9dbfd7','#7fbd99','#92a9e9','#48a9d4'],
+  candy:['#e972b5','#ac94ed','#ffb7c0','#8e89e6','#fabd70','#b7a5f5','#ea8bd9','#c4d6ff']
+};
+let paletteName='sunset';
+let COLORS=PALETTES.sunset!;
 const MAX_HASH_LENGTH = 1700;
 const get = <T extends Element>(root: ParentNode, selector: string): T | null => root.querySelector<T>(selector);
 const asValue = (el: Element | null) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : '';
@@ -43,6 +49,13 @@ function init(root: HTMLElement) {
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
   const savedKey='wheelcanvas.v1.'+(isCustom?'custom':'numbers');
+  function setPalette(name:string){
+    if(!(name in PALETTES))return;
+    paletteName=name;
+    COLORS=PALETTES[name]!;
+    root.querySelectorAll<HTMLButtonElement>('[data-palette]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.palette===name)));
+    render();
+  }
 
   const status=(message:string,error=false)=>{ feedback.textContent=message;feedback.classList.toggle('error',error); };
   const setBusy=(busy:boolean)=>{
@@ -173,6 +186,20 @@ function init(root: HTMLElement) {
     }
   }
 
+  root.querySelectorAll<HTMLButtonElement>('[data-palette]').forEach(button=>button.addEventListener('click',()=>{
+    if(!locked){setPalette(button.dataset.palette||'sunset');status('New colors applied. Ready to spin.');}
+  }));
+  const fullscreenButton=get<HTMLButtonElement>(root,'[data-action="fullscreen"]');
+  const stage=get<HTMLElement>(root,'.stage');
+  fullscreenButton?.addEventListener('click',async()=>{
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else if(stage)await stage.requestFullscreen();
+    }catch{status('Fullscreen is not supported here.',true);}
+  });
+  document.addEventListener('fullscreenchange',()=>{
+    if(fullscreenButton) fullscreenButton.setAttribute('aria-label',document.fullscreenElement?'Exit fullscreen':'Toggle fullscreen wheel');
+  });
   root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
     if(locked)return;
     mode=button.dataset.mode==='spin'?'spin':'quick';
@@ -233,8 +260,8 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    return isCustom ? {type:'custom',entries:asValue(get(root,'[data-role="entries"]'))}
-      :{type:'numbers',min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),
+    return isCustom ? {type:'custom',palette:paletteName,entries:asValue(get(root,'[data-role="entries"]'))}
+      :{type:'numbers',palette:paletteName,min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),
          step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
   function applyConfig(value:unknown){
@@ -242,6 +269,7 @@ function init(root: HTMLElement) {
     const c=value as Record<string,unknown>;
     if(c.type!==(isCustom?'custom':'numbers'))throw new Error('The setup is for a different tool.');
     const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
+    if(typeof c.palette==='string')setPalette(c.palette);
     if(isCustom)setText('entries',c.entries);
     else {for(const key of ['min','max','step','excluded'])setText(key,c[key]);}
     refresh();
