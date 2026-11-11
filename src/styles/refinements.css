@@ -119,3 +119,13 @@
 }
 .tool-directory-cta a:hover{background:#edf1fc}
 @media(max-width:530px){.wheel-wrap.is-word-wheel .wheel-label{max-width:48px;font-size:.56rem}}
+
+/* Collapse optional word-list editing until the custom collection is selected. */
+.word-custom-controls[hidden]{display:none!important}
+@media(min-width:861px){
+ .workbench{align-items:start}
+ .stage{position:sticky;top:14px;min-height:0!important}
+}
+@media(max-width:860px){
+ .stage{position:relative;top:auto}
+}

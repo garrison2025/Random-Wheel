@@ -200,6 +200,11 @@ function init(root: HTMLElement) {
     disc.style.background='conic-gradient('+stops.join(',')+')';
   }
   function refresh(){
+    if(isWords){
+      const controls=get<HTMLElement>(root,'[data-role="word-custom-controls"]');
+      const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
+      if(controls)controls.hidden=category?.value!=='custom';
+    }
     try {
       entries=readChoices();
       if(!entries.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');

@@ -387,8 +387,11 @@ test('random word wheel presents five usable curated lists and supports custom w
   expect((await page.locator('.history-chip').allTextContents()).sort()).toEqual(['Apple','Banana','Cherry']);
 });
 
-test('editing the word list selects custom mode and CSV file import works',async({page})=>{
+test('custom word editing expands when selected and CSV file import works',async({page})=>{
   await page.goto('/random-word-wheel/');
+  await expect(page.locator('[data-role=word-custom-controls]')).toBeHidden();
+  await page.locator('[data-role=word-category]').selectOption('custom');
+  await expect(page.locator('[data-role=word-custom-controls]')).toBeVisible();
   await page.locator('[data-role=word-custom]').fill('Raindrop\nSunbeam');
   await expect(page.locator('[data-role=word-category]')).toHaveValue('custom');
   await expect(page.locator('[data-role=candidate-count]')).toContainText('2 active');
