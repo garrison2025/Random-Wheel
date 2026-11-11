@@ -28,6 +28,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
       <button type="button" class="wheel-center" data-action="center" aria-label="Start a random draw"><span class="wheel-center-inner"><span class="wheel-center-icon" aria-hidden="true">✦</span><span data-role="center-label">SPIN</span></span></button>
       <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Every number included</div>
     </div>
+    <div class="winner-sparks" data-role="winner-sparks" aria-hidden="true"></div>
     <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
     <a class="stage-edit-link" href="#wheel-settings">✎ Edit wheel options</a>
     <div class="result-card" role="status" aria-live="polite" aria-atomic="true">

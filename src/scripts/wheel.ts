@@ -35,6 +35,7 @@ function init(root: HTMLElement) {
   const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
   const result=get<HTMLElement>(root,'[data-role="result"]')!;
   const resultCard=get<HTMLElement>(root,'.result-card');
+  const sparks=get<HTMLElement>(root,'[data-role="winner-sparks"]');
   const feedback=get<HTMLElement>(root,'[data-role="feedback"]')!;
   const history=get<HTMLElement>(root,'[data-role="history"]')!;
   const counter=get<HTMLElement>(root,'[data-role="candidate-count"]')!;
@@ -47,6 +48,8 @@ function init(root: HTMLElement) {
   const isCustom = root.dataset.kind === 'custom';
   let mode:'quick'|'spin'=isCustom?'spin':'quick';
   let locked=false, rotation=0;
+  let sparkTimer:number|undefined;
+  let spinTimer:number|undefined;
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
@@ -60,6 +63,29 @@ function init(root: HTMLElement) {
   }
 
   const status=(message:string,error=false)=>{ feedback.textContent=message;feedback.classList.toggle('error',error); };
+  const clearSparks=()=>{
+    window.clearTimeout(sparkTimer);
+    sparks?.replaceChildren();
+  };
+  function celebrate(){
+    if(!sparks || mode!=='spin' || matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    clearSparks();
+    const pieces=document.createDocumentFragment();
+    for(let i=0;i<14;i++){
+      const part=document.createElement('span');
+      part.className='winner-spark';
+      const angle=(i*360/14)*Math.PI/180;
+      const distance=85+(i%4)*24;
+      part.style.setProperty('--dx',Math.round(Math.cos(angle)*distance)+'px');
+      part.style.setProperty('--dy',Math.round(Math.sin(angle)*distance)+'px');
+      part.style.setProperty('--turn',(180+i*53)+'deg');
+      part.style.backgroundColor=COLORS[i%COLORS.length]!;
+      part.style.animationDelay=(i%3*35)+'ms';
+      pieces.append(part);
+    }
+    sparks.append(pieces);
+    sparkTimer=window.setTimeout(clearSparks,1250);
+  }
   const setBusy=(busy:boolean)=>{
     locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
     if(centerButton) centerButton.disabled=busy;
@@ -100,6 +126,7 @@ function init(root: HTMLElement) {
   }
   const reset=(message='New round ready.')=>{
     pickedIndices=new Set();winningHistory=[];
+    clearSparks();
     result.textContent='Ready when you are';
     resultCard?.classList.remove('is-picked');
     renderHistory();status(message);
@@ -171,6 +198,7 @@ function init(root: HTMLElement) {
     const removeWinner=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
     if(removeWinner) pickedIndices.add(index);
     renderHistory();status('Draw completed with browser-based secure randomness.');
+    celebrate();
     // Hold the selected segment at the pointer until the next spin, then paint the remaining entries.
     if(mode==='quick' || !removeWinner) render();
     else counter.textContent=activeChoices().length+' choices remaining';
@@ -189,6 +217,8 @@ function init(root: HTMLElement) {
       const selected=pickEntry(active.map(a=>a.entry));
       const chosen=active[selected]!;
       setBusy(true);
+      resultCard?.classList.remove('is-picked');
+      result.textContent=mode==='spin'?'Spinning…':'Picking…';
       status(mode==='spin'?'Spinning…':'Picking…');
       if(mode==='quick' || matchMedia('(prefers-reduced-motion: reduce)').matches){
         showWinner(chosen.entry.label,chosen.index);
@@ -207,7 +237,10 @@ function init(root: HTMLElement) {
       const delta=(landing-current+360)%360;
       rotation += (5+secureIndex(3))*360+delta;
       disc.style.transform='rotate('+rotation+'deg)';
-      window.setTimeout(()=>showWinner(chosen.entry.label,chosen.index),3650);
+      spinTimer=window.setTimeout(()=>{
+        spinTimer=undefined;
+        showWinner(chosen.entry.label,chosen.index);
+      },3650);
     } catch(error){
       setBusy(false);
       status(error instanceof Error?error.message:'Random selection failed.',true);
@@ -237,6 +270,24 @@ function init(root: HTMLElement) {
   }));
   pickButton.addEventListener('click',pick);
   centerButton?.addEventListener('click',pick);
+  // A horizontal swipe on the wheel triggers a single draw. Vertical
+  // gestures are left to the browser for normal scrolling on mobile.
+  let swipeStart:{id:number;x:number;y:number;at:number}|null=null;
+  wrap.addEventListener('pointerdown',event=>{
+    if(locked || event.pointerType!=='touch' || (event.target as Element).closest('button'))return;
+    if(event.isPrimary===false)return;
+    swipeStart={id:event.pointerId,x:event.clientX,y:event.clientY,at:performance.now()};
+  });
+  wrap.addEventListener('pointerup',event=>{
+    const start=swipeStart;
+    swipeStart=null;
+    if(!start || event.pointerId!==start.id || locked)return;
+    const dx=event.clientX-start.x,dy=event.clientY-start.y;
+    if(Math.abs(dx)>=48 && Math.abs(dx)>Math.abs(dy)*1.3 && performance.now()-start.at<=1250){
+      pick();
+    }
+  });
+  wrap.addEventListener('pointercancel',()=>{swipeStart=null;});
   const templates:Record<string,string>={
     teams:'Team A\nTeam B\nTeam C\nTeam D',
     lunch:'Pizza\nSushi\nTacos\nPasta\nBurgers\nSalad',
