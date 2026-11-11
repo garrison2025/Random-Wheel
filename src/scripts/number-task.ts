@@ -10,6 +10,7 @@ function init(section:HTMLElement){
   const summary=find<HTMLElement>('summary')!;
   const results=find<HTMLElement>('results')!;
   const exportButton=find<HTMLButtonElement>('export')!;
+  const exportCalledButton=find<HTMLButtonElement>('export-called');
   const nextButton=find<HTMLButtonElement>('next');
   const undoButton=find<HTMLButtonElement>('undo');
   const copyButton=find<HTMLButtonElement>('copy');
@@ -35,10 +36,12 @@ function init(section:HTMLElement){
     progressBar.value=progress;
     progressText.textContent=progress+' of '+drawn.length+' called · '+(drawn.length-progress)+' remaining';
     if(undoButton)undoButton.disabled=progress<=0;
+    if(exportCalledButton)exportCalledButton.disabled=progress<=0;
   }
   function clear(){
     drawn=[];progress=0;
     exportButton.disabled=true;
+    if(exportCalledButton)exportCalledButton.disabled=true;
     if(nextButton)nextButton.disabled=true;
     if(undoButton)undoButton.disabled=true;
     if(copyButton)copyButton.disabled=true;
@@ -184,23 +187,37 @@ function init(section:HTMLElement){
       tell('Clipboard permission unavailable. Use Download CSV instead.',true);
     }
   });
-  exportButton.addEventListener('click',()=>{
-    if(!drawn.length)return;
+  function exportRows(calledOnly=false){
+    if(!drawn.length || (calledOnly && (!progress || task!=='attendance')))return;
     const cells=(values:string[])=>values.map(escapeCsvCell).join(',');
-    const ordered=task==='stations'?[...drawn].sort((a,b)=>a.number-b.number):drawn;
+    const ordered=calledOnly ? drawn.slice(0,progress) : task==='stations'?[...drawn].sort((a,b)=>a.number-b.number):drawn;
     const header=task==='stations'?cells(['Station','Team']):cells(['Position','Participant or choice','Selected number']);
     const rows=task==='stations'
       ? ordered.map(row=>cells([String(row.number),row.label]))
-      : drawn.map(row=>cells([String(row.position),row.label,String(row.number)]));
+      : ordered.map(row=>cells([String(row.position),row.label,String(row.number)]));
     const csv='\uFEFF'+[header,...rows].join('\r\n')+'\r\n';
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='wheelcanvas-'+task+'-results.csv';
+    a.href=url;a.download='wheelcanvas-'+task+(calledOnly?'-called':'')+'-results.csv';
     document.body.append(a);a.click();a.remove();
     window.setTimeout(()=>URL.revokeObjectURL(url),5000);
-    tell('CSV downloaded: '+drawn.length+' results.');
-  });
+    tell('CSV downloaded: '+ordered.length+' '+(calledOnly?'already-called':'total')+' results.');
+  }
+  exportButton.addEventListener('click',()=>exportRows());
+  exportCalledButton?.addEventListener('click',()=>exportRows(true));
+  if(task==='attendance'){
+    document.addEventListener('keydown',event=>{
+      if(event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.isComposing)return;
+      const target=event.target as HTMLElement|null;
+      if(target?.closest('input,textarea,select,[contenteditable="true"]'))return;
+      const key=event.key.toLowerCase();
+      const button=key==='n'?nextButton:key==='u'?undoButton:null;
+      if(!button || button.disabled || !drawn.length)return;
+      event.preventDefault();
+      button.click();
+    });
+  }
   section.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('.task-fields input,.task-fields textarea').forEach(input=>{
     input.addEventListener('input',()=>{
       if(drawn.length){clear();tell('Settings changed. Generate a new result.');}

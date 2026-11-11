@@ -181,3 +181,43 @@ test('candidate task-specific stylesheet is loaded on desktop and mobile',async(
   expect(columns).toBe(5);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
 });
+
+
+test('classroom keyboard shortcut and called-only CSV never expose future roll numbers',async({page})=>{
+  await page.goto('/random-number-wheel/1-30/');
+  const task=page.locator('[data-number-task=attendance]');
+  await task.locator('[data-task=absent]').fill('3, 12, 27');
+  await task.locator('[data-task=generate]').click();
+  await expect(task.locator('[data-task=export-called]')).toBeDisabled();
+  await task.locator('[data-task=generate]').focus();
+  await page.keyboard.press('n');
+  await page.keyboard.press('n');
+  await expect(task.locator('[data-task=progress-text]')).toContainText('2 of 27 called');
+  await page.keyboard.press('u');
+  await expect(task.locator('[data-task=progress-text]')).toContainText('1 of 27 called');
+  await task.locator('[data-task=absent]').evaluate(el=>el.dispatchEvent(
+    new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true})
+  ));
+  await expect(task.locator('[data-task=progress-text]')).toContainText('1 of 27 called');
+  const [calledOnly]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export-called]').click()]);
+  expect(calledOnly.suggestedFilename()).toBe('wheelcanvas-attendance-called-results.csv');
+  const stream=await calledOnly.createReadStream();
+  const buffers:Buffer[]=[];
+  for await(const chunk of stream)buffers.push(Buffer.from(chunk));
+  const calledLines=Buffer.concat(buffers).toString('utf8').replace(/^\uFEFF/,'').trim().split(/\r?\n/);
+  expect(calledLines).toHaveLength(2);
+  expect(calledLines[0]).toContain('Position');
+  expect(calledLines[1]).toContain('Student');
+  const [full]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export]').click()]);
+  expect(full.suggestedFilename()).toBe('wheelcanvas-attendance-results.csv');
+  const allStream=await full.createReadStream();
+  const allBuffers:Buffer[]=[];
+  for await(const chunk of allStream)allBuffers.push(Buffer.from(chunk));
+  const fullLines=Buffer.concat(allBuffers).toString('utf8').replace(/^\uFEFF/,'').trim().split(/\r?\n/);
+  expect(fullLines).toHaveLength(28);
+  expect(fullLines[1]).toBe(calledLines[1]);
+  await task.locator('[data-task=undo]').click();
+  await expect(task.locator('[data-task=export-called]')).toBeDisabled();
+  await task.locator('[data-task=absent]').fill('5');
+  await expect(task.locator('[data-task=export-called]')).toBeDisabled();
+});

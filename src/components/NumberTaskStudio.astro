@@ -92,6 +92,7 @@ Team H</textarea>
         <button type="button" data-task="undo" class="task-outline" disabled>Undo last call</button>
       </>}
       {task==='stations' && <button type="button" data-task="copy" class="task-outline" disabled>Copy assignments</button>}
+      {task==='attendance' && <button type="button" data-task="export-called" class="task-outline" disabled>Download called-only CSV</button>}
       <button type="button" data-task="export" class="task-outline" disabled>{task==='attendance'?'Download full order CSV':'Download CSV'}</button>
     </div>
     <p class="task-status" data-task="status" role="status" aria-live="polite">Ready to generate a fair result.</p>
@@ -99,7 +100,7 @@ Team H</textarea>
     {task==='attendance' && <div class="roll-progress" data-task="progress-wrap" hidden>
       <div class="roll-progress-title"><strong data-task="progress-text">0 of 30 called</strong><span>No student repeated</span></div>
       <progress data-task="progress" max="30" value="0" aria-label="Classroom roll-call progress"></progress>
-      <p class="task-hint">Exporting the full order will reveal numbers that have not been called yet.</p>
+      <p class="task-hint">Use <strong>called-only CSV</strong> to keep upcoming numbers secret. Full-order CSV includes future calls. On a keyboard, press <kbd>N</kbd> to call next or <kbd>U</kbd> to undo while you are not typing.</p>
     </div>}
     {task==='stations' && <p class="task-table-head" data-task="station-head" hidden>STATION <span>ASSIGNED TEAM</span></p>}
     <div class="task-results" data-task="results" aria-label="Generated ordered results"></div>
