@@ -61,6 +61,7 @@ export function parseEntries(input: string): Entry[] {
   return lines.map(line => {
     const parts = line.split(/\s*\|\s*/);
     if (parts.length > 2 || !parts[0] || parts[0].length > 80) throw new Error('Use a short label, optionally followed by | weight.');
+    if(parts.length===2 && !/^\d+$/.test(parts[1]||''))throw new Error('An explicit weight must be a whole number from 0 to 10000.');
     const weight = parts.length === 2 ? Number(parts[1]) : 1;
     if (!Number.isSafeInteger(weight) || weight < 0 || weight > 10000) throw new Error('Weights must be whole numbers from 0 to 10000.');
     return {label: parts[0], weight};
