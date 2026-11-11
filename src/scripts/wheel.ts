@@ -61,6 +61,7 @@ function init(root: HTMLElement) {
   let locked=false, rotation=0;
   let sparkTimer:number|undefined;
   let spinTimer:number|undefined;
+  let drawGeneration=0;
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
@@ -72,7 +73,7 @@ function init(root: HTMLElement) {
   };
   const applySpinSpeed=()=>{disc.style.transition='transform '+speedMs()+'ms cubic-bezier(.15,.85,.15,1)';};
   function setPalette(name:string){
-    if(!(name in PALETTES))return;
+    if(!Object.hasOwn(PALETTES,name) || !Array.isArray(PALETTES[name]))return;
     paletteName=name;
     COLORS=PALETTES[name]!;
     root.querySelectorAll<HTMLButtonElement>('[data-palette]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.palette===name)));
@@ -123,9 +124,16 @@ function init(root: HTMLElement) {
     );
     if(isYesNo)return yesNoChoices(asValue(get(root,'[data-role="decision-mode"]')));
     if(isWords)return wordChoices(asValue(get(root,'[data-role="word-category"]')),asValue(get(root,'[data-role="word-custom"]')));
-    const min=Number(asValue(get(root,'[data-role="min"]')));
-    const max=Number(asValue(get(root,'[data-role="max"]')));
-    const step=Number(asValue(get(root,'[data-role="step"]')));
+    const requiredNumber=(key:'min'|'max'|'step')=>{
+      const raw=asValue(get(root,'[data-role="'+key+'"]')).trim();
+      if(!raw)throw new RangeError('Enter a value for '+key+' before drawing.');
+      const n=Number(raw);
+      if(!Number.isSafeInteger(n))throw new RangeError(key+' must be a whole number.');
+      return n;
+    };
+    const min=requiredNumber('min');
+    const max=requiredNumber('max');
+    const step=requiredNumber('step');
     return numberChoices(min,max,step,parseExclusions(asValue(get(root,'[data-role="excluded"]')))).map(n=>({label:String(n),weight:1}));
   };
   function renderHistory() {
@@ -149,6 +157,8 @@ function init(root: HTMLElement) {
     }
   }
   const reset=(message='New round ready.')=>{
+    drawGeneration++;
+    window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
     pickedIndices=new Set();winningHistory=[];
     clearSparks();
     result.textContent='Ready when you are';
@@ -212,6 +222,7 @@ function init(root: HTMLElement) {
       if(!entries.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
       reset('Ready to draw.');
     } catch(error) {
+      drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
       entries=[];pickedIndices.clear();winningHistory=[];renderHistory();
       result.textContent='Check your settings';
       resultCard?.classList.remove('is-picked');
@@ -237,7 +248,7 @@ function init(root: HTMLElement) {
     root.dispatchEvent(new CustomEvent('wheelcanvas:result',{detail:{label}}));
   }
   function pick(){
-    if(locked) return;
+    if(locked || root.dataset.roundComplete==='true') return;
     try{
       entries=readChoices();
       const active=activeChoices();
@@ -287,7 +298,9 @@ function init(root: HTMLElement) {
       const delta=(landing-current+360)%360;
       rotation += (5+secureIndex(3))*360+delta;
       disc.style.transform='rotate('+rotation+'deg)';
+      const generation=drawGeneration;
       spinTimer=window.setTimeout(()=>{
+        if(generation!==drawGeneration)return;
         spinTimer=undefined;
         showWinner(chosen.entry.label,chosen.index);
       },speedMs()+50);
@@ -324,14 +337,14 @@ function init(root: HTMLElement) {
   // gestures are left to the browser for normal scrolling on mobile.
   let swipeStart:{id:number;x:number;y:number;at:number}|null=null;
   wrap.addEventListener('pointerdown',event=>{
-    if(locked || event.pointerType!=='touch' || (event.target as Element).closest('button'))return;
+    if(locked || root.dataset.roundComplete==='true' || event.pointerType!=='touch' || (event.target as Element).closest('button'))return;
     if(event.isPrimary===false)return;
     swipeStart={id:event.pointerId,x:event.clientX,y:event.clientY,at:performance.now()};
   });
   wrap.addEventListener('pointerup',event=>{
     const start=swipeStart;
     swipeStart=null;
-    if(!start || event.pointerId!==start.id || locked)return;
+    if(!start || event.pointerId!==start.id || locked || root.dataset.roundComplete==='true')return;
     const dx=event.clientX-start.x,dy=event.clientY-start.y;
     if(Math.abs(dx)>=48 && Math.abs(dx)>Math.abs(dy)*1.3 && performance.now()-start.at<=1250){
       pick();
@@ -415,11 +428,21 @@ function init(root: HTMLElement) {
     try {
       const text=await file.text();
       const rows=file.name.toLowerCase().endsWith('.csv')?csvRows(text):text.split(/\r?\n/).map(line=>[line]);
+      if(rows.length && rows[0]![0]?.trim().toLowerCase()==='name' && rows[0]![1]?.trim().toLowerCase()==='weight')rows.shift();
       if(rows.length>100)throw new Error('Import at most 100 entries.');
-      const lines=rows.filter(r=>r[0]?.trim()).map(r=>{
-        const name=r[0]!.trim();
-        return r[1]?.trim() ? name+' | '+r[1].trim() : name;
+      const lines=rows.filter(r=>r[0]?.trim()).map(row=>{
+        if(row.length>2)throw new Error('CSV should contain Name and optional Weight columns only.');
+        const name=row[0]!.trim();
+        if(/[\r\n|]/.test(name))throw new Error('A name contains a line break or |. Change it before importing to avoid altered draw probabilities.');
+        if(row.length===2){
+          const weight=(row[1]||'').trim();
+          if(!/^\d+$/.test(weight))throw new Error('CSV weights must be whole numbers.');
+          return name+' | '+weight;
+        }
+        return name;
       });
+      if(!lines.length)throw new Error('The file contains no usable entries.');
+      parseEntries(lines.join('\n'));
       const target=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
       if(target){
         target.value=lines.join('\n');
@@ -437,7 +460,7 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]'))};
+    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),remove:get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false};
     if(isCustom)return {type:'custom',...shared,entries:asValue(get(root,'[data-role="entries"]'))};
     if(isLetters)return {type:'letters',...shared,letterSet:asValue(get(root,'[data-role="letter-set"]')),letterCase:asValue(get(root,'[data-role="letter-case"]')),letterExclude:asValue(get(root,'[data-role="letter-exclude"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     if(isYesNo)return {type:'yesno',...shared,decisionMode:asValue(get(root,'[data-role="decision-mode"]'))};
@@ -449,6 +472,8 @@ function init(root: HTMLElement) {
     const c=value as Record<string,unknown>;
     const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers';
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
+    const removal=get<HTMLInputElement>(root,'[data-role="remove"]');
+    if(removal)removal.checked=c.remove===true;
     const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
     if(typeof c.palette==='string')setPalette(c.palette);
     if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
