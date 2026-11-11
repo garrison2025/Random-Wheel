@@ -1,0 +1,90 @@
+---
+interface Props {max:2|8|10|15|30|1000}
+const {max}=Astro.props;
+const task=max===2?'two':max===8?'stations':max===10?'ten':max===15?'roster':max===30?'attendance':'batch';
+const titles:{[key:string]:string}={
+  two:'Make 1 or 2 mean something',
+  stations:'Assign eight stations without repeats',
+  ten:'Instant 1–10 pick or full random order',
+  roster:'Create a fair 15-person call order',
+  attendance:'Classroom roll call with absent numbers',
+  batch:'Batch sample from 1–1,000'
+};
+const descriptions:{[key:string]:string}={
+  two:'Give each number a real-world meaning. Both options remain equally likely—there is no weighting.',
+  stations:'Paste up to eight team names. Every team gets a different station number from 1 to 8.',
+  ten:'Choose a single result instantly, or shuffle all ten positions into one random, nonrepeating order.',
+  roster:'Paste up to fifteen unique names. Create a random presentation or classroom call order you can export.',
+  attendance:'Exclude absent roll numbers, generate a complete shuffled order and call the next student one at a time.',
+  batch:'Draw 1–100 numbers from 1 to 1,000, with optional exclusions and repeat protection. Export the entire sample.'
+};
+---
+<section class="number-task container" data-number-task={task} data-range={max} aria-label={titles[task]}>
+  <div class="task-lead">
+    <span class="task-kicker">PURPOSE-BUILT ACTIVITY</span>
+    <h2>{titles[task]}</h2>
+    <p>{descriptions[task]}</p>
+  </div>
+  <div class="task-panel">
+    {task==='two' && (
+      <div class="task-fields task-two">
+        <label>Option 1<input type="text" maxlength="70" data-task="choice-a" value="Plan A" autocomplete="off"/></label>
+        <label>Option 2<input type="text" maxlength="70" data-task="choice-b" value="Plan B" autocomplete="off"/></label>
+        <p class="task-hint">Number 1 means your first option, number 2 means your second. Odds: 50% each.</p>
+      </div>
+    )}
+    {task==='stations' && (
+      <div class="task-fields">
+        <label>Teams or groups (up to 8, one per line)
+          <textarea rows="5" data-task="participants" spellcheck="false">Team A
+Team B
+Team C
+Team D
+Team E
+Team F
+Team G
+Team H</textarea>
+        </label>
+        <p class="task-hint">Each listed team receives a unique station number. Empty stations remain unassigned.</p>
+      </div>
+    )}
+    {task==='roster' && (
+      <div class="task-fields">
+        <label>Participants (up to 15, one per line)
+          <textarea rows="6" data-task="participants" spellcheck="false">{Array.from({length:15},(_,i)=>'Student '+String(i+1).padStart(2,'0')).join('\n')}</textarea>
+        </label>
+        <p class="task-hint">The names are reordered randomly; each participant appears once.</p>
+      </div>
+    )}
+    {task==='attendance' && (
+      <div class="task-fields">
+        <label>Absent roll numbers (optional)
+          <input type="text" data-task="absent" placeholder="3, 12, 27" autocomplete="off" />
+        </label>
+        <p class="task-hint">Student numbers 1–30 are included except those you exclude. Press “Call next” to advance through the shuffled list.</p>
+      </div>
+    )}
+    {task==='batch' && (
+      <div class="task-fields">
+        <div class="task-batch-grid">
+          <label>How many results?<input type="number" data-task="count" min="1" max="100" step="1" value="20"/></label>
+          <label class="task-checkbox"><input type="checkbox" data-task="unique" checked/> Without repeats</label>
+        </div>
+        <label>Exclude numbers (optional)
+          <input type="text" data-task="absent" placeholder="e.g. 14, 28, 390" autocomplete="off"/>
+        </label>
+        <p class="task-hint">Sample size is limited to 100 values per draw. This utility uses the same secure browser RNG as the main wheel.</p>
+      </div>
+    )}
+    <div class="task-controls">
+      <button type="button" data-task="generate">{task==='two'?'Decide fairly':task==='stations'?'Assign stations':task==='ten'?'Pick instantly':task==='roster'?'Shuffle call order':task==='attendance'?'Generate roll call':'Sample numbers'}</button>
+      {task==='ten' && <button type="button" data-task="full-order" class="task-outline">Shuffle 1–10 order</button>}
+      {task==='attendance' && <button type="button" data-task="next" class="task-outline" disabled>Call next student</button>}
+      <button type="button" data-task="export" class="task-outline" disabled>Download CSV</button>
+    </div>
+    <p class="task-status" data-task="status" role="status" aria-live="polite">Ready to generate a fair result.</p>
+    <div class="task-summary" data-task="summary" role="status" aria-live="polite" hidden></div>
+    <div class="task-results" data-task="results" aria-label="Generated ordered results"></div>
+  </div>
+</section>
+<script>import '../scripts/number-task.ts';</script>

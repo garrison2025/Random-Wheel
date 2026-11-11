@@ -62,3 +62,19 @@ test('word wheel custom list and a curated group work across browsers',async({pa
   await page.locator('[data-action=pick]').click();
   expect(['Alpha','Beta']).toContain((await page.locator('[data-role=result]').textContent())?.trim());
 });
+
+
+test('number workflow assignments are available in Firefox/WebKit too',async({page})=>{
+  await page.goto('/random-number-wheel/1-8/');
+  const task=page.locator('[data-number-task=stations]');
+  await task.locator('[data-task=generate]').click();
+  await expect(task.locator('.task-result-row')).toHaveCount(8);
+});
+
+test('Yes/No scores update in Firefox/WebKit too',async({page})=>{
+  await page.goto('/yes-or-no-wheel/');
+  await page.locator('[data-mode=quick]').click();
+  await page.locator('[data-action=pick]').click();
+  const values=await page.locator('[data-tally]').allTextContents();
+  expect(values.reduce((a,b)=>a+Number(b),0)).toBe(1);
+});

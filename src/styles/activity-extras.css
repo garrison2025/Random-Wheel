@@ -1,0 +1,22 @@
+/* SEO remediation — real category-game and question/tally experiences */
+.activity-special{display:grid;gap:10px;margin:15px 0 12px;padding:14px;border:1px solid #dbe2ef;border-radius:14px;background:#f6f8fe}
+.activity-special .task-kicker{font-size:.64rem;letter-spacing:.12em;color:#5c6cb9;font-weight:850}
+.activity-special label{display:block;color:#354664;font-weight:790;font-size:.76rem}
+.activity-special select,.activity-special input[type=text]{padding:11px 12px;min-height:44px;width:100%;border:1px solid #d5deee;border-radius:10px;background:#fff;font:inherit;color:#233451}
+.activity-special p{font-size:.76rem;color:#586984;line-height:1.55;margin:0}
+.activity-special button{min-height:42px;background:#4c60b4;color:#fff;border-radius:10px;border:0;padding:8px 12px;font-size:.75rem;font-weight:790;cursor:pointer}
+.activity-special button:hover{background:#3e4f9e}
+.activity-special [data-role=game-clock]{font-variant-numeric:tabular-nums;font-size:1.2rem;font-weight:850;color:#334a8c}
+.activity-special .activity-check{display:flex;gap:9px;align-items:center;padding:7px 0}
+.activity-check input{accent-color:#5260b9}
+.tally-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.tally-grid span{display:grid;gap:3px;justify-items:center;padding:10px 4px;border-radius:10px;background:#e7ecfb;font-size:.68rem;font-weight:780;color:#3b4d8b}
+.tally-grid b{font-size:1.2rem;font-weight:880;color:#1f345b}
+.question-display{font-weight:750;font-size:.85rem;color:#dfe6fc;border:1px solid #516386;border-radius:10px;padding:9px 14px;background:#293954;max-width:520px;width:100%;overflow-wrap:anywhere;margin:5px auto 10px}
+.question-display[hidden]{display:none!important}
+.task-editorial{margin:24px 0;padding:20px 22px;border-left:4px solid #6675d2;border-radius:10px;background:#f4f6fd}
+.task-editorial h3{margin-top:0}
+.task-editorial h4{font-size:1rem;margin:20px 0 4px}
+.task-editorial ol{padding-left:22px;color:#51627b;line-height:1.65}
+.task-editorial li{margin-bottom:7px}
+@media(max-width:530px){.task-editorial{padding:15px 14px}.activity-special{padding:13px}}

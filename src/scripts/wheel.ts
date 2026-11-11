@@ -153,6 +153,7 @@ function init(root: HTMLElement) {
     result.textContent='Ready when you are';
     resultCard?.classList.remove('is-picked');
     renderHistory();status(message);
+    root.dispatchEvent(new CustomEvent('wheelcanvas:reset'));
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
     render();void disc.offsetWidth;applySpinSpeed();
   };
@@ -232,6 +233,7 @@ function init(root: HTMLElement) {
     if(mode==='quick' || !removeWinner) render();
     else counter.textContent=activeChoices().length+' choices remaining';
     setBusy(false);
+    root.dispatchEvent(new CustomEvent('wheelcanvas:result',{detail:{label}}));
   }
   function pick(){
     if(locked) return;
@@ -258,6 +260,7 @@ function init(root: HTMLElement) {
         resultCard?.classList.add('is-picked');
         renderHistory();render();
         status('Generated '+values.length+' secure results'+(noRepeat?' without repeats.':'.')+' Export CSV or TXT for the full history.');
+        root.dispatchEvent(new CustomEvent('wheelcanvas:result',{detail:{label:values[0],labels:values}}));
         return;
       }
       const selected=pickEntry(active.map(a=>a.entry));

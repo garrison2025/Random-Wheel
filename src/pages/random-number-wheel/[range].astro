@@ -2,6 +2,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Workbench from '../../components/Workbench.astro';
+import NumberTaskStudio from '../../components/NumberTaskStudio.astro';
+import {NUMBER_TASK_INFO} from '../../data/number-tasks';
 import { RANGE_PAGES, type RangePage } from '../../data/ranges';
 export function getStaticPaths(){
   return RANGE_PAGES.map(page=>({params:{range:page.slug},props:{page}}));
@@ -9,6 +11,7 @@ export function getStaticPaths(){
 interface Props{page:RangePage}
 const {page}=Astro.props;
 const path='/random-number-wheel/'+page.slug+'/';
+const taskInfo=NUMBER_TASK_INFO[page.max];
 ---
 <BaseLayout noindex={page.indexApproved===false} path={path} title={page.title} description={page.description}>
   <section class="hero"><div class="container">
@@ -18,12 +21,20 @@ const path='/random-number-wheel/'+page.slug+'/';
     <div class="hero-points"><span>Fair, secure draw</span><span>Quick result or animation</span><span>All local—no login</span></div>
   </div></section>
   <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max}/></div>
+  {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 
   <section class="section"><div class="container">
     <div class="article">
       <h2>What is the 1–{page.max} picker useful for?</h2>
       <p>{page.context}</p>
       <h3>How to pick between 1 and {page.max}</h3>
       <p>{page.guide}</p>
+      {taskInfo && <section class="task-editorial">
+        <h3>{taskInfo.title}</h3>
+        <ol>{taskInfo.steps.map(step=><li>{step}</li>)}</ol>
+        <p>{taskInfo.scenario}</p>
+        <p><strong>Why this tool is different:</strong> {taskInfo.reviewNote}</p>
+        {taskInfo.faq.map(faq=><section><h4>{faq.question}</h4><p>{faq.answer}</p></section>)}
+      </section>}
       <h3>Useful tip</h3>
       <p>{page.tip}</p>
       <h3>Is each number equally likely?</h3>

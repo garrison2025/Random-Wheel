@@ -57,3 +57,8 @@ Two new static tools are built but remain explicitly noindex: `/random-letter-wh
 The repository now builds all 26 original planned HTML routes: 21 tool routes and 5 support pages. The new Random Word Wheel offers five curated English word lists, custom weighted word lists, TXT/CSV import, batch selection and local setup saving. Six additional number-range presets (1–7, 1–15, 1–30, 1–200, 1–1000, 1–10000) complete the original planning matrix.
 
 **Index policy is deliberately unchanged:** only the original 13 launch routes can appear in the sitemap with a verified official domain and indexability opt-in. Thirteen candidate routes remain hard-noindex until manually reviewed; the mere presence of a URL in code is not SEO approval. All new tools are served as static Astro pages, with no database or paid third-party dependency.
+
+
+## SEO candidate remediation
+
+Priority candidate tools now include distinct workflow experiences: binary option mapping (1–2), eight-station allocation (1–8), instant/complete ordering (1–10), named presentation roster (1–15), absence-aware progressive roll call (1–30), large batch sampling (1–1000), classroom letter challenges, and Yes/No question + tally/best-of-three. Source-level completion **does not** authorize indexing. All 13 candidate pages continue returning \`noindex\`; review \`docs/SEO-REMEDIATION-2026-11-11.md\` before changing the release gate.
