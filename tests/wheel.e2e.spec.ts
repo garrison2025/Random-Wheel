@@ -102,3 +102,14 @@ test('editing the entry list previews new wheel choices without losing focus',as
   await expect(page.locator('[data-role=candidate-count]')).toContainText('2 active');
   await expect(entry).toBeFocused();
 });
+
+test('capture desktop and mobile visual QA views',async({page},testInfo)=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/');
+  await page.screenshot({path:testInfo.outputPath('desktop-home.png'),fullPage:true,animations:'disabled'});
+  await page.setViewportSize({width:390,height:844});
+  await page.reload();
+  await page.screenshot({path:testInfo.outputPath('mobile-home.png'),fullPage:true,animations:'disabled'});
+  await page.goto('/random-number-wheel/1-100/');
+  await page.screenshot({path:testInfo.outputPath('mobile-numbers.png'),fullPage:true,animations:'disabled'});
+});
