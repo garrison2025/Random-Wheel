@@ -117,7 +117,7 @@ test('capture desktop and mobile visual QA views',async({page},testInfo)=>{
 
 test('Spin Studio has contrasting editorial wheel stage and working palettes',async({page})=>{
   await page.goto('/');
-  await expect(page.locator('h1')).toContainText('Spin the wheel');
+  await expect(page.locator('main .hero h1')).toContainText('Spin the wheel');
   await expect(page.locator('.rim-light')).toHaveCount(32);
   const stageColor=await page.locator('.stage').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(stageColor).toBe('rgb(25, 26, 50)');
