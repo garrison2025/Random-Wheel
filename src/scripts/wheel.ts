@@ -24,15 +24,15 @@ function csvRows(content: string): string[][] {
   return rows;
 }
 function init(root: HTMLElement) {
-  const disc=get<HTMLElement>(root,'[data-role="wheel-disc"]');
-  const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]');
-  const result=get<HTMLElement>(root,'[data-role="result"]');
-  const feedback=get<HTMLElement>(root,'[data-role="feedback"]');
-  const history=get<HTMLElement>(root,'[data-role="history"]');
-  const counter=get<HTMLElement>(root,'[data-role="candidate-count"]');
-  const overlay=get<HTMLElement>(root,'[data-role="wheel-overlay"]');
-  const pickButton=get<HTMLButtonElement>(root,'[data-action="pick"]');
-  const resetButton=get<HTMLButtonElement>(root,'[data-action="reset"]');
+  const disc=get<HTMLElement>(root,'[data-role="wheel-disc"]')!;
+  const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
+  const result=get<HTMLElement>(root,'[data-role="result"]')!;
+  const feedback=get<HTMLElement>(root,'[data-role="feedback"]')!;
+  const history=get<HTMLElement>(root,'[data-role="history"]')!;
+  const counter=get<HTMLElement>(root,'[data-role="candidate-count"]')!;
+  const overlay=get<HTMLElement>(root,'[data-role="wheel-overlay"]')!;
+  const pickButton=get<HTMLButtonElement>(root,'[data-action="pick"]')!;
+  const resetButton=get<HTMLButtonElement>(root,'[data-action="reset"]')!;
   if(!disc || !wrap || !result || !feedback || !history || !counter || !overlay || !pickButton || !resetButton) return;
   const isCustom = root.dataset.kind === 'custom';
   let mode:'quick'|'spin'=isCustom?'spin':'quick';
