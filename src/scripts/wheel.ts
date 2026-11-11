@@ -1,6 +1,7 @@
 
 import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, drawIndices, shuffleSecure, type Entry} from '../lib/random';
 import {historyAsCsv,historyAsText} from '../lib/export';
+import {letterChoices,yesNoChoices} from '../lib/choice-presets';
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
@@ -46,8 +47,13 @@ function init(root: HTMLElement) {
   const centerButton=get<HTMLButtonElement>(root,'[data-action="center"]');
   const centerLabel=get<HTMLElement>(root,'[data-role="center-label"]');
   if(!disc || !wrap || !result || !feedback || !history || !counter || !overlay || !pickButton || !resetButton) return;
-  const isCustom = root.dataset.kind === 'custom';
-  let mode:'quick'|'spin'=isCustom?'spin':'quick';
+  const kind=root.dataset.kind;
+  const isCustom=kind==='custom';
+  const isLetters=kind==='letters';
+  const isYesNo=kind==='yesno';
+  const isNumbers=kind==='numbers';
+  wrap.classList.toggle('is-letter-wheel',isLetters);
+  let mode:'quick'|'spin'=isNumbers?'quick':'spin';
   let locked=false, rotation=0;
   let sparkTimer:number|undefined;
   let spinTimer:number|undefined;
@@ -55,7 +61,7 @@ function init(root: HTMLElement) {
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
   // Number presets must not inherit a custom range saved on a different URL.
-  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
+  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':isLetters?'letters':isYesNo?'yesno':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
   const speedMs=()=>{
     const choice=asValue(get(root,'[data-role="speed"]'));
     return choice==='fast'?1600:choice==='slow'?5500:3600;
@@ -106,6 +112,12 @@ function init(root: HTMLElement) {
   };
   const readChoices=():Entry[]=>{
     if(isCustom) return parseEntries(asValue(get(root,'[data-role="entries"]')));
+    if(isLetters)return letterChoices(
+      asValue(get(root,'[data-role="letter-set"]')),
+      asValue(get(root,'[data-role="letter-exclude"]')),
+      asValue(get(root,'[data-role="letter-case"]'))
+    );
+    if(isYesNo)return yesNoChoices(asValue(get(root,'[data-role="decision-mode"]')));
     const min=Number(asValue(get(root,'[data-role="min"]')));
     const max=Number(asValue(get(root,'[data-role="max"]')));
     const step=Number(asValue(get(root,'[data-role="step"]')));
@@ -164,7 +176,7 @@ function init(root: HTMLElement) {
       const size=active[i]!.entry.weight/total*360;
       const start=degree;degree+=size;
       stops.push(COLORS[i%COLORS.length]+' '+start.toFixed(6)+'deg '+degree.toFixed(6)+'deg');
-      if(active.length<=12){
+      if(active.length<=12 || (isLetters && active.length<=26)){
         const at=(start+size/2)*Math.PI/180;
         const label=document.createElement('span');
         label.className='wheel-label';
@@ -175,8 +187,9 @@ function init(root: HTMLElement) {
         const light=0.2126*luminance[0]!+0.7152*luminance[1]!+0.0722*luminance[2]!;
         label.style.color=light>0.22?'#17243b':'#ffffff';
         label.style.textShadow=light>0.26?'0 1px 2px #ffffff55':'0 1px 3px #14213b99';
-        label.style.left=(50+Math.sin(at)*32)+'%';
-        label.style.top=(50-Math.cos(at)*32)+'%';
+        const radius=isLetters && active.length>12 ? 37 : 32;
+        label.style.left=(50+Math.sin(at)*radius)+'%';
+        label.style.top=(50-Math.cos(at)*radius)+'%';
         disc.append(label);
       }
     }
@@ -221,8 +234,8 @@ function init(root: HTMLElement) {
         disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
         render();void disc.offsetWidth;applySpinSpeed();
       }
-      const requested = isCustom ? 1 : Number(asValue(get(root,'[data-role="batch"]')) || '1');
-      if(!Number.isSafeInteger(requested)||requested<1||requested>100) throw new RangeError('Choose 1–100 numbers per draw.');
+      const requested = (isNumbers || isLetters) ? Number(asValue(get(root,'[data-role="batch"]')) || '1') : 1;
+      if(!Number.isSafeInteger(requested)||requested<1||requested>100) throw new RangeError('Choose 1–100 results per draw.');
       if(requested>1) {
         const noRepeat=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
         const drawn=drawIndices(active.map(a=>a.entry),requested,noRepeat);
@@ -354,7 +367,7 @@ function init(root: HTMLElement) {
     downloadResults(button.dataset.action==='export-csv'?'csv':'txt');
   }));
   let editTimer:number|undefined;
-  root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"]')
+  root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"],[data-role="letter-exclude"]')
     .forEach(el=>{
       el.addEventListener('input',()=>{
         if(locked)return;
@@ -367,6 +380,8 @@ function init(root: HTMLElement) {
       });
     });
   get<HTMLInputElement>(root,'[data-role="remove"]')?.addEventListener('change',()=>{if(!locked)reset('Removal setting changed; started a fresh round.');});
+  root.querySelectorAll<HTMLSelectElement>('[data-role="letter-set"],[data-role="letter-case"],[data-role="decision-mode"]')
+    .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
   get<HTMLInputElement>(root,'[data-role="file"]')?.addEventListener('change',async event=>{
     if(locked)return;
     const file=(event.currentTarget as HTMLInputElement).files?.[0];
@@ -390,19 +405,32 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    return isCustom ? {type:'custom',palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),entries:asValue(get(root,'[data-role="entries"]'))}
-      :{type:'numbers',palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),
-         step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
+    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]'))};
+    if(isCustom)return {type:'custom',...shared,entries:asValue(get(root,'[data-role="entries"]'))};
+    if(isLetters)return {type:'letters',...shared,letterSet:asValue(get(root,'[data-role="letter-set"]')),letterCase:asValue(get(root,'[data-role="letter-case"]')),letterExclude:asValue(get(root,'[data-role="letter-exclude"]')),batch:asValue(get(root,'[data-role="batch"]'))};
+    if(isYesNo)return {type:'yesno',...shared,decisionMode:asValue(get(root,'[data-role="decision-mode"]'))};
+    return {type:'numbers',...shared,batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
   function applyConfig(value:unknown){
     if(!value || typeof value!=='object')throw new Error('Invalid saved setup.');
     const c=value as Record<string,unknown>;
-    if(c.type!==(isCustom?'custom':'numbers'))throw new Error('The setup is for a different tool.');
+    const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':'numbers';
+    if(c.type!==expected)throw new Error('The setup is for a different tool.');
     const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
     if(typeof c.palette==='string')setPalette(c.palette);
     if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
     if(isCustom)setText('entries',c.entries);
-    else {for(const key of ['min','max','step','excluded'])setText(key,c[key]);if(typeof c.batch==='string'&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);}
+    else if(isLetters){
+      if(['all','vowels','consonants','game'].includes(String(c.letterSet)))setText('letter-set',c.letterSet);
+      if(['upper','lower'].includes(String(c.letterCase)))setText('letter-case',c.letterCase);
+      setText('letter-exclude',c.letterExclude);
+      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
+    }else if(isYesNo){
+      if(['yesno','yesnomaybe'].includes(String(c.decisionMode)))setText('decision-mode',c.decisionMode);
+    }else{
+      for(const key of ['min','max','step','excluded'])setText(key,c[key]);
+      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
+    }
     refresh();
   }
   get<HTMLButtonElement>(root,'[data-action="save"]')?.addEventListener('click',()=>{

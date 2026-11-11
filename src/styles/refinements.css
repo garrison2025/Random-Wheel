@@ -84,3 +84,24 @@
 }
 .shuffle-action{display:inline-flex;min-height:44px}
 .result-card .result-value{overflow-wrap:anywhere;word-break:break-word}
+
+
+/* V1.6: letter-wheel labels and decision controls */
+.wheel-wrap.is-letter-wheel .wheel-label {
+  font-size:clamp(.7rem,1vw,.87rem);
+  max-width:40px;
+  letter-spacing:0;
+  font-weight:900;
+}
+.decision-options{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.decision-options span{
+  display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;
+  border-radius:11px;background:#e9ecfb;color:#515bad;border:1px solid #d6ddf6;
+  font-size:.74rem;font-weight:850;letter-spacing:.04em;
+}
+.decision-options span:nth-child(2){background:#e8f4f2;border-color:#d1e8e3;color:#467e77}
+.decision-options span.maybe-chip{background:#f4ebf6;border-color:#ecdcf1;color:#986d9b}
+@media(max-width:530px){
+  .wheel-wrap.is-letter-wheel .wheel-label{font-size:.56rem;max-width:22px}
+  .decision-options span{padding:8px 11px;font-size:.7rem}
+}

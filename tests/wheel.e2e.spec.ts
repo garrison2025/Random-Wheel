@@ -182,7 +182,7 @@ test('compact two-column mobile tool navigation has no horizontal overflow',asyn
     await page.goto('/');
     const cols=await page.locator('.tool-grid').first().evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
     expect(cols).toBe(2);
-    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(11);
+    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(13);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
   }
 });
@@ -262,4 +262,86 @@ test('shuffle entries keeps all the same choices',async({page})=>{
   const names=(await page.locator('[data-role=entries]').inputValue()).split('\n');
   expect(names.slice().sort()).toEqual(['Alpha','Beta','Delta','Gamma']);
   await expect(page.locator('[data-role=candidate-count]')).toContainText('4 active');
+});
+
+
+test('letter wheel begins with 26 genuinely labeled alphabet sectors and an excluded-letter filter',async({page,request})=>{
+  const response=await request.get('/random-letter-wheel/');
+  expect(response.status()).toBe(200);
+  const html=await response.text();
+  expect(html).toContain('noindex, nofollow');
+  expect(html).toContain('<h1>Random Letter Wheel</h1>');
+  await page.goto('/random-letter-wheel/');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('26 active');
+  await expect(page.locator('.wheel-label')).toHaveCount(26);
+  await page.locator('[data-role=letter-set]').selectOption('vowels');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('5 active');
+  await page.locator('[data-role=letter-exclude]').fill('E, U');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('3 active');
+  await page.locator('[data-role=letter-case]').selectOption('lower');
+  await expect(page.locator('.wheel-label')).toHaveText(['a','i','o']);
+  await page.locator('[data-role=batch]').fill('3');
+  await page.locator('[data-role=remove]').check();
+  await page.locator('[data-action=pick]').click();
+  const result=await page.locator('.history-chip').allTextContents();
+  expect(result.sort()).toEqual(['a','i','o']);
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('0 active');
+});
+
+test('letter wheel reports when exclusions remove the entire alphabet',async({page})=>{
+  await page.goto('/random-letter-wheel/');
+  await page.locator('[data-role=letter-set]').selectOption('vowels');
+  await page.locator('[data-role=letter-exclude]').fill('A E I O U');
+  await expect(page.locator('[data-role=feedback]')).toContainText('No letters remain');
+  await page.locator('[data-action=pick]').click();
+  await expect(page.locator('.history-chip')).toHaveCount(0);
+});
+
+test('yes/no outcomes start with equal pair, then expand to equal triple',async({page,request})=>{
+  const response=await request.get('/yes-or-no-wheel/');
+  expect(response.status()).toBe(200);
+  expect(await response.text()).toContain('noindex, nofollow');
+  await page.goto('/yes-or-no-wheel/');
+  await expect(page.locator('.wheel-label')).toHaveText(['Yes','No']);
+  await page.locator('[data-role=decision-mode]').selectOption('yesnomaybe');
+  await expect(page.locator('.wheel-label')).toHaveText(['Yes','No','Maybe']);
+  await page.locator('[data-mode=quick]').click();
+  await page.locator('[data-role=remove]').check();
+  for(let i=0;i<3;i++)await page.locator('[data-action=pick]').click();
+  const outcomes=await page.locator('.history-chip').allTextContents();
+  expect(outcomes.sort()).toEqual(['Maybe','No','Yes']);
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('0 active');
+});
+
+test('letters and yes/no preferences are isolated from name and number wheels',async({page})=>{
+  await page.goto('/random-letter-wheel/');
+  await page.locator('[data-role=letter-set]').selectOption('consonants');
+  await page.locator('[data-role=letter-exclude]').fill('Q, X, Z');
+  await page.locator('[data-role=letter-case]').selectOption('lower');
+  await page.locator('[data-action=save]').click();
+  await page.reload();
+  await expect(page.locator('[data-role=letter-set]')).toHaveValue('consonants');
+  await expect(page.locator('[data-role=letter-exclude]')).toHaveValue('Q, X, Z');
+  await expect(page.locator('[data-role=letter-case]')).toHaveValue('lower');
+  await page.goto('/yes-or-no-wheel/');
+  await expect(page.locator('[data-role=decision-mode]')).toHaveValue('yesno');
+  await page.locator('[data-role=decision-mode]').selectOption('yesnomaybe');
+  await page.locator('[data-action=save]').click();
+  await page.reload();
+  await expect(page.locator('[data-role=decision-mode]')).toHaveValue('yesnomaybe');
+  await page.goto('/');
+  await expect(page.locator('[data-role=entries]')).toContainText('Alex');
+  await page.goto('/random-number-wheel/1-3/');
+  await expect(page.locator('[data-role=max]')).toHaveValue('3');
+});
+
+test('new tool screens fit 320px and 390px widths',async({page})=>{
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:780});
+    for(const path of ['/random-letter-wheel/','/yes-or-no-wheel/']){
+      await page.goto(path);
+      await expect(page.locator('[data-action=pick]')).toBeVisible();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+    }
+  }
 });

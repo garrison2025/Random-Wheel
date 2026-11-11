@@ -1,7 +1,12 @@
 
 ---
-interface Props {kind?:'custom'|'numbers'; min?:number; max?:number}
+interface Props {kind?:'custom'|'numbers'|'letters'|'yesno'; min?:number; max?:number}
 const {kind='numbers',min=1,max=100} = Astro.props;
+const isLetters=kind==='letters';
+const isYesNo=kind==='yesno';
+const studioTitle=kind==='custom'?'The decision wheel':isLetters?'The alphabet wheel':isYesNo?'The Yes / No wheel':'The number wheel';
+const controlsTitle=kind==='custom'?'Make it yours.':isLetters?'Choose your letters.':isYesNo?'Choose your answers.':'Set your range.';
+const intro=kind==='custom'?'Edit the list, pick a look and give your wheel a spin.':isLetters?'Pick the alphabet you need, leave out letters and choose fair results.':isYesNo?'Choose a 50/50 answer or include Maybe as a third equal option.':'Pick a range, exclude numbers and decide how to reveal the result.';
 const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).toFixed(3),y:(50-47.2*Math.cos(i*Math.PI/16)).toFixed(3)}));
 ---
 <div class="workbench" data-wheel-app data-kind={kind} data-min={min} data-max={max}>
@@ -9,7 +14,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
     <div class="stage-head">
       <div class="stage-title-group">
         <span class="stage-symbol" aria-hidden="true">✳</span>
-        <div><h2>{kind==='custom'?'The decision wheel':'The number wheel'}</h2><span class="hint" data-role="candidate-count">Ready to play</span></div>
+        <div><h2>{studioTitle}</h2><span class="hint" data-role="candidate-count">Ready to play</span></div>
       </div>
       <div class="stage-actions">
         <div class="palette-controls" role="group" aria-label="Wheel color scheme">
@@ -29,7 +34,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
       <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Every number included</div>
     </div>
     <div class="winner-sparks" data-role="winner-sparks" aria-hidden="true"></div>
-    <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
+    <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':isLetters?'Every visible letter has an equal chance. Try vowels or consonants for word games.':isYesNo?'A fair Yes / No decision, or three equal outcomes when Maybe is included.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
     <a class="stage-edit-link" href="#wheel-settings">✎ Edit wheel options</a>
     <div class="result-card" role="status" aria-live="polite" aria-atomic="true">
       <div><div class="result-kicker">THE WINNER IS…</div><div class="result-value" data-role="result">Ready when you are</div></div>
@@ -44,14 +49,14 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
   </section>
   <section class="panel sidebar" id="wheel-settings" aria-label="Customize wheel">
     <div class="sidebar-title-wrap">
-      <div><span class="sidebar-kicker">YOUR STUDIO</span><h2>{kind==='custom'?'Make it yours.':'Set your range.'}</h2></div>
+      <div><span class="sidebar-kicker">YOUR STUDIO</span><h2>{controlsTitle}</h2></div>
       <span style="font-size:24px;color:#6570c7" aria-hidden="true">✳</span>
     </div>
-    <p class="sidebar-intro">{kind==='custom'?'Edit the list, pick a look and give your wheel a spin.':'Pick a range, exclude numbers and decide how to reveal the result.'}</p>
+    <p class="sidebar-intro">{intro}</p>
     <div class="sidebar-label">01 — THE DRAW</div>
     <div class="segment" role="group" aria-label="Selection style">
       <button type="button" data-mode="quick" aria-pressed={kind==='numbers'?'true':'false'}>⚡ Quick pick</button>
-      <button type="button" data-mode="spin" aria-pressed={kind==='custom'?'true':'false'}>✳ Spin wheel</button>
+      <button type="button" data-mode="spin" aria-pressed={kind==='numbers'?'false':'true'}>✳ Spin wheel</button>
     </div>
     <p class="option-help"><span>✦</span> Both modes use the same fair random draw.</p>
     <div class="field">
@@ -85,6 +90,51 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
           <input id="excluded-field" data-role="excluded" type="text" placeholder="e.g. 4, 7, 12" autocomplete="off" />
           <p class="field-hint">Separate numbers with commas.</p>
         </div>
+      </>
+    ):isLetters?(
+      <>
+        <div class="field">
+          <div class="sidebar-label">02 — LETTER SET</div>
+          <label for="letter-set">Alphabet preset</label>
+          <select id="letter-set" data-role="letter-set">
+            <option value="all">A to Z · all 26 letters</option>
+            <option value="vowels">Vowels · A E I O U</option>
+            <option value="consonants">Consonants · 21 letters</option>
+            <option value="game">Category game · common starting letters</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="letter-case">Letter case</label>
+          <select id="letter-case" data-role="letter-case">
+            <option value="upper">Uppercase · A B C</option>
+            <option value="lower">Lowercase · a b c</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="letter-exclude">Leave out letters <span style="font-weight:500;color:#9b979b">(optional)</span></label>
+          <input id="letter-exclude" data-role="letter-exclude" type="text" placeholder="Q, X, Z" inputmode="text" autocomplete="off" maxlength="180"/>
+          <p class="field-hint">Comma-separated or typed together. No unavailable letters can be drawn.</p>
+        </div>
+        <div class="batch-row">
+          <div class="field">
+            <label for="batch-field">How many letters?</label>
+            <input id="batch-field" data-role="batch" type="number" min="1" max="100" value="1" step="1" inputmode="numeric"/>
+          </div>
+          <p class="field-hint">Batch draws are immediate; enable Remove winners for distinct letters.</p>
+        </div>
+      </>
+    ):isYesNo?(
+      <>
+        <div class="field">
+          <div class="sidebar-label">02 — THE ANSWERS</div>
+          <label for="decision-mode">Decision options</label>
+          <select id="decision-mode" data-role="decision-mode">
+            <option value="yesno">Yes / No · 50% each</option>
+            <option value="yesnomaybe">Yes / No / Maybe · 33.3% each</option>
+          </select>
+          <p class="field-hint">Each available answer has equal probability. This is a playful decision tool, not professional advice.</p>
+        </div>
+        <div class="decision-options" aria-hidden="true"><span>YES</span><span>NO</span><span class="maybe-chip">MAYBE</span></div>
       </>
     ):(
       <>

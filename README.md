@@ -46,3 +46,7 @@ Domain, Cloudflare production deployment, GSC data, indexing and ad approval are
 - Four P0 candidate range routes (1–2, 1–8, 1–10, 1–50) remain noindex and excluded from the approved sitemap.
 - Initial 13 approved routes plus four candidate routes are audited as 17 statically generated pages.
 - A private 898-keyword implementation/SEO coverage workbook is delivered outside the public repo; proprietary Semrush data is not committed.
+
+## V1.6 distinct-intent tools
+
+Two new static tools are built but remain explicitly noindex: `/random-letter-wheel/` with English alphabet pools, vowel/consonant filters, exclusions, case and secure batch draws; `/yes-or-no-wheel/` with fair 50/50 or equal-weight Yes/No/Maybe selection. Both retain isolated local saves, share links and results export. The sitemap's original launch whitelist is intentionally unchanged; neither candidate URL is implicitly approved for indexing.

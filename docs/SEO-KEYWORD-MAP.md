@@ -32,3 +32,14 @@ The 4 newly implemented candidate pages are `/random-number-wheel/1-2/`, `/rando
 Keyword-to-URL mapping is heuristic, not rank evidence; queries may have navigation/AI Overview/direct-answer intent. URL index policy must not be inferred from P0/P1/P2 keyword labels. The full workbook also includes original Volume, KD and competitor estimated traffic and an additional implementation status sheet.
 
 The original 13-route sitemap/index whitelist is unchanged until manually approved for production. The four candidate routes always output `noindex` even when production global index settings are later enabled.
+
+## New P1 distinct-intent tools (2026-11-11)
+
+Unlike number-range permutations, these are separate tools with distinct controls and user intents, added as **noindex** previews pending page-value and SERP review.
+
+| Candidate route | User-supplied primary keyword | US estimated monthly volume | KD | Distinct experience |
+|---|---|---:|---:|---|
+| /random-letter-wheel/ | random letter wheel | 480 | 12 | A–Z, vowels, consonants, exclusions, uppercase/lowercase and secure multi-letter draws |
+| /yes-or-no-wheel/ | yes and no wheel | 8,100 | 38 | Balanced Yes/No or Yes/No/Maybe with explicit odds and no-repeat rounds |
+
+These figures are historic user-provided US Semrush snapshots and are **not** site traffic. Both URLs remain outside the original sitemap whitelist and carry explicit `noindex` until reviewed. Never infer ranking outcomes from low KD alone. Full proprietary keyword exports remain in the owner's separate local workbook.

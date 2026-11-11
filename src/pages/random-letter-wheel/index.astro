@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Workbench from '../../components/Workbench.astro';
+---
+<BaseLayout noindex={true} path="/random-letter-wheel/" title="Random Letter Wheel — Spin A to Z, Vowels or Consonants" description="Spin a fair random letter wheel from A to Z. Choose vowels or consonants, exclude letters, draw multiple letters without repeats, and export results. Free and private.">
+  <section class="hero"><div class="container">
+    <span class="eyebrow">Free alphabet spinner · A to Z</span>
+    <h1>Random Letter Wheel</h1>
+    <p>Need a starting letter for a word game, spelling activity or writing prompt? Spin all 26 English letters, pick vowels or consonants, and leave out any letters you don't need.</p>
+    <div class="hero-points"><span>All 26 letters visible</span><span>Vowels and consonants</span><span>No-repeat rounds</span></div>
+  </div></section>
+  <div class="container main-overlap"><Workbench kind="letters"/></div>
+  <section class="section"><div class="container article">
+    <h2>Spin the alphabet, not a list of names</h2>
+    <p>The alphabet wheel starts with A through Z, showing 26 distinct equal-sized segments. Tap the center to reveal a letter or choose Quick Pick for an immediate answer. The letter wheel stays separate from your names and number wheels: switching to one tool does not change a saved setup in another.</p>
+    <h3>Choose just vowels or consonants</h3>
+    <p>Vowels includes A, E, I, O and U (five letters). Consonants includes the other 21 English alphabet letters, including Y. To make category games easier, the optional category-game preset provides a shortened set of common starting letters. These are different <em>selection pools</em>, not weighted guesses: every included letter is equally likely.</p>
+    <h3>Exclude letters or change the case</h3>
+    <p>Type Q, X and Z into Leave out letters to remove them from any current preset. The same field accepts Q X Z or QXZ. Switch to lowercase for phonics and early reading lessons. The choices refresh immediately, so you can confirm the number of eligible letters before drawing.</p>
+    <h3>Draw several letters without repeats</h3>
+    <p>Set How many letters to draw up to 100 results at once. When Remove winners is on, each letter can appear only once during the round, including a multi-letter draw. Requesting more distinct letters than remain shows an error instead of silently repeating one. Turn off Remove winners for independent draws with possible repeats. Multiple letters use Quick Pick automatically so no one has to watch a long sequence of spins.</p>
+    <h3>Useful games and classroom activities</h3>
+    <p>Use the letter chosen for a category game—name an animal, city and food beginning with that letter. For a spelling warm-up, draw a vowel and ask students to think of three words containing it. Or generate several distinct letters for a writing challenge, then download the selection history as CSV or TXT.</p>
+    <h3>How fair is the random letter wheel?</h3>
+    <p>Letter selection uses the browser’s cryptographically secure random-number API with rejection sampling. With A–Z active and no exclusions, each letter has a 1 in 26 chance in an independent draw. Spin animation follows the selected outcome; it does not decide the winner. This is a game and teaching tool, not a certified lottery system.</p>
+    <div class="related">
+      <a href="/yes-or-no-wheel/">Yes / No wheel</a>
+      <a href="/">Custom name wheel</a>
+      <a href="/random-number-wheel/">Random number wheel</a>
+    </div>
+  </div></section>
+</BaseLayout>

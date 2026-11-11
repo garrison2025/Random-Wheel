@@ -31,3 +31,22 @@ test('save and restore options without server-side accounts',async({page})=>{
   await page.reload();
   await expect(page.locator('[data-role=entries]')).toHaveValue('East\nWest');
 });
+
+
+test('letter tool can pick only vowels in all browser engines',async({page})=>{
+  await page.goto('/random-letter-wheel/');
+  await page.locator('[data-role=letter-set]').selectOption('vowels');
+  await page.locator('[data-mode=quick]').click();
+  await page.locator('[data-action=pick]').click();
+  const choice=await page.locator('[data-role=result]').textContent();
+  expect(['A','E','I','O','U']).toContain(choice);
+});
+
+test('yes/no tool can toggle to maybe and produce a valid instant draw',async({page})=>{
+  await page.goto('/yes-or-no-wheel/');
+  await page.locator('[data-role=decision-mode]').selectOption('yesnomaybe');
+  await page.locator('[data-mode=quick]').click();
+  await page.locator('[data-action=pick]').click();
+  const choice=await page.locator('[data-role=result]').textContent();
+  expect(['Yes','No','Maybe']).toContain(choice);
+});

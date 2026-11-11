@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Workbench from '../../components/Workbench.astro';
+---
+<BaseLayout noindex={true} path="/yes-or-no-wheel/" title="Yes or No Wheel — Fair 50/50 Spinner with Maybe" description="Ask a simple question and spin a fair Yes or No wheel. Use two 50/50 answers or include Maybe for three equal choices. Free, instant and private.">
+  <section class="hero"><div class="container">
+    <span class="eyebrow">Free yes or no spinner</span>
+    <h1>Yes or No Wheel</h1>
+    <p>Stuck on a small, low-stakes decision? Spin a balanced two-option wheel for Yes or No, or add Maybe when you want a third possible answer.</p>
+    <div class="hero-points"><span>50 / 50 by default</span><span>Optional Maybe</span><span>No signup</span></div>
+  </div></section>
+  <div class="container main-overlap"><Workbench kind="yesno"/></div>
+  <section class="section"><div class="container article">
+    <h2>Two equal answers or three equal answers</h2>
+    <p>The standard wheel contains exactly two outcomes: Yes and No. Each has a 50% chance on a fresh independent draw. Choose Yes / No / Maybe to split the wheel evenly between three answers; each then has a one-in-three chance. Maybe is not more likely or less likely than either other response.</p>
+    <h3>How to use the Yes / No wheel</h3>
+    <p>Think of a question that can actually be answered Yes or No—for example, “Should we play a board game tonight?” or “Do we pick the blue team first?” Keep the default two-answer mode, then press Spin Wheel to watch the result. If you need a fast answer without waiting for an animation, choose Quick Pick instead.</p>
+    <h3>What does the Maybe option do?</h3>
+    <p>Including Maybe changes the selection pool from two to three equal outcomes. It does not mean a weaker Yes or a stronger No. Use it only when postponing or reconsidering an option is a reasonable third outcome.</p>
+    <h3>Can I avoid repeating an answer?</h3>
+    <p>Yes. If you enable Remove winners, a result leaves the selection pool for the rest of the round. This is useful for demonstrating sampling without replacement, but most yes/no questions should leave Remove winners <em>off</em>, because a previous answer should not affect the next independent choice. Reset starts a new round.</p>
+    <h3>What is this wheel suitable for?</h3>
+    <p>Use it to break ties in casual games, settle playful questions, select practice activities, or make an activity choice with friends. It should not replace judgment in medical, legal, financial or safety decisions, where important information matters more than a random answer.</p>
+    <h3>Does the wheel store my questions?</h3>
+    <p>You do not have to type your question into the site. The tool performs the selection locally using the browser’s secure randomness API. You can save your answer-mode preference on this device, copy a shareable configuration link, or export a history of the outcomes. Shared setup links contain the selected configuration but no free-text question.</p>
+    <div class="related">
+      <a href="/random-letter-wheel/">Alphabet wheel</a>
+      <a href="/">Custom decision wheel</a>
+      <a href="/random-number-wheel/">Number wheel</a>
+    </div>
+  </div></section>
+</BaseLayout>
