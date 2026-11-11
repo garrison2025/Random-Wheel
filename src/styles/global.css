@@ -204,3 +204,8 @@ a:hover {color:var(--accent-dark)}
   .nav-bar{justify-content:center}
   .stage-head .tag{display:none}
 }
+
+@media(max-width:440px){
+  .nav-links a[href="/tools/"]{display:inline-flex;padding:9px 12px;border-radius:10px;background:#f0efff;color:#5c51d7;font-size:.76rem}
+  .nav-bar{justify-content:space-between}
+}

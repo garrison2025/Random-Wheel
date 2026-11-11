@@ -100,7 +100,7 @@ function init(root: HTMLElement) {
       const size=active[i]!.entry.weight/total*360;
       const start=degree;degree+=size;
       stops.push(COLORS[i%COLORS.length]+' '+start.toFixed(6)+'deg '+degree.toFixed(6)+'deg');
-      if(active.length<=24){
+      if(active.length<=12){
         const at=(start+size/2)*Math.PI/180;
         const label=document.createElement('span');
         label.className='wheel-label';
