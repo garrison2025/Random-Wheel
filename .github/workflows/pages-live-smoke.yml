@@ -1,0 +1,32 @@
+name: Cloudflare Pages live smoke
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify Cloudflare deployment has the new UI
+        env:
+          SITE: https://random-wheel-58c.pages.dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            echo "Live check attempt $attempt"
+            if curl --fail --location --silent --show-error --max-time 18 "$SITE/?sha=$GITHUB_SHA" -o /tmp/rw-home.html \
+              && grep -Fq 'Decide in seconds.' /tmp/rw-home.html \
+              && grep -Fq 'data-action="center"' /tmp/rw-home.html \
+              && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-number-wheel/1-100/?sha=$GITHUB_SHA" -o /tmp/rw-number.html \
+              && grep -Fq 'Random Number Generator 1 to 100' /tmp/rw-number.html; then
+                echo "LIVE VERIFIED: current UI and number landing page found on Cloudflare Pages"
+                echo "Homepage response bytes: $(wc -c < /tmp/rw-home.html)"
+                echo "Number page response bytes: $(wc -c < /tmp/rw-number.html)"
+                exit 0
+            fi
+            sleep 12
+          done
+          echo "Live URL not updated/accessible with expected UI during checks" >&2
+          exit 1
