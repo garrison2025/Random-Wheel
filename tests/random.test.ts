@@ -42,6 +42,9 @@ describe('safe entry parsing',()=>{
   it('rejects invalid inputs',()=>{
     expect(()=>parseEntries('')).toThrow();
     expect(()=>parseEntries('Alex | -2')).toThrow();
+    expect(()=>parseEntries('Alex |')).toThrow();
+    expect(()=>parseEntries('Alex |    ')).toThrow();
+    expect(()=>parseEntries('Alex | garbage')).toThrow();
     expect(()=>parseExclusions('4, x')).toThrow();
   });
 });
