@@ -3,8 +3,8 @@ import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, ty
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
-  sunset:['#726bc4','#72b3b3','#e7bda4','#7f9dc7','#c89dac','#b4c7ab','#8b83b9','#d3b879'],
-  ocean:['#5980bc','#8fc4bd','#9bbad8','#657cae','#b4d4d0','#b2bde0','#80a7c7','#d1e3de'],
+  sunset:['#726bc4','#72b3b3','#e7bda4','#7f9dc7','#c89dac','#b4c7ab','#a49bcf','#d3b879'],
+  ocean:['#4c72aa','#8fc4bd','#9bbad8','#526a9d','#b4d4d0','#b2bde0','#80a7c7','#d1e3de'],
   candy:['#a28fb9','#dfb0b8','#c9a4ca','#b5bde3','#e2bfb1','#9fa6c6','#c1b5d1','#decabf']
 };
 let paletteName='sunset';
@@ -123,7 +123,7 @@ function init(root: HTMLElement) {
         const r=parseInt(color.slice(1,3),16)/255,g=parseInt(color.slice(3,5),16)/255,b=parseInt(color.slice(5,7),16)/255;
         const luminance=[r,g,b].map(v=>v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4);
         const light=0.2126*luminance[0]!+0.7152*luminance[1]!+0.0722*luminance[2]!;
-        label.style.color=light>0.26?'#17243b':'#ffffff';
+        label.style.color=light>0.22?'#17243b':'#ffffff';
         label.style.textShadow=light>0.26?'0 1px 2px #ffffff55':'0 1px 3px #14213b99';
         label.style.left=(50+Math.sin(at)*32)+'%';
         label.style.top=(50-Math.cos(at)*32)+'%';

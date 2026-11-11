@@ -120,7 +120,7 @@ test('Spin Studio has contrasting editorial wheel stage and working palettes',as
   await expect(page.locator('main .hero h1')).toContainText('Spin the wheel');
   await expect(page.locator('.rim-light')).toHaveCount(32);
   const stageColor=await page.locator('.stage').evaluate(el=>getComputedStyle(el).backgroundColor);
-  expect(stageColor).toBe('rgb(25, 26, 50)');
+  expect(stageColor).toBe('rgb(23, 34, 57)');
   const oldGradient=await page.locator('[data-role="wheel-disc"]').evaluate(el=>getComputedStyle(el).backgroundImage);
   await page.locator('[data-palette=ocean]').click();
   await expect(page.locator('[data-palette=ocean]')).toHaveAttribute('aria-pressed','true');
