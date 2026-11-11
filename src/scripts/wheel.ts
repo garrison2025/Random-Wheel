@@ -2,9 +2,10 @@
 import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, type Entry} from '../lib/random';
 
 const PALETTES:Record<string,string[]>={
-  sunset:['#ff765a','#fac866','#55d0b5','#a18ae9','#f398a1','#b8d4ef','#9ccd75','#f3a46e'],
-  ocean:['#2586db','#43b7b0','#9ad6e8','#4c68cd','#9dbfd7','#7fbd99','#92a9e9','#48a9d4'],
-  candy:['#e972b5','#ac94ed','#ffb7c0','#8e89e6','#fabd70','#b7a5f5','#ea8bd9','#c4d6ff']
+  // Existing palette ids are retained for previously shared links and saved configurations.
+  sunset:['#726bc4','#72b3b3','#e7bda4','#7f9dc7','#c89dac','#b4c7ab','#8b83b9','#d3b879'],
+  ocean:['#5980bc','#8fc4bd','#9bbad8','#657cae','#b4d4d0','#b2bde0','#80a7c7','#d1e3de'],
+  candy:['#a28fb9','#dfb0b8','#c9a4ca','#b5bde3','#e2bfb1','#9fa6c6','#c1b5d1','#decabf']
 };
 let paletteName='sunset';
 let COLORS=PALETTES.sunset!;
@@ -118,6 +119,12 @@ function init(root: HTMLElement) {
         const label=document.createElement('span');
         label.className='wheel-label';
         label.textContent=active[i]!.entry.label;
+        const color=COLORS[i%COLORS.length]!;
+        const r=parseInt(color.slice(1,3),16)/255,g=parseInt(color.slice(3,5),16)/255,b=parseInt(color.slice(5,7),16)/255;
+        const luminance=[r,g,b].map(v=>v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4);
+        const light=0.2126*luminance[0]!+0.7152*luminance[1]!+0.0722*luminance[2]!;
+        label.style.color=light>0.26?'#17243b':'#ffffff';
+        label.style.textShadow=light>0.26?'0 1px 2px #ffffff55':'0 1px 3px #14213b99';
         label.style.left=(50+Math.sin(at)*32)+'%';
         label.style.top=(50-Math.cos(at)*32)+'%';
         disc.append(label);

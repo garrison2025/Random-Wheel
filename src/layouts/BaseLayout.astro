@@ -2,6 +2,7 @@
 ---
 import '../styles/global.css';
 import '../styles/studio.css';
+import '../styles/palette.css';
 import { SITE_NAME, DOMAIN, INDEXABLE } from '../lib/site';
 interface Props {title:string; description:string; path:string; noindex?:boolean}
 const {title,description,path,noindex=false} = Astro.props;
@@ -13,7 +14,7 @@ const robots = INDEXABLE && !noindex ? 'index, follow, max-image-preview:large' 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f7f4ec" />
+  <meta name="theme-color" content="#f5f7fb" />
   <meta name="description" content={description} />
   <meta name="robots" content={robots} />
   <title>{title} | {SITE_NAME}</title>

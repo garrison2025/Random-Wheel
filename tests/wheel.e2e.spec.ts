@@ -146,3 +146,16 @@ test('fullscreen studio can enter and exit without blocking the wheel',async({pa
   await page.locator('[data-action=center]').click();
   await expect(page.locator('[data-role=result]')).not.toHaveText('Ready when you are');
 });
+
+
+test('brand colors use a cohesive pale-cobalt visual system',async({page})=>{
+  await page.goto('/');
+  // Browser-native calculated color; preserve these contrast anchors during future revisions.
+  await expect(page.locator('.stage')).toHaveCSS('background-color','rgb(23, 34, 57)');
+  await expect(page.locator('.primary').first()).toHaveCSS('background-color','rgb(220, 228, 255)');
+  await expect(page.locator('[data-palette=sunset]')).toHaveAttribute('aria-label','Signature palette');
+  await page.locator('[data-palette=ocean]').click();
+  await expect(page.locator('[data-palette=ocean]')).toHaveAttribute('aria-pressed','true');
+  await page.locator('[data-palette=candy]').click();
+  await expect(page.locator('[data-palette=candy]')).toHaveAttribute('aria-pressed','true');
+});
