@@ -6,6 +6,80 @@ export type RangePage = {
 export const RANGE_PAGES: RangePage[] = [
 
   {
+    slug:'1-7',max:7,indexApproved:false,
+    title:'Random Number 1–7 | Seven-Day and Seven-Choice Picker',
+    description:'Pick a fair random number from 1 to 7 for weekly activities, seven teams or turn-taking. Use a visible spinner, exclusions and no-repeat draws.',
+    headline:'Pick a Number from 1 to 7',
+    intro:'Seven equal options, ready for weekly challenges and simple seven-way decisions.',
+    context:'Number weekdays 1–7 for a rotating activity, draw from seven discussion topics or fairly choose among seven numbered tasks.',
+    guide:'Start with numbers 1 through 7, each with the same chance. Spin to see seven sectors or use Quick Pick for an immediate result. The selected option comes from the actual active pool, even after exclusions.',
+    tip:'For a seven-day rotation with no repeats, enable Remove winners and draw up to seven numbers in one batch.',
+    queries:['pick a number 1-7','random number 1 to 7'],
+    example:'A simple seven-way decision for classroom or weekly routines.'
+  },
+  {
+    slug:'1-15',max:15,indexApproved:false,
+    title:'Random Number 1–15 | Fifteen Number Picker',
+    description:'Choose a number from 1 to 15 fairly, draw distinct numbers, or exclude unavailable items. Free online 1–15 spinner and quick picker.',
+    headline:'Random Number from 1 to 15',
+    intro:'Choose fairly among fifteen numbered prompts, people or activities.',
+    context:'Useful for small classes of 15, numbered question banks and turn-order selection where manual choices could introduce bias.',
+    guide:'All numbers 1–15 are included by default. Use Quick Pick for immediate choices, or Spin Wheel for a visual reveal. Large-option displays may simplify labels but the random draw still includes every eligible number.',
+    tip:'For no-repeat assignments across the full group, enable Remove winners and request 15 results. Export the ordered result history when finished.',
+    queries:['random number generator 1-15','pick a number 1-15'],
+    example:'Fifteen questions, prompts or numbered participants.'
+  },
+  {
+    slug:'1-30',max:30,indexApproved:false,
+    title:'Random Number 1–30 | Classroom and Number Draw',
+    description:'Pick one or more numbers from 1 to 30. Choose exclusions and without-replacement draws, or use a simplified visual wheel.',
+    headline:'Pick a Number from 1 to 30',
+    intro:'Thirty available numbers for classroom participation, numbered cards and activity draws.',
+    context:'Assign participation opportunities in a class of about thirty or select from numbered worksheet problems without favoring a particular person.',
+    guide:'Each eligible number from 1 to 30 has equal probability in a fresh independent draw. Exclude absent numbers or enable Remove winners for an allocation with no repeats.',
+    tip:'A dense 30-segment wheel can be hard to read; use Quick Pick for the fastest result and read the large winning-number card below the wheel.',
+    queries:['random number 1-30','pick a number 1-30'],
+    example:'Fair participation draws for thirty numbered slots.'
+  },
+  {
+    slug:'1-200',max:200,indexApproved:false,
+    title:'Random Number Generator 1–200 | Large Group Picker',
+    description:'Generate random numbers from 1 to 200, exclude any numbers and draw up to 100 results at once with optional no repeats.',
+    headline:'Random Number from 1 to 200',
+    intro:'A quick and fair 200-number picker for larger numbered lists.',
+    context:'Select numbered entries in surveys, choose 1 of 200 practice problems, or assign a set of different positions from a larger pool.',
+    guide:'The default selection is uniform across all 200 numbers. Because 200 small labels are unreadable in a circle, wheel mode uses a simplified animation while the winner is picked fairly from the entire range.',
+    tip:'Batch draws provide 1–100 results at once. Turn on Remove winners if your workflow requires unique numbered entries.',
+    queries:['random number 1-200','number generator 1 to 200'],
+    example:'A 200-number pool with practical batch selection.'
+  },
+  {
+    slug:'1-1000',max:1000,indexApproved:false,
+    title:'Random Number Generator 1–1000 | Secure Range Picker',
+    description:'Choose from 1 to 1000 with browser-secure randomness. Draw multiple numbers, remove repeats or exclude numbers without an account.',
+    headline:'Random Number from 1 to 1000',
+    intro:'Pick any number between 1 and 1,000 in seconds, with a readable result.',
+    context:'Useful for numbered tickets, practice question sets, experiment labels or randomized task order for hundreds of identifiers.',
+    guide:'Quick Pick samples all 1,000 numbers, not just those suggested by the simplified visual wheel. You may also draw up to 100 results in one batch and prevent repeats within a round.',
+    tip:'Export the draw history as CSV or TXT for later checks. Avoid using an unaudited online randomizer for regulated prizes or sensitive assignments.',
+    queries:['random number generator 1-1000','pick a number 1 to 1000'],
+    example:'A large pool for tickets, prompts and numbering systems.'
+  },
+  {
+    slug:'1-10000',max:10000,indexApproved:false,
+    title:'Random Number Generator 1–10000 | Large Range Picker',
+    description:'Generate an unbiased integer from 1 to 10,000 instantly. Exclude numbers, draw multiple results and export CSV or TXT.',
+    headline:'Random Number from 1 to 10000',
+    intro:'A full 10,000-number pool without a crowded wheel or paid service.',
+    context:'Choose a random row identifier, select from a numbered training dataset, or make fair picks in a large set of unique reference numbers.',
+    guide:'All ten thousand eligible integer values are included. The draw uses secure browser-generated randomness and rejection sampling, not the 12 visible slices in the simplified animation. Quick Pick is the recommended mode at this range.',
+    tip:'If you need to draw 100 unique numbers from 1–10000, enter 100 in How many numbers and enable Remove winners. Export the result history rather than copying it from the abbreviated visible preview.',
+    queries:['random number generator 1-10000','pick a number between 1 and 10000'],
+    example:'One to ten thousand, instant selection and CSV export.'
+  },
+
+
+  {
     slug:'1-2',max:2,indexApproved:false,title:'Pick a Number 1–2 | Fair Two-Choice Spinner',
     description:'Pick 1 or 2 instantly or spin a balanced two-section wheel. Repeat choices or draw without replacement for free.',
     headline:'Pick a Number from 1 to 2',intro:'Two options, equal chances. Get a clear binary decision now or reveal it with a wheel.',

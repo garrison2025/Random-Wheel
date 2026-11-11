@@ -50,3 +50,15 @@ test('yes/no tool can toggle to maybe and produce a valid instant draw',async({p
   const choice=await page.locator('[data-role=result]').textContent();
   expect(['Yes','No','Maybe']).toContain(choice);
 });
+
+
+test('word wheel custom list and a curated group work across browsers',async({page})=>{
+  await page.goto('/random-word-wheel/');
+  await page.locator('[data-role=word-category]').selectOption('story');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('12 active');
+  await page.locator('[data-role=word-category]').selectOption('custom');
+  await page.locator('[data-role=word-custom]').fill('Alpha\nBeta');
+  await page.locator('[data-mode=quick]').click();
+  await page.locator('[data-action=pick]').click();
+  expect(['Alpha','Beta']).toContain((await page.locator('[data-role=result]').textContent())?.trim());
+});

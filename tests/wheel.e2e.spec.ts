@@ -182,7 +182,7 @@ test('compact two-column mobile tool navigation has no horizontal overflow',asyn
     await page.goto('/');
     const cols=await page.locator('.tool-grid').first().evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
     expect(cols).toBe(2);
-    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(13);
+    await expect(page.locator('.tool-grid .tool-card')).toHaveCount(10);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
   }
 });
@@ -344,4 +344,95 @@ test('new tool screens fit 320px and 390px widths',async({page})=>{
       expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
     }
   }
+});
+
+
+test('all six remaining planned number presets render the right range and stay noindex',async({page,request})=>{
+  for(const max of [7,15,30,200,1000,10000]){
+    const path='/random-number-wheel/1-'+max+'/';
+    const response=await request.get(path);
+    expect(response.ok()).toBeTruthy();
+    const html=await response.text();
+    expect(html).toContain('noindex, nofollow');
+    expect(html).toContain('<h1>');
+    await page.goto(path);
+    await expect(page.locator('[data-role=min]')).toHaveValue('1');
+    await expect(page.locator('[data-role=max]')).toHaveValue(String(max));
+    await page.locator('[data-action=pick]').click();
+    const result=Number((await page.locator('[data-role=result]').textContent())?.trim());
+    expect(result).toBeGreaterThanOrEqual(1);
+    expect(result).toBeLessThanOrEqual(max);
+  }
+});
+
+test('random word wheel presents five usable curated lists and supports custom weighted words',async({page,request})=>{
+  const response=await request.get('/random-word-wheel/');
+  expect(response.status()).toBe(200);
+  expect(await response.text()).toContain('noindex, nofollow');
+  await page.goto('/random-word-wheel/');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('16 active');
+  const groups:Record<string,number>={nouns:16,verbs:16,adjectives:16,classroom:16,story:12};
+  for(const [group,total] of Object.entries(groups)){
+    await page.locator('[data-role=word-category]').selectOption(group);
+    await expect(page.locator('[data-role=candidate-count]')).toContainText(total+' active');
+    await expect(page.locator('.wheel-label')).toHaveCount(total);
+  }
+  await page.locator('[data-role=word-category]').selectOption('custom');
+  await page.locator('[data-role=word-custom]').fill('Apple | 3\nBanana\nCherry');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('3 active');
+  await expect(page.locator('.wheel-label')).toHaveText(['Apple','Banana','Cherry']);
+  await page.locator('[data-role=batch]').fill('3');
+  await page.locator('[data-role=remove]').check();
+  await page.locator('[data-action=pick]').click();
+  expect((await page.locator('.history-chip').allTextContents()).sort()).toEqual(['Apple','Banana','Cherry']);
+});
+
+test('editing the word list selects custom mode and CSV file import works',async({page})=>{
+  await page.goto('/random-word-wheel/');
+  await page.locator('[data-role=word-custom]').fill('Raindrop\nSunbeam');
+  await expect(page.locator('[data-role=word-category]')).toHaveValue('custom');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('2 active');
+  await page.locator('[data-role=file]').setInputFiles({
+    name:'prompts.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Ocean\nForest\nDesert\n','utf-8')
+  });
+  await expect(page.locator('[data-role=word-custom]')).toHaveValue('Ocean\nForest\nDesert');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('3 active');
+});
+
+test('word wheel preferences are saved independently of other wheels',async({page})=>{
+  await page.goto('/random-word-wheel/');
+  await page.locator('[data-role=word-category]').selectOption('custom');
+  await page.locator('[data-role=word-custom]').fill('Paper\nPencil\nBook');
+  await page.locator('[data-action=save]').click();
+  await page.reload();
+  await expect(page.locator('[data-role=word-category]')).toHaveValue('custom');
+  await expect(page.locator('[data-role=word-custom]')).toHaveValue('Paper\nPencil\nBook');
+  await page.goto('/');
+  await expect(page.locator('[data-role=entries]')).toContainText('Alex');
+  await page.goto('/random-letter-wheel/');
+  await expect(page.locator('[data-role=letter-set]')).toHaveValue('all');
+});
+
+test('all new tools fit narrow mobile and have download/share functionality',async({page})=>{
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:780});
+    for(const path of ['/random-word-wheel/','/random-number-wheel/1-10000/']){
+      await page.goto(path);
+      await expect(page.locator('[data-action=pick]')).toBeVisible();
+      await expect(page.locator('[data-action=export-csv]')).toBeAttached();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+    }
+  }
+});
+
+test('capture word wheel and 10000-number preset screenshots',async({page},testInfo)=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/random-word-wheel/');
+  await page.screenshot({path:testInfo.outputPath('word-wheel-desktop.png'),fullPage:true,animations:'disabled'});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/random-word-wheel/');
+  await page.screenshot({path:testInfo.outputPath('word-wheel-mobile.png'),fullPage:true,animations:'disabled'});
+  await page.goto('/random-number-wheel/1-10000/');
+  await page.screenshot({path:testInfo.outputPath('number-10000-mobile.png'),fullPage:true,animations:'disabled'});
 });

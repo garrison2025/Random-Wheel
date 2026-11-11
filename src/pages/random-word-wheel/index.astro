@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Workbench from '../../components/Workbench.astro';
+---
+<BaseLayout noindex={true} path="/random-word-wheel/" title="Random Word Wheel — Free Word Spinner and Prompt Picker" description="Spin a random word wheel with curated nouns, verbs, adjectives, classroom prompts or your own words. Fair, private, repeat-free draws and CSV export.">
+  <section class="hero"><div class="container">
+    <span class="eyebrow">Free word picker · no account needed</span>
+    <h1>Random Word Wheel</h1>
+    <p>Pick a surprise word for a classroom game, creative-writing session or group activity. Explore ready-made word collections or add a list of your own.</p>
+    <div class="hero-points"><span>Five ready-made collections</span><span>Custom lists</span><span>Secure random results</span></div>
+  </div></section>
+  <div class="container main-overlap"><Workbench kind="words"/></div>
+  <section class="section"><div class="container article">
+    <h2>More than a generic wheel with different text</h2>
+    <p>Start with five curated collections: everyday nouns, action verbs, describing adjectives, classroom prompts and short story starters. Unlike a name wheel, this tool comes ready to use without typing your own list. Each preset word has an equal chance of being selected, unless you choose a custom list and add weights yourself.</p>
+    <h3>Choose words for learning or creative writing</h3>
+    <p>Use <strong>Everyday nouns</strong> for naming games and category challenges; try <strong>Action verbs</strong> for movement prompts or grammar lessons; use <strong>Describing words</strong> to practice richer vocabulary. The classroom collection is suited to discussion turns, and the story-starter collection is designed for short imaginative writing activities.</p>
+    <h3>How to create a custom word wheel</h3>
+    <p>Choose <strong>My own words</strong>, then write one word or short phrase per line. You can also paste a list or import TXT/CSV data. The list is checked for valid entries before you draw. Optionally append <strong>| 3</strong> after a custom entry to give it three times the chance of a normal entry. Ready-made collections always use equal weights.</p>
+    <h3>Draw one word or several</h3>
+    <p>Quick Pick reveals one word immediately, while Spin Wheel animates the same fair draw. For a set of prompts, use the How many words field to request multiple picks. Enable Remove winners if you need each word only once. If there are not enough eligible words left, the tool reports the limitation instead of silently duplicating an outcome.</p>
+    <h3>Share, save and export</h3>
+    <p>Save a configuration locally in this browser, or copy a share link containing the chosen collection and—when relevant—the custom entries. Export results as CSV or TXT for your lesson plan or game. Shared links expose their encoded choices to anyone with the URL, so do not include sensitive names or private information.</p>
+    <h3>How does the random word picker work?</h3>
+    <p>All draws are selected in your own browser with the Web Crypto API and rejection sampling. Wheel animation illustrates the chosen answer rather than determining it. For many words, the visual wheel can simplify its labels while the random selection still considers every eligible item. This is an everyday selection tool, not a certified contest or gambling product.</p>
+    <div class="related">
+      <a href="/random-letter-wheel/">Alphabet wheel</a>
+      <a href="/">Custom name wheel</a>
+      <a href="/yes-or-no-wheel/">Yes or No wheel</a>
+      <a href="/random-number-wheel/">Number picker</a>
+    </div>
+  </div></section>
+</BaseLayout>

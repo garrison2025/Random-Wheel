@@ -50,3 +50,10 @@ Domain, Cloudflare production deployment, GSC data, indexing and ad approval are
 ## V1.6 distinct-intent tools
 
 Two new static tools are built but remain explicitly noindex: `/random-letter-wheel/` with English alphabet pools, vowel/consonant filters, exclusions, case and secure batch draws; `/yes-or-no-wheel/` with fair 50/50 or equal-weight Yes/No/Maybe selection. Both retain isolated local saves, share links and results export. The sitemap's original launch whitelist is intentionally unchanged; neither candidate URL is implicitly approved for indexing.
+
+
+## V1.7 — remaining planned tool routes
+
+The repository now builds all 26 original planned HTML routes: 21 tool routes and 5 support pages. The new Random Word Wheel offers five curated English word lists, custom weighted word lists, TXT/CSV import, batch selection and local setup saving. Six additional number-range presets (1–7, 1–15, 1–30, 1–200, 1–1000, 1–10000) complete the original planning matrix.
+
+**Index policy is deliberately unchanged:** only the original 13 launch routes can appear in the sitemap with a verified official domain and indexability opt-in. Thirteen candidate routes remain hard-noindex until manually reviewed; the mere presence of a URL in code is not SEO approval. All new tools are served as static Astro pages, with no database or paid third-party dependency.

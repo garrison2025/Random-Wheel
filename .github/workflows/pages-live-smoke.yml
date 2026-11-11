@@ -33,9 +33,14 @@ jobs:
               && curl --fail --location --silent --show-error --max-time 18 "$SITE/yes-or-no-wheel/?sha=$GITHUB_SHA" -o /tmp/rw-yesno.html \
               && grep -Fq 'Yes or No Wheel' /tmp/rw-yesno.html \
               && grep -Fq 'data-role="decision-mode"' /tmp/rw-yesno.html \
-              && grep -Fq 'noindex, nofollow' /tmp/rw-yesno.html; then
+              && grep -Fq 'noindex, nofollow' /tmp/rw-yesno.html \
+              && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-word-wheel/?sha=$GITHUB_SHA" -o /tmp/rw-words.html \
+              && grep -Fq 'Random Word Wheel' /tmp/rw-words.html \
+              && grep -Fq 'data-role="word-category"' /tmp/rw-words.html \
+              && grep -Fq 'data-role="word-custom"' /tmp/rw-words.html \
+              && grep -Fq 'noindex, nofollow' /tmp/rw-words.html; then
                 all_ok=1
-                for preset in '1-2:2' '1-8:8' '1-10:10' '1-50:50'; do
+                for preset in '1-2:2' '1-8:8' '1-10:10' '1-50:50' '1-7:7' '1-15:15' '1-30:30' '1-200:200' '1-1000:1000' '1-10000:10000'; do
                   slug="${preset%%:*}"
                   maximum="${preset##*:}"
                   page="/tmp/rw-${slug}.html"
@@ -48,7 +53,7 @@ jobs:
                   fi
                 done
                 if [ "$all_ok" -ne 1 ]; then sleep 12; continue; fi
-                echo "LIVE VERIFIED: 4 number candidates plus letter/yes-no candidates (all noindex), with live controls"
+                echo "LIVE VERIFIED: 10 number candidate pages + word/letter/yes-no pages hard-noindex and all configured controls present"
                 echo "Homepage response bytes: $(wc -c < /tmp/rw-home.html)"
                 echo "Number page response bytes: $(wc -c < /tmp/rw-number.html)"
                 exit 0

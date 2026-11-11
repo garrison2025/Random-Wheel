@@ -1,12 +1,13 @@
 
 ---
-interface Props {kind?:'custom'|'numbers'|'letters'|'yesno'; min?:number; max?:number}
+interface Props {kind?:'custom'|'numbers'|'letters'|'yesno'|'words'; min?:number; max?:number}
 const {kind='numbers',min=1,max=100} = Astro.props;
 const isLetters=kind==='letters';
 const isYesNo=kind==='yesno';
-const studioTitle=kind==='custom'?'The decision wheel':isLetters?'The alphabet wheel':isYesNo?'The Yes / No wheel':'The number wheel';
-const controlsTitle=kind==='custom'?'Make it yours.':isLetters?'Choose your letters.':isYesNo?'Choose your answers.':'Set your range.';
-const intro=kind==='custom'?'Edit the list, pick a look and give your wheel a spin.':isLetters?'Pick the alphabet you need, leave out letters and choose fair results.':isYesNo?'Choose a 50/50 answer or include Maybe as a third equal option.':'Pick a range, exclude numbers and decide how to reveal the result.';
+const isWords=kind==='words';
+const studioTitle=kind==='custom'?'The decision wheel':isLetters?'The alphabet wheel':isYesNo?'The Yes / No wheel':isWords?'The word wheel':'The number wheel';
+const controlsTitle=kind==='custom'?'Make it yours.':isLetters?'Choose your letters.':isYesNo?'Choose your answers.':isWords?'Find your next word.':'Set your range.';
+const intro=kind==='custom'?'Edit the list, pick a look and give your wheel a spin.':isLetters?'Pick the alphabet you need, leave out letters and choose fair results.':isYesNo?'Choose a 50/50 answer or include Maybe as a third equal option.':isWords?'Spin curated words, or create a personal word list for a game or writing prompt.':'Pick a range, exclude numbers and decide how to reveal the result.';
 const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).toFixed(3),y:(50-47.2*Math.cos(i*Math.PI/16)).toFixed(3)}));
 ---
 <div class="workbench" data-wheel-app data-kind={kind} data-min={min} data-max={max}>
@@ -34,7 +35,7 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
       <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Every number included</div>
     </div>
     <div class="winner-sparks" data-role="winner-sparks" aria-hidden="true"></div>
-    <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':isLetters?'Every visible letter has an equal chance. Try vowels or consonants for word games.':isYesNo?'A fair Yes / No decision, or three equal outcomes when Maybe is included.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
+    <p class="stage-caption">{kind==='custom'?'Tap the center or press Spin to reveal your next pick.':isLetters?'Every visible letter has an equal chance. Try vowels or consonants for word games.':isYesNo?'A fair Yes / No decision, or three equal outcomes when Maybe is included.':isWords?'Every active word has its own chance. Create a writing prompt or pick a word for your group.':'All eligible numbers are included—even when the wheel is visually simplified.'}</p>
     <a class="stage-edit-link" href="#wheel-settings">✎ Edit wheel options</a>
     <div class="result-card" role="status" aria-live="polite" aria-atomic="true">
       <div><div class="result-kicker">THE WINNER IS…</div><div class="result-value" data-role="result">Ready when you are</div></div>
@@ -121,6 +122,46 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
             <input id="batch-field" data-role="batch" type="number" min="1" max="100" value="1" step="1" inputmode="numeric"/>
           </div>
           <p class="field-hint">Batch draws are immediate; enable Remove winners for distinct letters.</p>
+        </div>
+      </>
+    ):isWords?(
+      <>
+        <div class="field">
+          <div class="sidebar-label">02 — YOUR WORDS</div>
+          <label for="word-category">Word collection</label>
+          <select id="word-category" data-role="word-category">
+            <option value="nouns">Everyday nouns · 16 words</option>
+            <option value="verbs">Action verbs · 16 words</option>
+            <option value="adjectives">Describing words · 16 words</option>
+            <option value="classroom">Classroom prompts · 16 words</option>
+            <option value="story">Story starters · 12 prompts</option>
+            <option value="custom">My own words · editable list</option>
+          </select>
+          <p class="field-hint">Preset collections use equal chances; your custom list can use optional weights.</p>
+        </div>
+        <div class="field">
+          <label for="word-custom">Your custom word list <span style="font-weight:500;color:#9b979b">(one per line)</span></label>
+          <textarea id="word-custom" data-role="word-custom" spellcheck="false" rows="6">Sunshine
+Adventure
+Kindness
+Discovery
+Wonder
+Harmony</textarea>
+          <p class="field-hint">Select “My own words” to use these. Add <strong>| 3</strong> after a word to weight it three times more.</p>
+        </div>
+        <div class="field">
+          <button type="button" class="secondary shuffle-action" data-action="shuffle">⤨ Shuffle custom list</button>
+        </div>
+        <div class="batch-row">
+          <div class="field">
+            <label for="batch-field">How many words?</label>
+            <input id="batch-field" data-role="batch" type="number" min="1" max="100" value="1" step="1" inputmode="numeric"/>
+          </div>
+          <p class="field-hint">Draw up to 100 words. Enable Remove winners for unique results until the collection is exhausted.</p>
+        </div>
+        <div class="field">
+          <label for="word-file">Import a list <span style="font-weight:500;color:#9b979b">(TXT or CSV)</span></label>
+          <input id="word-file" type="file" data-role="file" accept=".txt,.csv,text/plain,text/csv"/>
         </div>
       </>
     ):isYesNo?(

@@ -105,3 +105,17 @@
   .wheel-wrap.is-letter-wheel .wheel-label{font-size:.56rem;max-width:22px}
   .decision-options span{padding:8px 11px;font-size:.7rem}
 }
+
+/* V1.7: word-wheel layout and compact directory access */
+.wheel-wrap.is-word-wheel .wheel-label{
+  max-width:83px;font-size:clamp(.57rem,.85vw,.76rem);line-height:1.12;
+  overflow-wrap:anywhere;word-break:normal;
+}
+.tool-directory-cta{text-align:center;margin:23px 0 0}
+.tool-directory-cta a{
+  display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;
+  border:1px solid #d7dded;border-radius:12px;background:#fff;
+  color:#4c5bac;font-weight:800;text-decoration:none
+}
+.tool-directory-cta a:hover{background:#edf1fc}
+@media(max-width:530px){.wheel-wrap.is-word-wheel .wheel-label{max-width:48px;font-size:.56rem}}

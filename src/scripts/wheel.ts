@@ -2,6 +2,7 @@
 import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, drawIndices, shuffleSecure, type Entry} from '../lib/random';
 import {historyAsCsv,historyAsText} from '../lib/export';
 import {letterChoices,yesNoChoices} from '../lib/choice-presets';
+import {wordChoices} from '../lib/word-presets';
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
@@ -51,7 +52,9 @@ function init(root: HTMLElement) {
   const isCustom=kind==='custom';
   const isLetters=kind==='letters';
   const isYesNo=kind==='yesno';
+  const isWords=kind==='words';
   const isNumbers=kind==='numbers';
+  wrap.classList.toggle('is-word-wheel',isWords);
   wrap.classList.toggle('is-letter-wheel',isLetters);
   let mode:'quick'|'spin'=isNumbers?'quick':'spin';
   let locked=false, rotation=0;
@@ -61,7 +64,7 @@ function init(root: HTMLElement) {
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
   // Number presets must not inherit a custom range saved on a different URL.
-  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':isLetters?'letters':isYesNo?'yesno':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
+  const savedKey='wheelcanvas.v1.'+(isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
   const speedMs=()=>{
     const choice=asValue(get(root,'[data-role="speed"]'));
     return choice==='fast'?1600:choice==='slow'?5500:3600;
@@ -118,6 +121,7 @@ function init(root: HTMLElement) {
       asValue(get(root,'[data-role="letter-case"]'))
     );
     if(isYesNo)return yesNoChoices(asValue(get(root,'[data-role="decision-mode"]')));
+    if(isWords)return wordChoices(asValue(get(root,'[data-role="word-category"]')),asValue(get(root,'[data-role="word-custom"]')));
     const min=Number(asValue(get(root,'[data-role="min"]')));
     const max=Number(asValue(get(root,'[data-role="max"]')));
     const step=Number(asValue(get(root,'[data-role="step"]')));
@@ -176,7 +180,7 @@ function init(root: HTMLElement) {
       const size=active[i]!.entry.weight/total*360;
       const start=degree;degree+=size;
       stops.push(COLORS[i%COLORS.length]+' '+start.toFixed(6)+'deg '+degree.toFixed(6)+'deg');
-      if(active.length<=12 || (isLetters && active.length<=26)){
+      if(active.length<=12 || (isLetters && active.length<=26) || (isWords && active.length<=16)){
         const at=(start+size/2)*Math.PI/180;
         const label=document.createElement('span');
         label.className='wheel-label';
@@ -187,7 +191,7 @@ function init(root: HTMLElement) {
         const light=0.2126*luminance[0]!+0.7152*luminance[1]!+0.0722*luminance[2]!;
         label.style.color=light>0.22?'#17243b':'#ffffff';
         label.style.textShadow=light>0.26?'0 1px 2px #ffffff55':'0 1px 3px #14213b99';
-        const radius=isLetters && active.length>12 ? 37 : 32;
+        const radius=(isLetters || isWords) && active.length>12 ? 37 : 32;
         label.style.left=(50+Math.sin(at)*radius)+'%';
         label.style.top=(50-Math.cos(at)*radius)+'%';
         disc.append(label);
@@ -234,7 +238,7 @@ function init(root: HTMLElement) {
         disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
         render();void disc.offsetWidth;applySpinSpeed();
       }
-      const requested = (isNumbers || isLetters) ? Number(asValue(get(root,'[data-role="batch"]')) || '1') : 1;
+      const requested = (isNumbers || isLetters || isWords) ? Number(asValue(get(root,'[data-role="batch"]')) || '1') : 1;
       if(!Number.isSafeInteger(requested)||requested<1||requested>100) throw new RangeError('Choose 1–100 results per draw.');
       if(requested>1) {
         const noRepeat=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
@@ -344,11 +348,18 @@ function init(root: HTMLElement) {
   });
   get<HTMLButtonElement>(root,'[data-action="shuffle"]')?.addEventListener('click',()=>{
     if(locked)return;
-    const textarea=get<HTMLTextAreaElement>(root,'[data-role="entries"]');
+    const textarea=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
     if(!textarea)return;
     const lines=textarea.value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
     if(lines.length<2){status('Add at least two entries to shuffle.',true);return;}
-    try{textarea.value=shuffleSecure(lines).join('\n');refresh();status('Choices securely shuffled.');}
+    try{
+      textarea.value=shuffleSecure(lines).join('\n');
+      if(isWords){
+        const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
+        if(category)category.value='custom';
+      }
+      refresh();status('Choices securely shuffled.');
+    }
     catch(error){status(error instanceof Error?error.message:'Could not shuffle entries.',true);}
   });
   function downloadResults(type:'csv'|'txt'){
@@ -367,7 +378,7 @@ function init(root: HTMLElement) {
     downloadResults(button.dataset.action==='export-csv'?'csv':'txt');
   }));
   let editTimer:number|undefined;
-  root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"],[data-role="letter-exclude"]')
+  root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"],[data-role="letter-exclude"],[data-role="word-custom"]')
     .forEach(el=>{
       el.addEventListener('input',()=>{
         if(locked)return;
@@ -379,8 +390,13 @@ function init(root: HTMLElement) {
         if(!locked)refresh();
       });
     });
+  get<HTMLTextAreaElement>(root,'[data-role="word-custom"]')?.addEventListener('input',()=>{
+    if(locked)return;
+    const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
+    if(category && category.value!=='custom'){category.value='custom';}
+  });
   get<HTMLInputElement>(root,'[data-role="remove"]')?.addEventListener('change',()=>{if(!locked)reset('Removal setting changed; started a fresh round.');});
-  root.querySelectorAll<HTMLSelectElement>('[data-role="letter-set"],[data-role="letter-case"],[data-role="decision-mode"]')
+  root.querySelectorAll<HTMLSelectElement>('[data-role="letter-set"],[data-role="letter-case"],[data-role="decision-mode"],[data-role="word-category"]')
     .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
   get<HTMLInputElement>(root,'[data-role="file"]')?.addEventListener('change',async event=>{
     if(locked)return;
@@ -395,8 +411,15 @@ function init(root: HTMLElement) {
         const name=r[0]!.trim();
         return r[1]?.trim() ? name+' | '+r[1].trim() : name;
       });
-      const target=get<HTMLTextAreaElement>(root,'[data-role="entries"]');
-      if(target){target.value=lines.join('\n');refresh();}
+      const target=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
+      if(target){
+        target.value=lines.join('\n');
+        if(isWords){
+          const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
+          if(category)category.value='custom';
+        }
+        refresh();
+      }
     } catch(error){status(error instanceof Error?error.message:'Could not read the file.',true);}
   });
   get<HTMLButtonElement>(root,'[data-action="copy"]')?.addEventListener('click',async()=>{
@@ -409,12 +432,13 @@ function init(root: HTMLElement) {
     if(isCustom)return {type:'custom',...shared,entries:asValue(get(root,'[data-role="entries"]'))};
     if(isLetters)return {type:'letters',...shared,letterSet:asValue(get(root,'[data-role="letter-set"]')),letterCase:asValue(get(root,'[data-role="letter-case"]')),letterExclude:asValue(get(root,'[data-role="letter-exclude"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     if(isYesNo)return {type:'yesno',...shared,decisionMode:asValue(get(root,'[data-role="decision-mode"]'))};
+    if(isWords)return {type:'words',...shared,wordCategory:asValue(get(root,'[data-role="word-category"]')),wordCustom:asValue(get(root,'[data-role="word-custom"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     return {type:'numbers',...shared,batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
   function applyConfig(value:unknown){
     if(!value || typeof value!=='object')throw new Error('Invalid saved setup.');
     const c=value as Record<string,unknown>;
-    const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':'numbers';
+    const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers';
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
     const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
     if(typeof c.palette==='string')setPalette(c.palette);
@@ -427,6 +451,10 @@ function init(root: HTMLElement) {
       if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
     }else if(isYesNo){
       if(['yesno','yesnomaybe'].includes(String(c.decisionMode)))setText('decision-mode',c.decisionMode);
+    }else if(isWords){
+      if(['nouns','verbs','adjectives','classroom','story','custom'].includes(String(c.wordCategory)))setText('word-category',c.wordCategory);
+      setText('word-custom',c.wordCustom);
+      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
     }else{
       for(const key of ['min','max','step','excluded'])setText(key,c[key]);
       if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
