@@ -64,3 +64,44 @@ test('completed Yes/No round rejects wheel swipe as well as click',async({page})
   });
   expect(await page.locator('[data-tally]').allTextContents()).toEqual(count);
 });
+
+test('blank batch size does not silently draw one result',async({page})=>{
+  await page.goto('/random-number-wheel/1-20/');
+  await page.locator('[data-role="batch"]').fill('');
+  await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="feedback"]')).toContainText('Enter how many results');
+  await expect(page.locator('[data-role="result"]')).toHaveText('Ready when you are');
+});
+
+test('CSV multiline labels are rejected without mutating the current list',async({page})=>{
+  await page.goto('/');
+  const original=await page.locator('[data-role="entries"]').inputValue();
+  await page.locator('[data-role="file"]').setInputFiles({
+    name:'multiline.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Name,Weight\n"Alice\nAdmin",2\nBob,1\n')
+  });
+  await expect(page.locator('[data-role="feedback"]')).toContainText('name contains a line break');
+  await expect(page.locator('[data-role="entries"]')).toHaveValue(original);
+});
+
+test('duplicate labels behave as separate tickets in remove-winners mode',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-role="entries"]').fill('Alice\nAlice\nBob');
+  await page.locator('[data-role="entries"]').dispatchEvent('change');
+  await page.locator('[data-role="remove"]').check();
+  await page.locator('[data-mode="quick"]').click();
+  for(let i=0;i<3;i++)await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="candidate-count"]')).toContainText('0 active choices');
+  await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="feedback"]')).toContainText('No choices remain');
+});
+
+test('malicious inherited palette names cannot corrupt shared wheel setups',async({page})=>{
+  const shared={type:'custom',entries:'North\nSouth',palette:'constructor',speed:'fast',remove:true};
+  await page.goto('/#wheel='+encodeURIComponent(JSON.stringify(shared)));
+  await expect(page.locator('[data-role="entries"]')).toHaveValue('North\nSouth');
+  await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await page.locator('[data-mode="quick"]').click();
+  await page.locator('[data-action="pick"]').click();
+  expect(['North','South']).toContain((await page.locator('[data-role="result"]').textContent())?.trim());
+});
