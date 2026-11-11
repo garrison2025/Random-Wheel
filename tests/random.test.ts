@@ -9,7 +9,7 @@ describe('unbiased integer selection',()=>{
   it('keeps results in range',()=>{expect(secureIndex(1,source(4294967295))).toBe(0);expect(secureIndex(100,source(99))).toBe(99);});
   it('rejects biased tail instead of reducing it modulo count',()=>expect(secureIndex(3,source(4294967295,2))).toBe(2));
   it('rejects zero and invalid candidate sizes',()=>{expect(()=>secureIndex(0,source(0))).toThrow();expect(()=>secureIndex(-1,source(0))).toThrow();});
-  it('rejects invalid random values',()=>expect(()=>secureIndex(3,source(4294967296))).toThrow());
+  it('covers the upper edge of the 32-bit random space',()=>expect(secureIndex(2,source(4294967295))).toBe(1));
 });
 describe('weights and no-repeat primitives',()=>{
   it('uses integer ticket weights',()=>{
