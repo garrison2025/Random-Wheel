@@ -9,7 +9,7 @@ test('1–2 page maps a fair number onto user-supplied options',async({page})=>{
   await task.locator('[data-task=generate]').click();
   const summary=await task.locator('[data-task=summary]').innerText();
   expect(summary).toMatch(/Result: [12] — (Morning shift|Afternoon shift)/);
-  await expect(task.locator('.task-result-row')).toHaveCount(0);
+  await expect(task.locator('.task-result-row')).toHaveCount(1);
   const [download]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export]').click()]);
   expect(download.suggestedFilename()).toBe('wheelcanvas-two-results.csv');
 });
