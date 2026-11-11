@@ -196,8 +196,19 @@ function init(root: HTMLElement) {
     });
   });
   resetButton.addEventListener('click',()=>{if(!locked)reset();});
+  let editTimer:number|undefined;
   root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"]')
-    .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
+    .forEach(el=>{
+      el.addEventListener('input',()=>{
+        if(locked)return;
+        window.clearTimeout(editTimer);
+        editTimer=window.setTimeout(refresh,180);
+      });
+      el.addEventListener('change',()=>{
+        window.clearTimeout(editTimer);
+        if(!locked)refresh();
+      });
+    });
   get<HTMLInputElement>(root,'[data-role="remove"]')?.addEventListener('change',()=>{if(!locked)reset('Removal setting changed; started a fresh round.');});
   get<HTMLInputElement>(root,'[data-role="file"]')?.addEventListener('change',async event=>{
     if(locked)return;
@@ -255,8 +266,19 @@ function init(root: HTMLElement) {
   });
   updateModeLabels();
   try{
-    if(location.hash.startsWith('#wheel='))applyConfig(JSON.parse(decodeURIComponent(location.hash.slice(7))));
-    else refresh();
-  }catch{status('The shared setup could not be loaded. Showing the default wheel.',true);refresh();}
+    if(location.hash.startsWith('#wheel=')){
+      applyConfig(JSON.parse(decodeURIComponent(location.hash.slice(7))));
+    }else{
+      let saved:string|null=null;
+      try{saved=localStorage.getItem(savedKey);}catch{}
+      if(saved){
+        applyConfig(JSON.parse(saved));
+        status('Your saved wheel is ready.');
+      }else refresh();
+    }
+  }catch{
+    refresh();
+    status('Saved or shared setup could not be loaded; showing the default wheel.',true);
+  }
 }
 document.querySelectorAll<HTMLElement>('[data-wheel-app]').forEach(init);

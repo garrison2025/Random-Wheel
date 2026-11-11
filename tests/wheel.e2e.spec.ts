@@ -85,3 +85,20 @@ test('UI fits narrow phones without layout clipping',async({page})=>{
     }
   }
 });
+
+test('local save restores edited entries on reload',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-role=entries]').fill('Alpha\nBeta\nGamma');
+  await page.locator('[data-action=save]').click();
+  await expect(page.locator('[data-role=feedback]')).toContainText('Setup saved');
+  await page.reload();
+  await expect(page.locator('[data-role=entries]')).toHaveValue('Alpha\nBeta\nGamma');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('3 active');
+});
+test('editing the entry list previews new wheel choices without losing focus',async({page})=>{
+  await page.goto('/');
+  const entry=page.locator('[data-role=entries]');
+  await entry.fill('One\nTwo');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('2 active');
+  await expect(entry).toBeFocused();
+});
