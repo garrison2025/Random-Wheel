@@ -162,3 +162,22 @@ test('visual QA evidence for station allocation and attendance widgets',async({p
   await page.locator('[data-number-task=attendance] [data-task=next]').click();
   await page.locator('[data-number-task=attendance]').screenshot({path:testInfo.outputPath('roll-30-mobile.png'),animations:'disabled'});
 });
+
+
+test('candidate task-specific stylesheet is loaded on desktop and mobile',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/random-number-wheel/1-8/');
+  const station=page.locator('[data-number-task=stations]');
+  await expect(station).toHaveCSS('display','grid');
+  await expect(station).toHaveCSS('border-top-width','1px');
+  await expect(station.locator('[data-task=generate]')).toHaveCSS('background-color','rgb(78, 96, 191)');
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/random-number-wheel/1-30/');
+  const roll=page.locator('[data-number-task=attendance]');
+  await expect(roll).toHaveCSS('display','grid');
+  await expect(roll.locator('.absence-grid')).toHaveCSS('display','grid');
+  await expect(roll.locator('.absence-grid [data-absent-number="1"]')).toHaveCSS('min-height','42px');
+  const columns=await roll.locator('.absence-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
+  expect(columns).toBe(5);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
+});
