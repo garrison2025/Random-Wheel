@@ -257,7 +257,9 @@ function init(root: HTMLElement) {
         disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
         render();void disc.offsetWidth;applySpinSpeed();
       }
-      const requested = (isNumbers || isLetters || isWords) ? Number(asValue(get(root,'[data-role="batch"]')) || '1') : 1;
+      const batchText=(isNumbers || isLetters || isWords) ? asValue(get(root,'[data-role="batch"]')).trim() : '1';
+      if(!batchText)throw new RangeError('Enter how many results to draw (1–100).');
+      const requested=Number(batchText);
       if(!Number.isSafeInteger(requested)||requested<1||requested>100) throw new RangeError('Choose 1–100 results per draw.');
       if(requested>1) {
         const noRepeat=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
@@ -426,7 +428,9 @@ function init(root: HTMLElement) {
     if(!file)return;
     if(file.size>50000){status('Choose a file under 50 KB.',true);return;}
     try {
+      const generation=drawGeneration;
       const text=await file.text();
+      if(locked || generation!==drawGeneration)return; // A newer round or settings change superseded this import.
       const rows=file.name.toLowerCase().endsWith('.csv')?csvRows(text):text.split(/\r?\n/).map(line=>[line]);
       if(rows.length && rows[0]![0]?.trim().toLowerCase()==='name' && rows[0]![1]?.trim().toLowerCase()==='weight')rows.shift();
       if(rows.length>100)throw new Error('Import at most 100 entries.');
