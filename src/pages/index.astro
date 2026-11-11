@@ -1,0 +1,39 @@
+
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Workbench from '../components/Workbench.astro';
+import { RANGE_PAGES } from '../data/ranges';
+---
+<BaseLayout title="Free Spin the Wheel & Random Picker" description="Spin a free decision wheel with your own names and choices. Fair browser-based random results, weighted entries, no-repeat picks and no signup." path="/">
+  <section class="hero">
+    <div class="container">
+      <span class="eyebrow">✦ Make decisions feel effortless</span>
+      <h1>Every choice is an adventure.<br />Let the wheel decide.</h1>
+      <p>Add names, ideas or activities. Spin a colorful wheel or pick instantly—without logins, uploads or subscriptions.</p>
+      <div class="hero-points"><span>Free forever to use</span><span>No account needed</span><span>Private, in-browser picks</span></div>
+    </div>
+  </section>
+  <div class="container main-overlap"><Workbench kind="custom"/></div>
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Need a number? Start with a ready-made wheel.</h2>
+      <p class="section-intro">Each preset starts with the right range—no setup required. Every page includes a quick picker and an optional animated reveal.</p>
+      <div class="tool-grid">
+        <a class="tool-card" href="/random-number-wheel/"><span class="icon-tile">🎯</span><b>Random number wheel</b><p>Choose a custom minimum, maximum, step and exclusions.</p><span class="go">Open tool →</span></a>
+        {RANGE_PAGES.map((page)=>(
+          <a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">✦</span><b>Pick a number 1–{page.max}</b><p>{page.example}</p><span class="go">Open preset →</span></a>
+        ))}
+      </div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="container article">
+      <h2>A fair way to pick without overthinking</h2>
+      <p>The wheel is useful for choosing a classroom volunteer, a group activity, a team order or a restaurant suggestion. One item per line means one entry; add <strong>| 3</strong> after a label to give it three weight units instead of one.</p>
+      <h3>How to run a draw</h3>
+      <p>Enter your choices, select Quick Pick or Spin Wheel, then start your draw. Use Remove winners to avoid repeating choices in a round, or keep it disabled when the same option should be allowed to win again. You can clear the history at any time.</p>
+      <h3>Privacy first</h3>
+      <p>The draw runs locally using your browser’s secure randomness API. We do not require an account or send your choices to a server. A share link contains your configuration in the URL, so do not use it to share sensitive or personal names.</p>
+    </div>
+  </section>
+</BaseLayout>

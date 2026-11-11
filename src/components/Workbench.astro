@@ -1,0 +1,81 @@
+
+---
+interface Props {kind?:'custom'|'numbers'; min?:number; max?:number}
+const {kind='numbers',min=1,max=100} = Astro.props;
+---
+<div class="workbench" data-wheel-app data-kind={kind} data-min={min} data-max={max}>
+  <div class="panel stage" id="start">
+    <div class="stage-head">
+      <div><h2>Live wheel</h2><span class="hint" data-role="candidate-count">Your candidates are ready</span></div>
+      <span class="tag">100% Free</span>
+    </div>
+    <div class="wheel-wrap" data-role="wheel-wrap" aria-label="Animated random selection wheel">
+      <div class="wheel-disc" data-role="wheel-disc" aria-hidden="true"></div>
+      <div class="wheel-pointer" aria-hidden="true"></div>
+      <div class="wheel-center" aria-hidden="true">✦</div>
+      <div class="wheel-overlay" data-role="wheel-overlay" aria-hidden="true">Your next pick</div>
+    </div>
+    <div class="result-card" role="status" aria-live="polite" aria-atomic="true">
+      <div class="result-kicker">Selected result</div>
+      <div class="result-value" data-role="result">Ready to pick</div>
+    </div>
+    <div class="action-bar">
+      <button class="primary" data-action="pick" type="button">Pick a number</button>
+      <button class="secondary" data-action="reset" type="button">↻ Reset round</button>
+    </div>
+    <p class="feedback" role="alert" data-role="feedback" aria-live="polite"></p>
+    <div class="history" data-role="history" aria-label="Past results">Results in this round will appear here.</div>
+  </div>
+  <div class="panel sidebar">
+    <h2>Make it your wheel</h2>
+    <p class="sidebar-intro">Everything runs locally in your browser. Adjust the choices and pick again.</p>
+    <div class="field">
+      <label>Selection style</label>
+      <div class="segment" role="group" aria-label="Selection style" data-role="modes">
+        <button type="button" data-mode="quick" aria-pressed={kind==='numbers'?'true':'false'}>⚡ Quick Pick</button>
+        <button type="button" data-mode="spin" aria-pressed={kind==='custom'?'true':'false'}>◉ Spin Wheel</button>
+      </div>
+    </div>
+    {kind==='numbers' ? (
+      <>
+        <div class="range-inputs">
+          <div class="field"><label for="min-field">From</label><input id="min-field" data-role="min" inputmode="numeric" type="number" step="1" value={min}/></div>
+          <div class="field"><label for="max-field">To</label><input id="max-field" data-role="max" inputmode="numeric" type="number" step="1" value={max}/></div>
+          <div class="field"><label for="step-field">Step</label><input id="step-field" data-role="step" inputmode="numeric" type="number" min="1" step="1" value="1"/></div>
+        </div>
+        <div class="field">
+          <label for="excluded-field">Exclude numbers (optional)</label>
+          <input id="excluded-field" data-role="excluded" type="text" placeholder="e.g. 4, 7, 12" autocomplete="off" />
+        </div>
+      </>
+    ) : (
+      <>
+        <div class="field">
+          <label for="entries-field">Wheel choices (one per line)</label>
+          <textarea id="entries-field" data-role="entries" spellcheck="false">Alex
+Jordan
+Taylor
+Morgan
+Casey
+Sam</textarea>
+        </div>
+        <div class="field">
+          <label for="csv-field">Import a list (.txt or .csv)</label>
+          <input id="csv-field" type="file" data-role="file" accept=".txt,.csv,text/plain,text/csv" />
+        </div>
+      </>
+    )}
+    <label class="switch-row" for="remove-field"><span>Remove winners after each pick</span><input data-role="remove" type="checkbox" id="remove-field" /></label>
+    <div class="small-actions">
+      <button type="button" class="secondary" data-action="copy">Copy results</button>
+      <button type="button" class="secondary" data-action="save">Save locally</button>
+      <button type="button" class="secondary" data-action="share">Share setup</button>
+      <button type="button" class="secondary" data-action="clear">Clear saved</button>
+    </div>
+    <div class="copy-block">
+      <strong>How it works</strong><br />
+      Results are sampled with your browser's secure randomness API. Drawing from 1–100 uses all 100 numbers even when the animated wheel shows a simplified visual. Sharing a setup puts your choices in the URL; avoid private names.
+    </div>
+  </div>
+</div>
+<script>import '../scripts/wheel.ts';</script>

@@ -1,0 +1,17 @@
+
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout path="/about/" title="About WheelCanvas" description="Learn how WheelCanvas provides free, browser-based number picking and spinning wheel tools without an account.">
+<section class="hero"><div class="container"><span class="eyebrow">About this tool</span><h1>Less debating. More doing.</h1><p>WheelCanvas is a simple collection of free in-browser random selection tools.</p></div></section>
+<section class="section"><div class="container article">
+  <h2>Our approach</h2>
+  <p>Random choices should be easy to make and easy to explain. We focus on fast tools that load directly at the right range, give clear results, and work without uploading names or class lists.</p>
+  <h3>How random results work</h3>
+  <p>Eligible choices are sampled with the browser Web Crypto API. Uniform draws use rejection sampling to avoid integer modulo bias. The animation visualizes the selected outcome; it does not determine the outcome.</p>
+  <h3>What this site is not</h3>
+  <p>This is a general-purpose helper for classrooms, games and everyday choices, not an audited or independently certified lottery drawing service. Do not use it where regulated verification or legal certification is required.</p>
+  <h3>Our privacy principle</h3>
+  <p>The main tool works without logins, remote accounts, or a server-side database. Optional local saving uses your browser storage; you can clear it. Sharing a configuration can expose its contents to anyone who receives the link.</p>
+</div></section>
+</BaseLayout>

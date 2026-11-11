@@ -1,0 +1,15 @@
+
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { RANGE_PAGES } from '../../data/ranges';
+---
+<BaseLayout path="/tools/" title="Free Random Wheel Tools" description="Explore WheelCanvas free random tools: custom spin the wheel, random number wheel, quick number pickers and classroom number draws.">
+  <section class="hero"><div class="container"><span class="eyebrow">Tools directory</span><h1>Pick the tool that fits your moment.</h1><p>Start from a ready-to-use number range, or create a custom decision wheel with names and activities.</p></div></section>
+  <section class="section"><div class="container">
+    <div class="tool-grid">
+      <a class="tool-card" href="/"><span class="icon-tile">✳</span><b>Spin the Wheel</b><p>Make a personalized wheel with your own choices and optional weights.</p><span class="go">Open tool →</span></a>
+      <a class="tool-card" href="/random-number-wheel/"><span class="icon-tile">🎯</span><b>Random Number Wheel</b><p>Set a custom range, exclusions or step size.</p><span class="go">Open tool →</span></a>
+      {RANGE_PAGES.map(page=><a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Use preset →</span></a>)}
+    </div>
+  </div></section>
+</BaseLayout>

@@ -1,0 +1,32 @@
+
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Workbench from '../../components/Workbench.astro';
+import { RANGE_PAGES } from '../../data/ranges';
+---
+<BaseLayout path="/random-number-wheel/" title="Random Number Wheel Generator — Fair Online Number Picker" description="Spin a random number wheel with a custom range from 1 to 10,000 values. Exclude numbers, use steps, avoid repeats, or pick instantly for free.">
+  <section class="hero"><div class="container">
+    <span class="eyebrow">Fair random numbers, zero setup</span>
+    <h1>Random Number Wheel</h1>
+    <p>Choose your number range, then spin the wheel or get an instant result. Remove winners to draw numbers without repeats.</p>
+    <div class="hero-points"><span>Custom ranges</span><span>Exclusions and steps</span><span>Optional no-repeat drawing</span></div>
+  </div></section>
+  <div class="container main-overlap"><Workbench kind="numbers" min={1} max={10}/></div>
+  <section class="section"><div class="container">
+    <h2 class="section-title">Popular number ranges</h2>
+    <p class="section-intro">These tools open with exactly the numbers you need. No need to configure the range yourself.</p>
+    <div class="tool-grid">{RANGE_PAGES.map(page=>(
+      <a href={'/random-number-wheel/'+page.slug+'/'} class="tool-card"><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Start drawing →</span></a>
+    ))}</div>
+  </div></section>
+  <section class="section" style="padding-top:0"><div class="container article">
+    <h2>How to use the random number wheel</h2>
+    <p>Enter the lowest and highest numbers in your range. Use the Step field to draw numbers at a fixed interval, such as 2, 4, 6, 8, and so on. You can enter comma-separated exclusions to remove unavailable numbers from the draw.</p>
+    <h3>Quick Pick versus Spin Wheel</h3>
+    <p>Quick Pick provides an immediate number, useful for fast decisions. Spin Wheel animates the same fair draw. Ranges of up to 36 active choices can display each choice as a wheel sector; larger ranges use a simplified animation with all numbers still included in the result.</p>
+    <h3>Is the result random?</h3>
+    <p>Yes. We use the browser’s Web Crypto API with rejection sampling for uniform integer selection. A result does not depend on the visible animation. This is a general-purpose decision helper, not a certified lottery or audited contest platform.</p>
+    <h3>Can numbers repeat?</h3>
+    <p>By default, yes—like independent dice rolls. Enable Remove winners for assigning distinct positions or drawing tickets without replacement. The Reset button starts a new round.</p>
+  </div></section>
+</BaseLayout>

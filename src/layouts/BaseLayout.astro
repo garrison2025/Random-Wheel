@@ -1,0 +1,54 @@
+
+---
+import '../styles/global.css';
+import { SITE_NAME, DOMAIN, INDEXABLE } from '../lib/site';
+interface Props {title:string; description:string; path:string; noindex?:boolean}
+const {title,description,path,noindex=false} = Astro.props;
+const canonical = DOMAIN && INDEXABLE ? DOMAIN + path : undefined;
+const robots = INDEXABLE && !noindex ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#172743" />
+  <meta name="description" content={description} />
+  <meta name="robots" content={robots} />
+  <title>{title} | {SITE_NAME}</title>
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title + ' | ' + SITE_NAME} />
+  <meta property="og:description" content={description} />
+  {canonical && <meta property="og:url" content={canonical} />}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="/" class="brand" aria-label="WheelCanvas home"><span class="brand-mark" aria-hidden="true">✳</span><span>WheelCanvas</span></a>
+      <nav class="nav-links" aria-label="Main menu">
+        <a href="/random-number-wheel/">Number wheel</a>
+        <a href="/tools/">All tools</a>
+        <a class="nav-cta" href="/#start">Start spinning</a>
+      </nav>
+    </div>
+  </header>
+  <main><slot /></main>
+  <footer class="site-footer">
+    <div class="container foot-flex">
+      <div>
+        <a href="/" class="brand" aria-label="WheelCanvas home"><span class="brand-mark" aria-hidden="true">✳</span>WheelCanvas</a>
+        <p>Simple, private random decisions. No account required.<br />All drawings are processed in your browser.</p>
+      </div>
+      <nav aria-label="Footer menu">
+        <a href="/tools/">Tools</a>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
