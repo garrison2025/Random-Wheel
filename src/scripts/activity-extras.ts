@@ -61,6 +61,7 @@ function initYesNo(root:HTMLElement){
     }
     const optionMode=root.querySelector<HTMLSelectElement>('[data-role="decision-mode"]')?.value==='yesnomaybe'?'yesnomaybe':'yesno';
     const decision=scoreDecisionRound(counts,optionMode,best.checked);
+    root.dataset.roundComplete=String(decision.complete);
     if(decision.complete){
       round.textContent=optionMode==='yesno'
         ? 'Best of 3 complete: '+decision.winner+' wins with two matching answers. Reset to play again.'
