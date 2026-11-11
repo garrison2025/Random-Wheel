@@ -21,8 +21,25 @@ jobs:
               && grep -Fq 'data-action="center"' /tmp/rw-home.html \
               && grep -Fq 'data-palette="sunset"' /tmp/rw-home.html \
               && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-number-wheel/1-100/?sha=$GITHUB_SHA" -o /tmp/rw-number.html \
-              && grep -Fq 'Random Number Generator 1 to 100' /tmp/rw-number.html; then
-                echo "LIVE VERIFIED: current UI and number landing page found on Cloudflare Pages"
+              && grep -Fq 'Random Number Generator 1 to 100' /tmp/rw-number.html \
+              && grep -Fq 'data-role="batch"' /tmp/rw-number.html \
+              && grep -Fq 'data-action="export-csv"' /tmp/rw-number.html \
+              && grep -Fq 'data-action="shuffle"' /tmp/rw-home.html; then
+                all_ok=1
+                for preset in '1-2:2' '1-8:8' '1-10:10' '1-50:50'; do
+                  slug="${preset%%:*}"
+                  maximum="${preset##*:}"
+                  page="/tmp/rw-${slug}.html"
+                  if ! curl --fail --location --silent --show-error --max-time 18 "$SITE/random-number-wheel/$slug/?sha=$GITHUB_SHA" -o "$page" \
+                       || ! grep -Fq "value=\"$maximum\"" "$page" \
+                       || ! grep -Fq 'noindex, nofollow' "$page"; then
+                    echo "Candidate page missing, wrong default range, or unintentionally indexable: $slug"
+                    all_ok=0
+                    break
+                  fi
+                done
+                if [ "$all_ok" -ne 1 ]; then sleep 12; continue; fi
+                echo "LIVE VERIFIED: 4 gated candidate pages and batch/export/shuffle controls on Cloudflare Pages"
                 echo "Homepage response bytes: $(wc -c < /tmp/rw-home.html)"
                 echo "Number page response bytes: $(wc -c < /tmp/rw-number.html)"
                 exit 0
