@@ -1,3 +1,4 @@
+import {scoreDecisionRound} from '../lib/decision-round';
 type WinnerEvent=CustomEvent<{label:string;labels?:string[]}>;
 function initLetter(root:HTMLElement){
   const topic=root.querySelector<HTMLSelectElement>('[data-role="letter-game-topic"]');
@@ -58,17 +59,21 @@ function initYesNo(root:HTMLElement){
       const span=root.querySelector<HTMLElement>('[data-tally="'+answer+'"]');
       if(span)span.textContent=String(counts[answer]||0);
     }
-    if(best.checked && total===3){
-      const max=Math.max(...Object.values(counts));
-      const leaders=Object.entries(counts).filter(([_,n])=>n===max).map(([name])=>name);
-      round.textContent=leaders.length===1
-        ? 'Best of 3 complete: '+leaders[0]+' leads with '+max+' votes. Reset to play again.'
-        : 'Best of 3 complete: a tie. Reset to play again.';
+    const optionMode=root.querySelector<HTMLSelectElement>('[data-role="decision-mode"]')?.value==='yesnomaybe'?'yesnomaybe':'yesno';
+    const decision=scoreDecisionRound(counts,optionMode,best.checked);
+    if(decision.complete){
+      round.textContent=optionMode==='yesno'
+        ? 'Best of 3 complete: '+decision.winner+' wins with two matching answers. Reset to play again.'
+        : decision.tied
+          ? 'Three draws complete: a three-way tie. Reset to play again.'
+          : 'Three draws complete: '+decision.winner+' received the most votes. Reset to play again.';
       picker.disabled=true;
       if(center)center.disabled=true;
     }else{
       round.textContent=best.checked
-        ? total+' of 3 draws. Every draw is independent.'
+        ? optionMode==='yesno'
+          ? total+' draw'+(total===1?'':'s')+'. First answer to win two draws wins the best of three.'
+          : total+' of 3 draws. The most frequent answer wins; a tie is possible.'
         : total+' draws this round. The next pick is independent.';
     }
   };

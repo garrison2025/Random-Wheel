@@ -96,11 +96,16 @@ test('Yes/No question is displayed locally and best-of-three tally stops at thre
   await expect(page.locator('[data-role=question-display]')).toContainText('Board game tonight?');
   await page.locator('[data-role=best-of-three]').check();
   await page.locator('[data-mode=quick]').click();
-  for(let i=0;i<3;i++)await page.locator('[data-action=pick]').click();
+  for(let i=0;i<3;i++){
+    if(await page.locator('[data-action=pick]').isDisabled())break;
+    await page.locator('[data-action=pick]').click();
+  }
   await expect(page.locator('[data-role=round-status]')).toContainText('Best of 3 complete');
   await expect(page.locator('[data-action=pick]')).toBeDisabled();
   const totals=await page.locator('[data-tally]').allTextContents();
-  expect(totals.reduce((sum,v)=>sum+Number(v),0)).toBe(3);
+  const draws=totals.reduce((sum,v)=>sum+Number(v),0);
+  expect(draws).toBeGreaterThanOrEqual(2);
+  expect(draws).toBeLessThanOrEqual(3);
   await page.locator('[data-action=reset]').click();
   await expect(page.locator('[data-action=pick]')).toBeEnabled();
   expect((await page.locator('[data-tally]').allTextContents()).map(Number)).toEqual([0,0,0]);
@@ -119,4 +124,16 @@ test('New candidate workflows fit 320px phones without horizontal clipping',asyn
     await page.goto(path);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
   }
+});
+
+test('Maybe mode completes three draws and can report ties',async({page})=>{
+  await page.goto('/yes-or-no-wheel/');
+  await page.locator('[data-role=decision-mode]').selectOption('yesnomaybe');
+  await page.locator('[data-role=best-of-three]').check();
+  await page.locator('[data-mode=quick]').click();
+  for(let i=0;i<3;i++)await page.locator('[data-action=pick]').click();
+  await expect(page.locator('[data-role=round-status]')).toContainText('Three draws complete');
+  await expect(page.locator('[data-action=pick]')).toBeDisabled();
+  const total=(await page.locator('[data-tally]').allTextContents()).reduce((sum,x)=>sum+Number(x),0);
+  expect(total).toBe(3);
 });

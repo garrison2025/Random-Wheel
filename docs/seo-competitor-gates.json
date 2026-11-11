@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-11-11",
+  "market": "US",
+  "evidenceClass": "Public-web discoverability + source-page feature inspection, not geo-verified Google SERP top10 or rankings",
+  "indexingApproval": false,
+  "releasePolicy": "All 13 remain noindex until domain, manual editorial, SERP and technical gates are passed",
+  "candidates": [
+    {
+      "path": "/random-number-wheel/1-2/",
+      "status": "FIX_FIRST",
+      "mainQuery": "pick a number 1-2",
+      "differentiator": "Number-to-label decision mapping with a downloadable record",
+      "weakness": "Competitors already explain assigning labels to 1 and 2; intent often wants one immediate digit, not a second workflow.",
+      "action": "Put a one-tap 1/2 result and explicit current mapped label together above the fold; test intent against direct-answer results.",
+      "competitors": [
+        "https://thespinwheels.com/pick-a-number-1-or-2/",
+        "https://namesonwheel.com/pick-a-number-1-or-2-wheel/",
+        "https://wheelspinnertool.com/wheels/"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-8/",
+      "status": "PROMISING_NOT_APPROVED",
+      "mainQuery": "random number 1-8",
+      "differentiator": "Up to 8 team names receive unique numbered stations and an exported assignment list",
+      "weakness": "Primary generic query may favor instant dice-style pickers; station assignment is a secondary classroom intent.",
+      "action": "Keep simple eight-number draw first, then offer station assignment; verify US query clusters and teacher task uptake.",
+      "competitors": [
+        "https://spinpicker.io/wheel/1-8",
+        "https://spinthewheel.io/random-number-1-8",
+        "https://wordineer.com/random-number-1-8"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-10/",
+      "status": "FIX_FIRST",
+      "mainQuery": "pick a number 1-10",
+      "differentiator": "Both immediate 1–10 draw and complete repeat-free 10-number order",
+      "weakness": "Quick pick and elimination already exist on competitor pages; direct-answer SERP can satisfy query without a page click.",
+      "action": "Measure click intent and distinguish shuffle/full-order use case, preferably with visible copy-ready results and comparison UI.",
+      "competitors": [
+        "https://spinpicker.io/wheel/1-10",
+        "https://wheelpickerapp.com/random-number-1-10",
+        "https://spinaname.app/random-number-wheel/"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-15/",
+      "status": "FIX_FIRST",
+      "mainQuery": "random number 1-15",
+      "differentiator": "Validated participant-name list with a unique presentation order",
+      "weakness": "Most generic 1–15 queries ask for a digit or wheel. Roster entry changes the job to a named randomizer.",
+      "action": "Keep instant 1–15 selection primary; clarify the named presentation-order tool as optional; validate whether roster-focused long tails exist.",
+      "competitors": [
+        "https://spinpicker.site/pick-a-number-1-15.html",
+        "https://calculife.com/random-number-generator-1-15/",
+        "https://wheelpicky.com/random-number-generator/"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-30/",
+      "status": "PROMISING_NOT_APPROVED",
+      "mainQuery": "random number 1-30",
+      "differentiator": "Absent-number exclusion plus one-by-one call progression and full CSV attendance order",
+      "weakness": "Existing educational tools support absence markings and elimination; our whole-order export and stepwise call are potentially useful, not yet proven superior.",
+      "action": "Make the classroom task discoverable immediately, label absent/current/remaining clearly, and validate teacher usability against competing class tools.",
+      "competitors": [
+        "https://spinpicker.io/wheel/1-30",
+        "https://teach.peabody.kids/wheel/numbers-1-30",
+        "https://namesonwheel.com/pick-a-number-1-30-wheel/"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-1000/",
+      "status": "FIX_FIRST",
+      "mainQuery": "random number generator 1-1000",
+      "differentiator": "Browser-secure, without-replacement sample plus CSV and exclusions",
+      "weakness": "TNAADO supports up to 10,000 results per batch (per public description), compared with our 100 limit. Other sites already provide immediate draw and no-repeat history.",
+      "action": "Optimize large-batch algorithm and accessible copy/export workflow; evaluate whether 100-count cap can be increased without large memory/performance impact; keep noindex.",
+      "competitors": [
+        "https://tools.tnaado.ca/random/random-number-1-to-1000/",
+        "https://wheelpickerapp.com/random-number-1-1000",
+        "https://spinthewheel.io/random-number-1-1000"
+      ]
+    },
+    {
+      "path": "/random-letter-wheel/",
+      "status": "FIX_FIRST",
+      "mainQuery": "random letter wheel",
+      "differentiator": "Alphabet, vowels/consonants, exclusions, group prompt and 60-second timer",
+      "weakness": "Competing letter tools already offer category game, timer, elimination, uppercase/lowercase and rich teaching guidance. Our classroom prompt is currently less comprehensive.",
+      "action": "Offer multi-category classroom rounds and an accessible score sheet; support phonics cases beyond single-letter prompt after usability validation.",
+      "competitors": [
+        "https://wheelspinning.net/letter-wheel/",
+        "https://spinnwheel.com/letter-spinner",
+        "https://spinaname.app/letter-wheel/"
+      ]
+    },
+    {
+      "path": "/yes-or-no-wheel/",
+      "status": "FIX_FIRST",
+      "mainQuery": "yes and no wheel",
+      "differentiator": "Optional question, local tally and a three-draw summary",
+      "weakness": "Question input, Yes/No/Maybe, tally and best-of-three are already present in established competitors. Hard to claim unique value.",
+      "action": "Fix round semantics so two-answer best-of-three stops at the second identical result, distinguish three-way plurality from binary majority, and improve visual odds.",
+      "competitors": [
+        "https://wheelspinning.net/yes-or-no-wheel/",
+        "https://yesornoai.com/wheel",
+        "https://freeluckywheel.com/en/yes-or-no-wheel"
+      ]
+    },
+    {
+      "path": "/random-number-wheel/1-7/",
+      "status": "HOLD",
+      "mainQuery": "random number 1-7",
+      "differentiator": "Generic seven-number picker",
+      "weakness": "Weekly scheduling text without a true weekday mapping workflow is too close to neighboring range templates.",
+      "action": "Do not independently index until weekday-to-task schedule or concrete seven-way use case exists.",
+      "competitors": []
+    },
+    {
+      "path": "/random-number-wheel/1-50/",
+      "status": "HOLD",
+      "mainQuery": "random number generator 1-50",
+      "differentiator": "Generic fifty-number picker",
+      "weakness": "Large visual wheel simplifies segments and lacks evidence of distinct search intent beyond the parent number generator.",
+      "action": "Document 50-number visual sampling semantics and validate demand before a separate index decision.",
+      "competitors": []
+    },
+    {
+      "path": "/random-number-wheel/1-200/",
+      "status": "HOLD",
+      "mainQuery": "random number 1-200",
+      "differentiator": "Generic 200-number picker",
+      "weakness": "Small known cluster and a tool identical to parent with different max value.",
+      "action": "Prefer existing generic picker; keep page noindex unless real demand and new workflow prove incremental value.",
+      "competitors": []
+    },
+    {
+      "path": "/random-number-wheel/1-10000/",
+      "status": "HOLD",
+      "mainQuery": "random number generator 1-10000",
+      "differentiator": "Generic 10000-number range with batch selection",
+      "weakness": "Little evidence of independent SEO intent; candidate is template-only.",
+      "action": "Continue offering the utility via tool directory; hold off standalone SEO indexing.",
+      "competitors": []
+    },
+    {
+      "path": "/random-word-wheel/",
+      "status": "HOLD",
+      "mainQuery": "random word wheel",
+      "differentiator": "Five curated short category lists plus custom entries",
+      "weakness": "Prebuilt collections remain small and lack a grading/length/learning-objective filter.",
+      "action": "Build quality-reviewed broader collections or specific educational workflow before re-review.",
+      "competitors": []
+    }
+  ]
+}
