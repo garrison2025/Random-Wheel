@@ -7,7 +7,7 @@ export const CONSONANTS=Array.from(ALPHABET).filter(letter=>!VOWELS.includes(let
 /** Alphabet pools have equal ticket weight for every included letter. */
 export function letterChoices(set:string, excluded:string, letterCase:string='upper'):Entry[] {
   const pools:Record<string,string>={all:ALPHABET,vowels:VOWELS,consonants:CONSONANTS,game:'ABCDEFGHIJKLMNOPRSTW'};
-  if(!(set in pools)) throw new Error('Choose a valid alphabet preset.');
+  if(!Object.hasOwn(pools,set)) throw new Error('Choose a valid alphabet preset.');
   if(!['upper','lower'].includes(letterCase))throw new Error('Choose uppercase or lowercase letters.');
   if(excluded.length>180 || !/^[a-zA-Z,\s]*$/.test(excluded)) throw new Error('Excluded letters must be A–Z separated by commas or spaces.');
   const forbidden=new Set(excluded.toUpperCase().replace(/[^A-Z]/g,'').split(''));
