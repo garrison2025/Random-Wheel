@@ -1,7 +1,7 @@
 
 import {numberChoices, parseExclusions, parseEntries, pickEntry, secureIndex, type Entry} from '../lib/random';
 
-const COLORS = ['#6455e9','#f4ae53','#32bfa9','#f07888','#437fce','#a265c6','#e9a84b','#3aaf9f'];
+const COLORS = ['#6957e9','#ffbb65','#40bfae','#f67f99','#558ae5','#a97bdc','#f5b157','#42bfb2'];
 const MAX_HASH_LENGTH = 1700;
 const get = <T extends Element>(root: ParentNode, selector: string): T | null => root.querySelector<T>(selector);
 const asValue = (el: Element | null) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : '';
@@ -33,6 +33,8 @@ function init(root: HTMLElement) {
   const overlay=get<HTMLElement>(root,'[data-role="wheel-overlay"]')!;
   const pickButton=get<HTMLButtonElement>(root,'[data-action="pick"]')!;
   const resetButton=get<HTMLButtonElement>(root,'[data-action="reset"]')!;
+  const centerButton=get<HTMLButtonElement>(root,'[data-action="center"]');
+  const centerLabel=get<HTMLElement>(root,'[data-role="center-label"]');
   if(!disc || !wrap || !result || !feedback || !history || !counter || !overlay || !pickButton || !resetButton) return;
   const isCustom = root.dataset.kind === 'custom';
   let mode:'quick'|'spin'=isCustom?'spin':'quick';
@@ -43,6 +45,17 @@ function init(root: HTMLElement) {
   const savedKey='wheelcanvas.v1.'+(isCustom?'custom':'numbers');
 
   const status=(message:string,error=false)=>{ feedback.textContent=message;feedback.classList.toggle('error',error); };
+  const setBusy=(busy:boolean)=>{
+    locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
+    if(centerButton) centerButton.disabled=busy;
+    root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('.sidebar input,.sidebar textarea').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('[data-template]').forEach(el=>{el.disabled=busy;});
+  };
+  const updateModeLabels=()=>{
+    pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
+    if(centerLabel) centerLabel.textContent=mode==='quick'?'PICK':'SPIN';
+    if(centerButton)centerButton.setAttribute('aria-label',mode==='quick'?'Pick a random result':'Spin the wheel');
+  };
   const readChoices=():Entry[]=>{
     if(isCustom) return parseEntries(asValue(get(root,'[data-role="entries"]')));
     const min=Number(asValue(get(root,'[data-role="min"]')));
@@ -52,14 +65,14 @@ function init(root: HTMLElement) {
   };
   function renderHistory() {
     history.textContent='';
-    if (!winningHistory.length) {history.textContent='Results in this round will appear here.';return;}
+    if (!winningHistory.length) {history.textContent='Your recent picks will appear here.';return;}
     const title=document.createElement('strong');
     title.textContent='Round history: ';
     history.append(title,document.createTextNode(winningHistory.join(' · ')));
   }
   const reset=(message='New round ready.')=>{
     pickedIndices=new Set();winningHistory=[];
-    result.textContent='Ready to pick';renderHistory();status(message);
+    result.textContent='Ready when you are';renderHistory();status(message);
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
     render();void disc.offsetWidth;disc.style.transition='transform 3.6s cubic-bezier(.15,.85,.15,1)';
   };
@@ -120,7 +133,7 @@ function init(root: HTMLElement) {
     // Hold the selected segment at the pointer until the next spin, then paint the remaining entries.
     if(mode==='quick' || !removeWinner) render();
     else counter.textContent=activeChoices().length+' choices remaining';
-    locked=false;pickButton.disabled=false;resetButton.disabled=false;
+    setBusy(false);
   }
   function pick(){
     if(locked) return;
@@ -134,7 +147,7 @@ function init(root: HTMLElement) {
       }
       const selected=pickEntry(active.map(a=>a.entry));
       const chosen=active[selected]!;
-      locked=true;pickButton.disabled=true;resetButton.disabled=true;
+      setBusy(true);
       status(mode==='spin'?'Spinning…':'Picking…');
       if(mode==='quick' || matchMedia('(prefers-reduced-motion: reduce)').matches){
         showWinner(chosen.entry.label,chosen.index);
@@ -155,7 +168,7 @@ function init(root: HTMLElement) {
       disc.style.transform='rotate('+rotation+'deg)';
       window.setTimeout(()=>showWinner(chosen.entry.label,chosen.index),3650);
     } catch(error){
-      locked=false;pickButton.disabled=false;resetButton.disabled=false;
+      setBusy(false);
       status(error instanceof Error?error.message:'Random selection failed.',true);
     }
   }
@@ -164,10 +177,24 @@ function init(root: HTMLElement) {
     if(locked)return;
     mode=button.dataset.mode==='spin'?'spin':'quick';
     root.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'◉ Spin the wheel';
+    updateModeLabels();
     status(mode==='quick'?'Instant result mode selected.':'Animated wheel mode selected.');
   }));
   pickButton.addEventListener('click',pick);
+  centerButton?.addEventListener('click',pick);
+  const templates:Record<string,string>={
+    teams:'Team A\nTeam B\nTeam C\nTeam D',
+    lunch:'Pizza\nSushi\nTacos\nPasta\nBurgers\nSalad',
+    yesno:'Yes\nNo'
+  };
+  root.querySelectorAll<HTMLButtonElement>('[data-template]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      if(locked)return;
+      const preset=templates[button.dataset.template||''];
+      const target=get<HTMLTextAreaElement>(root,'[data-role="entries"]');
+      if(target&&preset){target.value=preset;refresh();status('Example loaded. Edit any choice, then spin.');}
+    });
+  });
   resetButton.addEventListener('click',()=>{if(!locked)reset();});
   root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"]')
     .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
@@ -226,7 +253,7 @@ function init(root: HTMLElement) {
       status('Link copied. Anyone with this link can read the included choices; do not share private names.');
     } catch(error){status(error instanceof Error?error.message:'Could not copy setup link.',true);}
   });
-  pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'◉ Spin the wheel';
+  updateModeLabels();
   try{
     if(location.hash.startsWith('#wheel='))applyConfig(JSON.parse(decodeURIComponent(location.hash.slice(7))));
     else refresh();

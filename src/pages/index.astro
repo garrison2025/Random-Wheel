@@ -1,4 +1,3 @@
-
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Workbench from '../components/Workbench.astro';
@@ -7,33 +6,52 @@ import { RANGE_PAGES } from '../data/ranges';
 <BaseLayout title="Free Spin the Wheel & Random Picker" description="Spin a free decision wheel with your own names and choices. Fair browser-based random results, weighted entries, no-repeat picks and no signup." path="/">
   <section class="hero">
     <div class="container">
-      <span class="eyebrow">✦ Make decisions feel effortless</span>
-      <h1>Every choice is an adventure.<br />Let the wheel decide.</h1>
-      <p>Add names, ideas or activities. Spin a colorful wheel or pick instantly—without logins, uploads or subscriptions.</p>
-      <div class="hero-points"><span>Free forever to use</span><span>No account needed</span><span>Private, in-browser picks</span></div>
+      <span class="eyebrow">✦ The fun way to make a choice</span>
+      <h1>Spin the wheel.<br /><span class="highlight">Decide in seconds.</span></h1>
+      <p>Create your own colorful wheel, add names or ideas, and let a fair random pick make the decision. Beautifully simple, completely free.</p>
+      <div class="hero-points">
+        <span>No signup required</span>
+        <span>Private & secure picks</span>
+        <span>Unlimited free spins</span>
+      </div>
     </div>
   </section>
-  <div class="container main-overlap"><Workbench kind="custom"/></div>
+  <div class="container main-overlap">
+    <Workbench kind="custom"/>
+  </div>
   <section class="section">
     <div class="container">
-      <h2 class="section-title">Need a number? Start with a ready-made wheel.</h2>
-      <p class="section-intro">Each preset starts with the right range—no setup required. Every page includes a quick picker and an optional animated reveal.</p>
+      <span class="eyebrow" style="margin-bottom:13px">Explore ready-made tools</span>
+      <h2 class="section-title">One click away from your next answer.</h2>
+      <p class="section-intro">Need a random number instead of a name? Open a ready-to-use preset with the exact range you want, or customize any range from scratch.</p>
       <div class="tool-grid">
-        <a class="tool-card" href="/random-number-wheel/"><span class="icon-tile">🎯</span><b>Random number wheel</b><p>Choose a custom minimum, maximum, step and exclusions.</p><span class="go">Open tool →</span></a>
+        <a class="tool-card" href="/random-number-wheel/">
+          <span class="icon-tile" aria-hidden="true">◉</span>
+          <b>Random number wheel</b>
+          <p>Set your own minimum, maximum, step or excluded values.</p>
+          <span class="go">Open tool ↗</span>
+        </a>
         {RANGE_PAGES.map((page)=>(
-          <a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">✦</span><b>Pick a number 1–{page.max}</b><p>{page.example}</p><span class="go">Open preset →</span></a>
+          <a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}>
+            <span class="icon-tile" aria-hidden="true">{page.max<=6?'✳':page.max<=20?'#':'◈'}</span>
+            <b>Pick a number 1–{page.max}</b>
+            <p>{page.example}</p>
+            <span class="go">Start picking ↗</span>
+          </a>
         ))}
       </div>
     </div>
   </section>
   <section class="section" style="padding-top:0">
     <div class="container article">
-      <h2>A fair way to pick without overthinking</h2>
-      <p>The wheel is useful for choosing a classroom volunteer, a group activity, a team order or a restaurant suggestion. One item per line means one entry; add <strong>| 3</strong> after a label to give it three weight units instead of one.</p>
-      <h3>How to run a draw</h3>
-      <p>Enter your choices, select Quick Pick or Spin Wheel, then start your draw. Use Remove winners to avoid repeating choices in a round, or keep it disabled when the same option should be allowed to win again. You can clear the history at any time.</p>
-      <h3>Privacy first</h3>
-      <p>The draw runs locally using your browser’s secure randomness API. We do not require an account or send your choices to a server. A share link contains your configuration in the URL, so do not use it to share sensitive or personal names.</p>
+      <h2>Fair picks, surprisingly fun.</h2>
+      <p>WheelCanvas makes everyday choices feel effortless. Use it to choose a classroom volunteer, settle what to eat, order team activities or assign turns. Each choice gets a fair chance unless you explicitly add weights.</p>
+      <h3>Create your wheel in three easy steps</h3>
+      <p>Write or paste one choice per line, choose between Quick Pick and Spin Wheel, then pick a winner. The built-in history keeps track of results, and the optional remove-winner setting makes a round without repeats simple.</p>
+      <h3>What about weighted choices?</h3>
+      <p>Add <strong>| 3</strong> after a choice to give it three weight units rather than one. The wheel sectors reflect their relative weight. You can freely edit your entries or load an example.</p>
+      <h3>Private by design</h3>
+      <p>The core draw takes place in your browser using the secure randomness API. Your entries are not uploaded to our server. Saving is optional and local; sharing a setup includes your entries in the link, so avoid private or sensitive names.</p>
     </div>
   </section>
 </BaseLayout>

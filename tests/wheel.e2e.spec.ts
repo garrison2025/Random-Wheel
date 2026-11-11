@@ -53,3 +53,35 @@ test('custom wheel renders user input as text, not markup',async({page})=>{
   await page.locator('[data-action=pick]').click();
   await expect(page.locator('[data-role=result]')).not.toHaveText('Ready to pick');
 });
+
+test('new visual workspace keeps the wheel prominent and center action works',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('.stage .wheel-wrap')).toBeVisible();
+  await expect(page.locator('.sidebar [data-role=entries]')).toBeVisible();
+  await expect(page.locator('.wheel-center')).toBeVisible();
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.locator('[data-action=center]').click();
+  await expect(page.locator('[data-role=result]')).not.toHaveText('Ready when you are');
+  await expect(page.locator('[data-action=center]')).toBeEnabled();
+});
+
+test('example chips change the wheel contents without a reload',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-template=yesno]').click();
+  await expect(page.locator('[data-role=entries]')).toHaveValue('Yes\nNo');
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('2 active');
+  await page.locator('[data-template=teams]').click();
+  await expect(page.locator('[data-role=candidate-count]')).toContainText('4 active');
+});
+
+test('UI fits narrow phones without layout clipping',async({page})=>{
+  for(const width of [320,360,390]){
+    await page.setViewportSize({width,height:740});
+    for(const path of ['/', '/random-number-wheel/1-100/']){
+      await page.goto(path);
+      const result=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,window:innerWidth,center:!!document.querySelector('[data-action=center]')}));
+      expect(result.center).toBeTruthy();
+      expect(result.scroll).toBeLessThanOrEqual(result.window+1);
+    }
+  }
+});
