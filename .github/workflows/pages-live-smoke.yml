@@ -17,8 +17,9 @@ jobs:
           for attempt in $(seq 1 12); do
             echo "Live check attempt $attempt"
             if curl --fail --location --silent --show-error --max-time 18 "$SITE/?sha=$GITHUB_SHA" -o /tmp/rw-home.html \
-              && grep -Fq 'Decide in seconds.' /tmp/rw-home.html \
+              && grep -Fq 'Settle anything.' /tmp/rw-home.html \
               && grep -Fq 'data-action="center"' /tmp/rw-home.html \
+              && grep -Fq 'data-palette="sunset"' /tmp/rw-home.html \
               && curl --fail --location --silent --show-error --max-time 18 "$SITE/random-number-wheel/1-100/?sha=$GITHUB_SHA" -o /tmp/rw-number.html \
               && grep -Fq 'Random Number Generator 1 to 100' /tmp/rw-number.html; then
                 echo "LIVE VERIFIED: current UI and number landing page found on Cloudflare Pages"
