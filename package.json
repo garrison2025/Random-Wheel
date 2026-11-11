@@ -10,7 +10,8 @@
     "check": "astro check",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seo:audit": "node scripts/audit-pages.mjs"
   },
   "dependencies": {
     "astro": "^5.16.0"
