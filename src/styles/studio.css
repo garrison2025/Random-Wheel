@@ -19,7 +19,8 @@ body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sa
 .header-meta:before{background:#6cbd51;box-shadow:none}
 .hero{background:var(--paper);padding:37px 0 23px;overflow:visible}
 .hero:before{display:none}
-.hero .container{display:flex;align-items:flex-end;justify-content:space-between;gap:25px}
+.hero .container{display:block}
+.hero-home .container{display:flex;align-items:flex-end;justify-content:space-between;gap:25px}
 .hero-copy{max-width:920px}
 .eyebrow{background:#f6dfd5;color:#ba513a;border:1px solid #efc8b9;padding:7px 12px;letter-spacing:.09em;font-weight:850;font-size:.7rem}
 .hero h1{max-width:900px;margin:12px 0 9px;font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:clamp(2.75rem,5vw,5.1rem);line-height:1.025;letter-spacing:-.075em;color:#16182d;font-weight:850}

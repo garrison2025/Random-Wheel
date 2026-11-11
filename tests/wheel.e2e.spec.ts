@@ -140,7 +140,7 @@ test('fullscreen studio can enter and exit without blocking the wheel',async({pa
   await page.goto('/');
   await page.locator('[data-action=fullscreen]').click();
   await expect(page.locator('.stage')).toHaveCSS('position','fixed');
-  await page.keyboard.press('Escape');
+  await page.locator('[data-action=fullscreen]').click();
   await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(false);
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.locator('[data-action=center]').click();
