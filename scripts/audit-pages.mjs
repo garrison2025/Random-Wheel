@@ -20,9 +20,19 @@ const held = [
 const all = [...approved, ...held];
 const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true';
 const site = (process.env.PUBLIC_SITE_URL || '').replace(/\/+$/, '');
-const validDomain = /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}$/i.test(site)
-  && !/\.pages\.dev$/i.test(site)
-  && !/(^|\.)example\./i.test(site);
+const validDomain = (() => {
+  try {
+    const url = new URL(site);
+    const host = url.hostname.toLowerCase();
+    return url.protocol === 'https:' && url.origin === site
+      && /^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/i.test(host)
+      && !host.includes('..')
+      && host !== 'pages.dev' && !host.endsWith('.pages.dev')
+      && !/(^|\.)example\./i.test(host);
+  } catch {
+    return false;
+  }
+})();
 const liveMode = expectedIndex && validDomain;
 const failures = [];
 const warnings = [];
