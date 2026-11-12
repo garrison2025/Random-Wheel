@@ -1,0 +1,36 @@
+---
+import {DOMAIN,INDEXABLE} from '../lib/site';
+import {geoToolFacts,type GeoTool} from '../lib/geo-tool-facts';
+interface Props {kind:GeoTool; max?:number}
+const {kind,max}=Astro.props;
+const facts=geoToolFacts(kind,max);
+const schema=JSON.stringify({
+  '@context':'https://schema.org',
+  '@type':'WebApplication',
+  name:facts.name,
+  url:DOMAIN+facts.path,
+  description:facts.summary,
+  applicationCategory:'UtilitiesApplication',
+  operatingSystem:'Web browser',
+  isAccessibleForFree:true,
+  featureList:facts.features
+}).replace(/</g,'\\u003c');
+const id='geo-quick-facts-'+(max||kind);
+---
+<section class="geo-tool-summary" aria-labelledby={id} data-geo-tool={facts.path}>
+  <div class="container">
+    <div class="geo-tool-summary-inner">
+      <span class="geo-fact-kicker">TOOL FACTS</span>
+      <h2 id={id}>At a glance: {facts.name}</h2>
+      <p class="geo-answer">{facts.summary}</p>
+      <dl class="geo-fact-list">
+        <div><dt>What you get</dt><dd>{facts.outcome}</dd></div>
+        <div><dt>How the draw works</dt><dd>{facts.methods}</dd></div>
+        <div><dt>Repeats and exclusions</dt><dd>{facts.exclusions}</dd></div>
+        <div><dt>Privacy and sharing</dt><dd>{facts.privacy}</dd></div>
+      </dl>
+      <p class="geo-trust-link">See <a href="/about/#how-results-are-generated">how Number Spinner generates results</a>, including technical limitations and the public source code. General-purpose use only; not a certified drawing service.</p>
+    </div>
+  </div>
+</section>
+{INDEXABLE && <script type="application/ld+json" set:html={schema} />}
