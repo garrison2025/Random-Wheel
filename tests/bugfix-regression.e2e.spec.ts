@@ -155,3 +155,24 @@ test('an older file read never overwrites a newer invalid import',async({page})=
   await page.waitForTimeout(450);
   await expect(page.locator('[data-role="entries"]')).toHaveValue(previous);
 });
+
+test('manual typing supersedes a slow pending CSV file read',async({page})=>{
+  await page.addInitScript(()=>{
+    const original=File.prototype.text;
+    File.prototype.text=function(){
+      const file=this;
+      return new Promise<string>((resolve,reject)=>{
+        setTimeout(()=>original.call(file).then(resolve,reject),350);
+      });
+    };
+  });
+  await page.goto('/');
+  await page.locator('[data-role="file"]').setInputFiles({
+    name:'slow.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Name,Weight\nOld,2\nOlder,1\n')
+  });
+  await page.locator('[data-role="entries"]').fill('Manual\nLatest');
+  await expect(page.locator('[data-role="entries"]')).toHaveValue('Manual\nLatest');
+  await page.waitForTimeout(450);
+  await expect(page.locator('[data-role="entries"]')).toHaveValue('Manual\nLatest');
+});
