@@ -195,7 +195,7 @@ function init(root: HTMLElement) {
     if(invalidDraft){
       caption.textContent='The draft is invalid. The last valid pool and no-repeat history are preserved; drawing is paused.';
     }else if(active.length>100 && active.every(v=>v.entry.weight===active[0]!.entry.weight)){
-      caption.textContent=active.length+' eligible tickets · equal chance: '+(100/active.length).toFixed(4)+'% each. The simplified wheel is decorative; every eligible ticket remains in the draw.';
+      caption.textContent=active.length+' eligible tickets · each has a 1/'+active.length+' chance ('+(100/active.length).toFixed(4)+'%). The simplified wheel is decorative; every eligible ticket remains in the draw.';
       return;
     }else if(active.length>100){
       caption.textContent='Showing the first 100 of '+active.length+' eligible tickets. Probabilities are calculated against the full active pool.';
@@ -205,8 +205,8 @@ function init(root: HTMLElement) {
     active.slice(0,100).forEach(({entry,index})=>{
       const item=document.createElement('li');
       // Duplicate names are independent tickets; show their original ticket indices.
-      const percentage=(entry.weight/total*100).toFixed(2);
-      item.textContent='#'+(index+1)+' '+entry.label+' — weight '+entry.weight+' · '+percentage+'%';
+      const percentage=(entry.weight/total*100).toFixed(4);
+      item.textContent='#'+(index+1)+' '+entry.label+' — weight '+entry.weight+'/'+total+' · '+percentage+'%';
       list.append(item);
     });
   }
