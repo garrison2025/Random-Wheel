@@ -18,10 +18,9 @@ const held = [
     .map(n => '/random-number-wheel/1-' + n + '/')
 ];
 const all = [...approved, ...held];
-const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true'
-  || (process.env.PUBLIC_INDEXABLE !== 'false'
-    && process.env.CF_PAGES === '1'
-    && process.env.CF_PAGES_BRANCH === 'main');
+const expectedIndex = (process.env.CF_PAGES === '1'
+  ? process.env.CF_PAGES_BRANCH === 'main'
+  : process.env.PUBLIC_INDEXABLE === 'true');
 const site = (process.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 const validDomain = (() => {
   if(site !== 'https://numberspinner.com') return false;
