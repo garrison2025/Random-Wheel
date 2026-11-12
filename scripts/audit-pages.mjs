@@ -174,6 +174,18 @@ for (const route of all) {
   }else if(applications.length || html.includes('data-geo-tool='))
     fail(route,'Held/non-tool page must not inherit approved WebApplication or facts');
   if(route==='/about/'){
+    const techArticles=entities.filter(x=>x['@type']==='TechArticle');
+    if(shouldIndex){
+      const article=techArticles[0];
+      if(techArticles.length!==1
+        || article?.mainEntityOfPage!==site+'/about/'
+        || article?.author?.name!=='Number Spinner'
+        || article?.dateModified!=='2026-11-12')
+        fail(route,'Methodology must have honest project-level author and date metadata');
+    } else if(techArticles.length)
+      fail(route,'Preview About page must not publish official TechArticle JSON-LD');
+    if(!html.includes('datetime="2026-11-12"') || !html.includes('https://www.w3.org/TR/WebCryptoAPI/'))
+      fail(route,'Methodology must display its review date and public technical evidence');
     if(!html.includes('id="how-results-are-generated"')
       || !html.includes('/src/lib/random.ts')
       || !html.includes('/src/scripts/wheel.ts'))
@@ -234,8 +246,17 @@ else {
 }
 const sitemapFile = 'dist/sitemap.xml';
 const robotsFile = 'dist/robots.txt';
+const llmsFile = 'dist/llms.txt';
 if (!existsSync(sitemapFile)) fail('SITEMAP', 'Missing sitemap.xml');
 if (!existsSync(robotsFile)) fail('ROBOTS', 'Missing robots.txt');
+if (!existsSync(llmsFile)) fail('LLMS', 'Optional AI-oriented tool directory not emitted');
+else{
+  const directory=read(llmsFile);
+  if(!directory.includes('https://numberspinner.com/about/')
+    || !directory.includes('https://numberspinner.com/random-number-wheel/1-100/')
+    || directory.includes('/random-number-wheel/1-8/'))
+    fail('LLMS','Tool directory must describe approved pages, without held candidates');
+}
 if (existsSync(sitemapFile)) {
   const xml = read(sitemapFile);
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x => x[1]);
@@ -250,6 +271,10 @@ if (existsSync(robotsFile)) {
   if (liveMode) {
     if (/Disallow:\s*\//i.test(txt)) fail('ROBOTS', 'Official site blocks root crawl');
     if (!txt.includes('Sitemap: ' + site + '/sitemap.xml')) fail('ROBOTS', 'Missing official sitemap declaration');
+    for(const bot of ['OAI-SearchBot','Claude-SearchBot','PerplexityBot','Googlebot','Bingbot']){
+      if(!txt.includes('User-agent: '+bot+'\nAllow: /'))
+        fail('ROBOTS','Explicit AI/search bot permission is missing for '+bot);
+    }
   } else if (!/Disallow:\s*\//i.test(txt)) {
     fail('ROBOTS', 'Staging must block search crawling');
   }
