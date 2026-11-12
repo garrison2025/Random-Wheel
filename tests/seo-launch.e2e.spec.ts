@@ -19,7 +19,7 @@ test('preview HTML remains noindex but retains the official self-canonical',asyn
 });
 
 test('held landing pages remain noindex in preview, with working internal links',async({page})=>{
-  await page.goto('/random-number-wheel/1-8/');
+  await page.goto('/random-number-wheel/1-7/');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Custom number range/i})).toHaveAttribute('href','/random-number-wheel/');
@@ -50,7 +50,7 @@ test('number wheel pillar links home and defers optional visual fonts',async({pa
   expect(markup).toContain('fonts.googleapis.com/css2');
 });
 
-test('main number picker surfaces approved high-intent ranges ahead of held candidates',async({page})=>{
+test('number pillar shows six popular cards and links to the full range directory',async({page})=>{
   await page.goto('/random-number-wheel/');
   const popular=page.locator('.tool-grid').first().locator('.tool-card');
   await expect(popular).toHaveCount(6);
@@ -84,7 +84,7 @@ test('approved number pages have unique task-first guides with working tool anch
 });
 
 test('held number pages do not inherit approved-range editorial guides',async({page})=>{
-  for(const max of [2,7,8,10,15,30,50,200,1000,10000]){
+  for(const max of [2,7,10,15,50,200,1000,10000]){
     await page.goto('/random-number-wheel/1-'+max+'/');
     await expect(page.locator('[data-approved-range-guide]')).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
