@@ -69,9 +69,9 @@ test('weighted probability disclosure shows exact per-ticket chances and recalcu
   await panel.locator('summary').click();
   const items=panel.locator('[data-role="probability-list"] li');
   await expect(items).toHaveCount(3);
-  await expect(items.nth(0)).toContainText('#1 A — weight 3 · 50.00%');
-  await expect(items.nth(1)).toContainText('#2 B — weight 1 · 16.67%');
-  await expect(items.nth(2)).toContainText('#3 A — weight 2 · 33.33%');
+  await expect(items.nth(0)).toContainText('#1 A — weight 3/6 · 50.0000%');
+  await expect(items.nth(1)).toContainText('#2 B — weight 1/6 · 16.6667%');
+  await expect(items.nth(2)).toContainText('#3 A — weight 2/6 · 33.3333%');
   await page.locator('[data-role="remove"]').check();
   await page.locator('[data-mode="quick"]').click();
   await page.locator('[data-action="pick"]').click();
@@ -88,7 +88,7 @@ test('large equal-weight ranges show the exact probability without rendering tho
   await page.locator('[data-role="max"]').dispatchEvent('change');
   const panel=page.locator('.probability-panel');
   await expect(panel.locator('[data-role="probability-caption"]')).toContainText('10000 eligible tickets');
-  await expect(panel.locator('[data-role="probability-caption"]')).toContainText('0.0100% each');
+  await expect(panel.locator('[data-role="probability-caption"]')).toContainText('1/10000 chance (0.0100%)');
   await expect(panel.locator('[data-role="probability-list"] li')).toHaveCount(0);
   await expect(page.locator('[data-role="wheel-overlay"]')).toContainText('decorative display only');
 });
