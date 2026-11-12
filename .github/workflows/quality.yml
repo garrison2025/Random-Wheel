@@ -26,6 +26,21 @@ jobs:
         run: node scripts/audit-pages.mjs
       - name: Enforce candidate SEO release gates
         run: node scripts/audit-candidate-gates.mjs
+      - name: Build official-domain SEO variant
+        run: npm run build
+        env:
+          PUBLIC_SITE_URL: https://numberspinner.com
+          PUBLIC_INDEXABLE: 'true'
+      - name: Verify official-domain canonical and 13-route sitemap
+        run: npm run seo:audit
+        env:
+          PUBLIC_SITE_URL: https://numberspinner.com
+          PUBLIC_INDEXABLE: 'true'
+      - name: Verify held candidate noindex in official-domain build
+        run: node scripts/audit-candidate-gates.mjs
+        env:
+          PUBLIC_SITE_URL: https://numberspinner.com
+          PUBLIC_INDEXABLE: 'true'
       - name: Install Chromium, Firefox and WebKit
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run browser tests
