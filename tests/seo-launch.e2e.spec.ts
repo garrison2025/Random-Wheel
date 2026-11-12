@@ -9,11 +9,11 @@ test('unknown URLs return a real 404, never a duplicated homepage',async({page})
   await expect(page.getByRole('link',{name:/Number Spinner home page/i})).toHaveAttribute('href','/');
 });
 
-test('preview HTML never claims to be indexable and uses the new brand',async({page})=>{
+test('preview HTML remains noindex but retains the official self-canonical',async({page})=>{
   await page.goto('/');
   await expect(page).toHaveTitle(/Number Spinner$/);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
-  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://numberspinner.com/');
   await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute('content','Number Spinner');
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
 });
