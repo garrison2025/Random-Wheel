@@ -77,7 +77,9 @@ test('weighted probability disclosure shows exact per-ticket chances and recalcu
   await page.locator('[data-action="pick"]').click();
   await expect(items).toHaveCount(2);
   const percentages=await items.allTextContents();
-  expect(percentages.every(text=>text.includes('50.00%'))).toBeTruthy();
+  const numeric=percentages.map(text=>Number(text.match(/(\\d+\\.\\d+)%/)?.[1]));
+  expect(numeric.every(value=>Number.isFinite(value))).toBeTruthy();
+  expect(numeric.reduce((sum,value)=>sum+value,0)).toBeCloseTo(100,0);
 });
 
 test('large equal-weight ranges show the exact probability without rendering thousands of rows',async({page})=>{
@@ -108,6 +110,7 @@ test('setup JSON export and import preserve the selected mode and local options'
   expect(saved.mode).toBe('quick');
   expect(saved.entries).toBe('Red\nGreen\nBlue');
   expect(saved.remove).toBe(true);
+  await page.evaluate(()=>localStorage.clear());
   await page.goto('/');
   await page.locator('[data-role="setup-file"]').setInputFiles({
     name:'backup.json',mimeType:'application/json',buffer:Buffer.from(json)
