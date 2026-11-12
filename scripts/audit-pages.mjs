@@ -64,6 +64,20 @@ for (const route of all) {
   const canonical = links.filter(t => attr(t, 'rel').toLowerCase() === 'canonical');
   const desc = description ? attr(description, 'content') : '';
   const robotValue = robots ? attr(robots, 'content').toLowerCase() : '';
+
+  // Approved range pages need independently useful, task-specific main content.
+  // A candidate page must not acquire an approved editorial block by accident.
+  const approvedRange=/^\/random-number-wheel\/1-(3|4|5|6|20|100)\/$/.test(route);
+  const hasGuide=html.includes('data-approved-range-guide=');
+  if(approvedRange){
+    if(!hasGuide)fail(route,'Missing approved-range task guide');
+    const cards=(html.match(/class="range-guide-card"/g)||[]).length;
+    if(cards!==2)fail(route,'Expected two actionable workflow examples; found '+cards);
+    if(!html.includes('What to expect:'))fail(route,'Expected outcome guidance for range tasks');
+    const anchors=(html.match(/href="#start"/g)||[]).length;
+    if(anchors<2)fail(route,'Missing direct action links from workflow examples to picker');
+  } else if(hasGuide)fail(route,'Nonapproved route unexpectedly contains an approved-range guide');
+
   const shouldIndex = liveMode && approved.includes(route);
 
   const isRangeRoute=/^\/random-number-wheel\/1-\d+\/$/.test(route);
