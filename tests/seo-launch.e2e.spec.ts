@@ -52,7 +52,7 @@ test('main number picker surfaces approved high-intent ranges ahead of held cand
   await expect(popular).toHaveCount(6);
   await expect(popular.first()).toHaveAttribute('href','/random-number-wheel/1-100/');
   await expect(popular.nth(1)).toHaveAttribute('href','/random-number-wheel/1-3/');
-  await expect(popular.locator('a[href="/random-number-wheel/1-8/"]')).toHaveCount(0);
+  await expect(page.locator('.tool-grid').first().locator('a[href="/random-number-wheel/1-8/"]')).toHaveCount(0);
   await expect(page.getByRole('link',{name:/all number picker tools/i})).toHaveAttribute('href','/tools/');
   await page.goto('/tools/');
   await expect(page.getByRole('heading',{name:'More number range tools'})).toBeVisible();
