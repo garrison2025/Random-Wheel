@@ -225,3 +225,8 @@ body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sa
 .share-preview-actions button:disabled{opacity:.45;cursor:not-allowed}
 .setup-import-control{display:none}
 @media(max-width:560px){.share-preview-inner{padding:19px}.share-preview-actions{flex-direction:column-reverse}.share-preview-actions button{width:100%}}
+
+
+.share-preview-url-label{display:block;margin:10px 0 5px;color:#666174;font-size:.69rem;font-weight:800}
+.share-preview-url{width:100%;padding:10px;border:1px solid #e5ded3;border-radius:8px;background:#f8f5ef;color:#343247;font-size:.7rem}
+.share-preview-url:focus{outline:2px solid #d28a70;outline-offset:1px}
