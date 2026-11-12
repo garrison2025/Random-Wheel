@@ -78,3 +78,52 @@ test('Yes/No scores update in Firefox/WebKit too',async({page})=>{
   const values=await page.locator('[data-tally]').allTextContents();
   expect(values.reduce((a,b)=>a+Number(b),0)).toBe(1);
 });
+
+
+for (const motion of ['no-preference','reduce'] as const) {
+  test('restoring a temporarily invalid list preserves the prior winning frame ('+motion+')',async({page})=>{
+    await page.addInitScript(()=>{
+      // The first 3-ticket draw picks C; the next 2-ticket draw picks A.
+      Object.defineProperty(window.crypto,'getRandomValues',{
+        configurable:true,
+        value:(buffer:Uint32Array)=>{buffer.fill(2);return buffer;}
+      });
+    });
+    await page.emulateMedia({reducedMotion:motion});
+    await page.goto('/');
+    const choices=page.locator('[data-role="entries"]');
+    const disc=page.locator('[data-role="wheel-disc"]');
+    await choices.fill('A\\nB\\nC');
+    await choices.dispatchEvent('change');
+    await page.locator('[data-role="remove"]').check();
+    await page.locator('[data-role="speed"]').selectOption('fast');
+    await page.locator('[data-action="pick"]').click();
+    await expect(page.locator('[data-role="result"]')).toHaveText('C',{timeout:7000});
+    const frame=await disc.evaluate(el=>({
+      labels:[...el.querySelectorAll('.wheel-label')].map(label=>label.textContent),
+      background:(el as HTMLElement).style.background,
+      transform:(el as HTMLElement).style.transform
+    }));
+    expect(frame.labels).toEqual(['A','B','C']);
+    expect(frame.transform).toMatch(/rotate\\(/);
+    await choices.fill('');
+    await choices.dispatchEvent('change');
+    await expect(page.locator('[data-role="feedback"]')).toContainText('Add 1–100 wheel entries');
+    await expect(page.locator('[data-action="pick"]')).toBeDisabled();
+    await choices.fill('A\\nB\\nC');
+    await choices.dispatchEvent('change');
+    await expect(page.locator('[data-role="feedback"]')).toContainText('Previous round restored');
+    await expect(page.locator('[data-role="result"]')).toHaveText('C');
+    await expect(page.locator('[data-role="candidate-count"]')).toContainText('2 choices remaining');
+    await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('All eligible choices included');
+    expect(await disc.evaluate(el=>({
+      labels:[...el.querySelectorAll('.wheel-label')].map(label=>label.textContent),
+      background:(el as HTMLElement).style.background,
+      transform:(el as HTMLElement).style.transform
+    }))).toEqual(frame);
+    await page.locator('[data-action="pick"]').click();
+    await expect(disc.locator('.wheel-label')).toHaveText(['A','B']);
+    await expect(page.locator('[data-role="result"]')).toHaveText('A',{timeout:7000});
+    await expect(page.locator('[data-role="history"] .history-chip')).toHaveText(['A','C']);
+  });
+}
