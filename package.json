@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "seo:audit": "node scripts/audit-pages.mjs",
-    "audit:live": "node scripts/audit-live.mjs"
+    "audit:live": "node scripts/audit-live.mjs",
+    "postbuild": "node scripts/audit-pages.mjs && node scripts/audit-candidate-gates.mjs"
   },
   "dependencies": {
     "astro": "^5.16.0"
