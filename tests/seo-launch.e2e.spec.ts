@@ -37,13 +37,17 @@ test('number tools expose human-readable breadcrumb hierarchy and relevant links
     .toHaveAttribute('href','/random-number-wheel/1-100/');
 });
 
-test('number wheel pillar links to the home page and loads fonts directly from HTML',async({page})=>{
+test('number wheel pillar links home and defers optional visual fonts',async({page})=>{
   await page.goto('/random-number-wheel/');
   const crumbs=page.getByRole('navigation',{name:'Breadcrumb'});
   await expect(crumbs.getByRole('link',{name:'Home'})).toHaveAttribute('href','/');
   await expect(crumbs.locator('[aria-current="page"]')).toHaveText('Random Number Wheel');
-  await expect(page.locator('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css2"]'))
-    .toHaveCount(1);
+  const font=page.locator('head link[as="style"][href^="https://fonts.googleapis.com/css2"]');
+  await expect(font).toHaveCount(1);
+  await expect(font).toHaveAttribute('href',/display=optional/);
+  const markup=await page.content();
+  expect(markup).toContain('<noscript>');
+  expect(markup).toContain('fonts.googleapis.com/css2');
 });
 
 test('main number picker surfaces approved high-intent ranges ahead of held candidates',async({page})=>{
