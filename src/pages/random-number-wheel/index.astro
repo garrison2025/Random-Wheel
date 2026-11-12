@@ -2,6 +2,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Workbench from '../../components/Workbench.astro';
+import GeoToolSummary from '../../components/GeoToolSummary.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { RANGE_PAGES } from '../../data/ranges';
 const priority=[100,3,4,5,6,20];
@@ -16,6 +17,7 @@ const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).f
     <div class="hero-points"><span>Custom ranges</span><span>Exclusions and steps</span><span>Optional no-repeat drawing</span></div>
   </div></section>
   <div class="container main-overlap"><Workbench kind="numbers" min={1} max={10}/></div>
+  <GeoToolSummary kind="number-wheel"/>
   <section class="section"><div class="container">
     <h2 class="section-title">Popular number ranges</h2>
     <p class="section-intro">These tools open with exactly the numbers you need. No need to configure the range yourself.</p>
