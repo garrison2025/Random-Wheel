@@ -53,6 +53,7 @@ function init(root: HTMLElement) {
   let winningHistory:string[]=[];
   let latestDraw:string[]=[];
   let entries:Entry[]=[];
+  let invalidDraft=false; // Invalid editor text pauses draws but must never discard the last valid round.
   // The applied selection policy must match the pool represented by pickedIndices.
   let appliedRemove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
   // Number presets must not inherit a custom range saved on a different URL.
@@ -104,9 +105,12 @@ function init(root: HTMLElement) {
     root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
   };
   const updateModeLabels=()=>{
-    pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
-    if(centerLabel) centerLabel.textContent=mode==='quick'?'PICK':'SPIN';
-    if(centerButton)centerButton.setAttribute('aria-label',mode==='quick'?'Pick a random result':'Spin the wheel');
+    const quantity=Number(asValue(get(root,'[data-role="batch"]')));
+    const batch=(isNumbers||isLetters||isWords) && Number.isSafeInteger(quantity) && quantity>1 && quantity<=100;
+    const plural=isNumbers?'numbers':isLetters?'letters':'words';
+    pickButton.textContent=batch?'⚡ Pick '+quantity+' '+plural:mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
+    if(centerLabel) centerLabel.textContent=batch||mode==='quick'?'PICK':'SPIN';
+    if(centerButton)centerButton.setAttribute('aria-label',batch?'Pick '+quantity+' '+plural:mode==='quick'?'Pick a random result':'Spin the wheel');
   };
   const readChoices=():Entry[]=>{
     if(isCustom) return parseEntries(asValue(get(root,'[data-role="entries"]')));
@@ -168,8 +172,27 @@ function init(root: HTMLElement) {
     const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
     return entries.map((entry,index)=>({entry,index})).filter(v=>v.entry.weight>0 && (!remove || !pickedIndices.has(v.index)));
   }
+  function renderProbabilities(){
+    const list=get<HTMLOListElement>(root,'[data-role="probability-list"]');
+    const caption=get<HTMLElement>(root,'[data-role="probability-caption"]');
+    if(!list || !caption)return;
+    const active=activeChoices();
+    const total=active.reduce((sum,v)=>sum+v.entry.weight,0);
+    list.replaceChildren();
+    caption.textContent=active.length
+      ? active.length+' eligible tickets · each chance updates after removing a winner.'
+      : 'No eligible tickets remain. Start over to begin a new round.';
+    active.forEach(({entry,index})=>{
+      const item=document.createElement('li');
+      // Duplicate names are independent tickets; show their original ticket indices.
+      const percentage=(entry.weight/total*100).toFixed(2);
+      item.textContent='#'+(index+1)+' '+entry.label+' — weight '+entry.weight+' · '+percentage+'%';
+      list.append(item);
+    });
+  }
   function render(){
     const active=activeChoices();
+    renderProbabilities();
     const total=active.reduce((s,a)=>s+a.entry.weight,0);
     counter.textContent=active.length + (active.length===1?' active choice':' active choices');
     disc.textContent='';
@@ -179,7 +202,7 @@ function init(root: HTMLElement) {
     if(abstract){
       const bands=12;
       disc.style.background='conic-gradient('+Array.from({length:bands},(_,i)=>COLORS[i%COLORS.length]+' '+(i*100/bands)+'% '+((i+1)*100/bands)+'%').join(',')+')';
-      overlay.textContent=active.length+' possibilities';
+      overlay.textContent=active.length+' eligible choices · decorative wheel';
       return;
     }
     // Restore a valid label after an empty or simplified candidate pool.
@@ -215,9 +238,10 @@ function init(root: HTMLElement) {
       const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
       if(controls)controls.hidden=category?.value!=='custom';
     }
+    const wasInvalid=invalidDraft;
     try {
       const next=readChoices();
-      if(!next.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
+      if(!next.some(e=>e.weight>0))throw new Error('At least one choice must have a positive weight.');
       const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
       const changed=entries.length!==next.length || entries.some((entry,i)=>
         entry.label!==next[i]?.label || entry.weight!==next[i]?.weight
@@ -225,20 +249,22 @@ function init(root: HTMLElement) {
       const removalChanged=appliedRemove!==remove;
       entries=next;
       appliedRemove=remove;
-      // Non-semantic edits (e.g. a trailing newline) must not erase previous
-      // winners or restart a no-repeat round.
+      invalidDraft=false;
+      // Editing a valid pool starts a new round; correcting an invalid draft
+      // back to the identical pool resumes every already-picked ticket.
       if(changed || removalChanged)reset('Ready to draw.');
+      else if(wasInvalid){
+        render();
+        status('Previous round restored. Unpicked entries are still available.');
+      }
       return true;
     } catch(error) {
-      drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
-      entries=[];pickedIndices.clear();winningHistory=[];latestDraw=[];renderHistory();
-      if(instantCopy)instantCopy.disabled=true;
-      if(instantCopyFeedback)instantCopyFeedback.textContent='';
-      result.textContent='Check your settings';
-      if(instantResult)instantResult.textContent='Check settings';
-      resultCard?.classList.remove('is-picked');
+      // Do not destroy the last valid pool or the no-repeat ledger. Merely
+      // suspend new draws until the user fixes the draft input.
+      invalidDraft=true;
+      counter.textContent='Fix settings to continue';
+      overlay.textContent='Invalid settings · round paused';
       status(error instanceof Error?error.message:'Invalid choices.',true);
-      render();
       return false;
     }
   }
@@ -258,7 +284,10 @@ function init(root: HTMLElement) {
     celebrate();
     // Hold the selected segment at the pointer until the next spin, then paint the remaining entries.
     if(mode==='quick' || !removeWinner) render();
-    else counter.textContent=activeChoices().length+' choices remaining';
+    else {
+      counter.textContent=activeChoices().length+' choices remaining';
+      renderProbabilities();
+    }
     setBusy(false);
     root.dispatchEvent(new CustomEvent('wheelcanvas:result',{detail:{label}}));
   }
@@ -267,6 +296,7 @@ function init(root: HTMLElement) {
     // An uncommitted edit changes which index represents which ticket.
     // Apply it and reset the old winner indices BEFORE selecting a result.
     if(!flushPendingEdit())return;
+    if(invalidDraft && !refresh())return;
     try{
       entries=readChoices();
       const active=activeChoices();
@@ -305,10 +335,11 @@ function init(root: HTMLElement) {
       resultCard?.classList.remove('is-picked');
       result.textContent=mode==='spin'?'Spinning…':'Picking…';
       status(mode==='spin'?'Spinning…':'Picking…');
-      if(mode==='quick' || matchMedia('(prefers-reduced-motion: reduce)').matches){
+      if(mode==='quick'){
         showWinner(chosen.entry.label,chosen.index);
         return;
       }
+      const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
       const abstract=active.length>36;
       let landing:number;
       if (abstract) landing=secureIndex(360);
@@ -317,6 +348,15 @@ function init(root: HTMLElement) {
         const start=active.slice(0,selected).reduce((n,e)=>n+e.entry.weight,0)/total*360;
         const width=chosen.entry.weight/total*360;
         landing=(360-(start+width/2)%360)%360;
+      }
+      if(reducedMotion){
+        // Use the same sampled winning sector as animated spin, but reposition
+        // instantly. Never leave the pointer on a different visible choice.
+        rotation=landing;
+        disc.style.transition='none';
+        disc.style.transform='rotate('+landing+'deg)';
+        showWinner(chosen.entry.label,chosen.index);
+        return;
       }
       const current=((rotation%360)+360)%360;
       const delta=(landing-current+360)%360;
@@ -349,6 +389,7 @@ function init(root: HTMLElement) {
   document.addEventListener('fullscreenchange',()=>{
     if(fullscreenButton) fullscreenButton.setAttribute('aria-label',document.fullscreenElement?'Exit fullscreen':'Toggle fullscreen wheel');
   });
+  get<HTMLInputElement>(root,'[data-role="batch"]')?.addEventListener('input',updateModeLabels);
   root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
     if(locked)return;
     mode=button.dataset.mode==='spin'?'spin':'quick';
@@ -395,7 +436,7 @@ function init(root: HTMLElement) {
       if(target&&preset){target.value=preset;refresh();status('Example loaded. Edit any choice, then spin.');}
     });
   });
-  resetButton.addEventListener('click',()=>{if(!locked)reset();});
+  resetButton.addEventListener('click',()=>{if(!locked && refresh())reset();});
   get<HTMLSelectElement>(root,'[data-role="speed"]')?.addEventListener('change',()=>{
     if(!locked){applySpinSpeed();status('Spin duration updated.');}
   });
@@ -507,7 +548,7 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),remove:get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false};
+    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),remove:get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false,mode};
     if(isCustom)return {type:'custom',...shared,entries:asValue(get(root,'[data-role="entries"]'))};
     if(isLetters)return {type:'letters',...shared,letterSet:asValue(get(root,'[data-role="letter-set"]')),letterCase:asValue(get(root,'[data-role="letter-case"]')),letterExclude:asValue(get(root,'[data-role="letter-exclude"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     if(isYesNo)return {type:'yesno',...shared,decisionMode:asValue(get(root,'[data-role="decision-mode"]'))};
@@ -534,6 +575,12 @@ function init(root: HTMLElement) {
         throw new Error('Invalid batch size in saved setup.');
       setText('batch',val);
     };
+    if(c.mode!==undefined && c.mode!=='spin' && c.mode!=='quick')throw new Error('Invalid draw mode in saved setup.');
+    if(c.mode==='spin'||c.mode==='quick'){
+      mode=c.mode;
+      root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>
+        button.setAttribute('aria-pressed',String(button.dataset.mode===mode)));
+    }
     if(typeof c.palette==='string')setPalette(c.palette);
     if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
     if(isCustom)setText('entries',c.entries);
@@ -556,6 +603,7 @@ function init(root: HTMLElement) {
     // Successful parsing of entries alone is insufficient: a restored
     // no-repeat batch must also fit its eligible candidate pool.
     validateCurrentSetup();
+    updateModeLabels();
   }
   function validateCurrentSetup(){
     const candidate=readChoices();
@@ -581,9 +629,12 @@ function init(root: HTMLElement) {
     }
   });
   get<HTMLButtonElement>(root,'[data-action="clear"]')?.addEventListener('click',()=>{
-    localStorage.removeItem(savedKey);
-    if(location.hash.startsWith('#wheel=')) window.history.replaceState(null,'',location.pathname+location.search);
-    status('Saved setup removed from this browser.');reset();
+    try{
+      // This action manages storage only. Start over is the explicit way to
+      // cancel an ongoing spin or erase the current draw history.
+      localStorage.removeItem(savedKey);
+      status('Saved setup removed. Current picks and history are unchanged.');
+    }catch(error){status(error instanceof Error?error.message:'Could not clear browser storage.',true);}
   });
   get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',async()=>{
     try{
