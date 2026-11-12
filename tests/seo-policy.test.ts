@@ -11,7 +11,7 @@ describe('approved page canonical and index separation',()=>{
     });
   });
   it('keeps held pages canonical-free and noindex in preview and production',()=>{
-    for(const path of ['/random-letter-wheel/','/yes-or-no-wheel/','/random-number-wheel/1-8/','/404/']){
+    for(const path of ['/random-letter-wheel/','/yes-or-no-wheel/','/random-number-wheel/1-7/','/404/']){
       expect(resolveSeoPagePolicy(false,true,'https://numberspinner.com',path))
         .toEqual({indexable:false,robots:'noindex, nofollow'});
       expect(resolveSeoPagePolicy(true,true,'https://numberspinner.com',path))
