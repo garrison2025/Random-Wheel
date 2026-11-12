@@ -93,7 +93,7 @@ for (const motion of ['no-preference','reduce'] as const) {
     await page.goto('/');
     const choices=page.locator('[data-role="entries"]');
     const disc=page.locator('[data-role="wheel-disc"]');
-    await choices.fill('A\\nB\\nC');
+    await choices.fill('A\nB\nC');
     await choices.dispatchEvent('change');
     await page.locator('[data-role="remove"]').check();
     await page.locator('[data-role="speed"]').selectOption('fast');
@@ -105,12 +105,12 @@ for (const motion of ['no-preference','reduce'] as const) {
       transform:(el as HTMLElement).style.transform
     }));
     expect(frame.labels).toEqual(['A','B','C']);
-    expect(frame.transform).toMatch(/rotate\\(/);
+    expect(frame.transform).toMatch(/rotate\(/);
     await choices.fill('');
     await choices.dispatchEvent('change');
     await expect(page.locator('[data-role="feedback"]')).toContainText('Add 1–100 wheel entries');
     await expect(page.locator('[data-action="pick"]')).toBeDisabled();
-    await choices.fill('A\\nB\\nC');
+    await choices.fill('A\nB\nC');
     await choices.dispatchEvent('change');
     await expect(page.locator('[data-role="feedback"]')).toContainText('Previous round restored');
     await expect(page.locator('[data-role="result"]')).toHaveText('C');
