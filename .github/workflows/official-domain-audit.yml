@@ -1,6 +1,8 @@
 name: Official domain audit
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 jobs:
   verify-production:
     runs-on: ubuntu-latest
