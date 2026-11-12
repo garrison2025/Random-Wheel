@@ -7,7 +7,7 @@ export interface SeoPagePolicy { indexable: boolean; canonical?: string; robots:
  */
 export function resolveSeoPagePolicy(globalIndexable:boolean, pageNoindex:boolean, domain:string, path:string):SeoPagePolicy {
   if (pageNoindex) return {indexable:false,robots:globalIndexable?'noindex, follow':'noindex, nofollow'};
-  if (domain !== 'https://numberspinner.com' || !/^\/[a-z0-9/-]*\/$/.test(path)) {
+  if (domain !== 'https://numberspinner.com' || !(path === '/' || /^\/(?:[a-z0-9-]+\/)+$/.test(path))) {
     throw new Error('A canonical must use the official Number Spinner HTTPS domain and an absolute slash-terminated path.');
   }
   const canonical=domain+path;
