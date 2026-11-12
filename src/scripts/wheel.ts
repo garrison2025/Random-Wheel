@@ -217,6 +217,7 @@ function init(root: HTMLElement) {
       entries=readChoices();
       if(!entries.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
       reset('Ready to draw.');
+      return true;
     } catch(error) {
       drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
       entries=[];pickedIndices.clear();winningHistory=[];latestDraw=[];renderHistory();
@@ -227,6 +228,7 @@ function init(root: HTMLElement) {
       resultCard?.classList.remove('is-picked');
       status(error instanceof Error?error.message:'Invalid choices.',true);
       render();
+      return false;
     }
   }
   function showWinner(label:string,index:number){
@@ -251,7 +253,9 @@ function init(root: HTMLElement) {
   }
   function pick(){
     if(locked || root.dataset.roundComplete==='true') return;
-    window.clearTimeout(editTimer); // A delayed edit should not reset a newly started spin.
+    // An uncommitted edit changes which index represents which ticket.
+    // Apply it and reset the old winner indices BEFORE selecting a result.
+    if(!flushPendingEdit())return;
     try{
       entries=readChoices();
       const active=activeChoices();
@@ -416,6 +420,12 @@ function init(root: HTMLElement) {
     downloadResults(button.dataset.action==='export-csv'?'csv':'txt');
   }));
   let editTimer:number|undefined;
+  function flushPendingEdit():boolean{
+    if(editTimer===undefined)return true;
+    window.clearTimeout(editTimer);
+    editTimer=undefined;
+    return refresh();
+  }
   root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('[data-role="min"],[data-role="max"],[data-role="step"],[data-role="excluded"],[data-role="entries"],[data-role="letter-exclude"],[data-role="word-custom"]')
     .forEach(el=>{
       el.addEventListener('input',()=>{
@@ -423,10 +433,10 @@ function init(root: HTMLElement) {
         // Direct typing supersedes any pending asynchronous file import.
         if(el.matches('[data-role="entries"],[data-role="word-custom"]'))importRequestId++;
         window.clearTimeout(editTimer);
-        editTimer=window.setTimeout(refresh,180);
+        editTimer=window.setTimeout(()=>{editTimer=undefined;refresh();},180);
       });
       el.addEventListener('change',()=>{
-        window.clearTimeout(editTimer);
+        window.clearTimeout(editTimer);editTimer=undefined;
         if(!locked)refresh();
       });
     });
@@ -514,11 +524,30 @@ function init(root: HTMLElement) {
       for(const key of ['min','max','step','excluded'])setText(key,c[key]);
       if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
     }
-    refresh();
+    if(!refresh())throw new Error('The saved or shared setup contains invalid choices or settings.');
+  }
+  function validateCurrentSetup(){
+    const candidate=readChoices();
+    const eligible=candidate.filter(entry=>entry.weight>0).length;
+    if(!eligible)throw new Error('At least one choice must have a positive weight before saving.');
+    const batchText=(isNumbers||isLetters||isWords)
+      ? asValue(get(root,'[data-role="batch"]')).trim():'1';
+    if(!batchText)throw new Error('Enter how many results to draw (1–100).');
+    const requested=Number(batchText);
+    if(!Number.isSafeInteger(requested)||requested<1||requested>100)
+      throw new Error('Choose 1–100 results per draw before saving.');
+    if((get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false) && requested>eligible)
+      throw new Error('Not enough eligible choices for the no-repeat batch.');
   }
   get<HTMLButtonElement>(root,'[data-action="save"]')?.addEventListener('click',()=>{
-    try{localStorage.setItem(savedKey,JSON.stringify(config()));status('Setup saved in this browser.');}
-    catch{status('Could not save; private browsing may disable local storage.',true);}
+    try{
+      if(!flushPendingEdit())return;
+      validateCurrentSetup();
+      localStorage.setItem(savedKey,JSON.stringify(config()));
+      status('Setup saved in this browser.');
+    }catch(error){
+      status(error instanceof Error?error.message:'Could not save; browser storage may be unavailable.',true);
+    }
   });
   get<HTMLButtonElement>(root,'[data-action="clear"]')?.addEventListener('click',()=>{
     localStorage.removeItem(savedKey);
@@ -527,6 +556,8 @@ function init(root: HTMLElement) {
   });
   get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',async()=>{
     try{
+      if(!flushPendingEdit())return;
+      validateCurrentSetup();
       const encoded=encodeURIComponent(JSON.stringify(config()));
       if(encoded.length>MAX_HASH_LENGTH)throw new Error('Setup too long for a share link; use a shorter list. Your data stays local.');
       const url=location.origin+location.pathname+location.search+'#wheel='+encoded;
@@ -535,6 +566,7 @@ function init(root: HTMLElement) {
     } catch(error){status(error instanceof Error?error.message:'Could not copy setup link.',true);}
   });
   updateModeLabels();
+  const defaultSetup=config();
   try{
     if(location.hash.startsWith('#wheel=')){
       applyConfig(JSON.parse(decodeURIComponent(location.hash.slice(7))));
@@ -559,9 +591,11 @@ function init(root: HTMLElement) {
         }else refresh();
       }
     }
-  }catch{
-    refresh();
-    status('Saved or shared setup could not be loaded; showing the default wheel.',true);
+  }catch(error){
+    // A failed restore may already have mutated several fields. Restore the
+    // original server-rendered defaults, not the broken saved values.
+    try{applyConfig(defaultSetup);}catch{refresh();}
+    status('Saved or shared setup was invalid; original defaults restored. '+(error instanceof Error?error.message:''),true);
   }
 }
 document.querySelectorAll<HTMLElement>('[data-wheel-app]').forEach(init);
