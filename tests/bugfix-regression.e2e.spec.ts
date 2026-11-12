@@ -3,9 +3,12 @@ import {test,expect} from '@playwright/test';
 test('empty number minimum cannot silently introduce zero',async({page})=>{
   await page.goto('/random-number-wheel/1-3/');
   await page.locator('[data-role="min"]').fill('');
-  await page.locator('[data-action="pick"]').click();
+  // Let the input validator run explicitly: invalid settings should disable
+  // drawing, not leave an enabled button that a test tries to click.
+  await page.locator('[data-role="min"]').dispatchEvent('change');
   await expect(page.locator('[data-role="feedback"]')).toContainText('Enter a value for min');
-  await expect(page.locator('[data-role="result"]')).not.toHaveText('0');
+  await expect(page.locator('[data-action="pick"]')).toBeDisabled();
+  await expect(page.locator('[data-role="result"]')).toHaveText('Ready when you are');
 });
 
 test('entry removal and selected mode survive local save and a reload',async({page})=>{
