@@ -36,7 +36,7 @@ test('GEO evidence links lead to the original methodology in human-readable HTML
 });
 
 test('GEO did not expose held candidates as approved tools or change robots policy',async({page})=>{
-  for(const path of ['/random-number-wheel/1-8/','/random-number-wheel/1-30/','/random-letter-wheel/']){
+  for(const path of ['/random-number-wheel/1-7/','/random-number-wheel/1-30/','/random-letter-wheel/']){
     await page.goto(path);
     await expect(page.locator('[data-geo-tool]')).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
