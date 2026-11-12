@@ -17,7 +17,10 @@ for(const target of targets){
     test(`mobile SEO: ${target.name} is usable at ${viewport}px`,async({page})=>{
       await page.setViewportSize({width:viewport,height:780});
       await page.addInitScript(()=>{
-        const metrics={lcp:0,cls:0};
+        const metrics={
+          lcp:0,cls:0,
+          shifts:[] as Array<{value:number;time:number;nodes:Array<{tag:string;className:string;fromY:number;toY:number}>}>
+        };
         (window as typeof window & {__numberSpinnerMetrics?:typeof metrics}).__numberSpinnerMetrics=metrics;
         try{
           new PerformanceObserver(list=>{
@@ -28,7 +31,24 @@ for(const target of targets){
           new PerformanceObserver(list=>{
             for(const entry of list.getEntries()){
               const shift=entry as PerformanceEntry & {value:number;hadRecentInput:boolean};
-              if(!shift.hadRecentInput)metrics.cls+=shift.value;
+              if(!shift.hadRecentInput){
+                metrics.cls+=shift.value;
+                const item=shift as typeof shift & {
+                  sources?:Array<{node?:Node;previousRect?:DOMRectReadOnly;currentRect?:DOMRectReadOnly}>
+                };
+                metrics.shifts.push({
+                  value:Number(shift.value.toFixed(4)),time:Math.round(shift.startTime),
+                  nodes:(item.sources||[]).slice(0,4).map(source=>{
+                    const element=source.node instanceof Element?source.node:null;
+                    return {
+                      tag:element?.tagName||'unknown',
+                      className:String(element?.getAttribute('class')||'').slice(0,90),
+                      fromY:Math.round(source.previousRect?.y||0),
+                      toY:Math.round(source.currentRect?.y||0)
+                    };
+                  })
+                });
+              }
             }
           }).observe({type:'layout-shift',buffered:true});
         }catch{}
@@ -65,11 +85,12 @@ for(const target of targets){
 
       const metrics=await page.evaluate(()=>{
         const navigation=performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming|undefined;
-        const readings=(window as typeof window & {__numberSpinnerMetrics?:{lcp:number;cls:number}}).__numberSpinnerMetrics;
+        const readings=(window as typeof window & {__numberSpinnerMetrics?:{lcp:number;cls:number;shifts:unknown[]}}).__numberSpinnerMetrics;
         return {
           viewportWidth:document.documentElement.clientWidth,
           lcpLabMs:Math.round(readings?.lcp||0),
           clsLab:Number((readings?.cls||0).toFixed(4)),
+          shiftSources:readings?.shifts||[],
           ttfbLabMs:navigation?Math.round(navigation.responseStart-navigation.requestStart):null
         };
       });
