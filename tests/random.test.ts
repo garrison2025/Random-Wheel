@@ -31,6 +31,18 @@ describe('number range calculations',()=>{
   it('supports negative range boundaries',()=>expect(numberChoices(-2,2)).toEqual([-2,-1,0,1,2]));
   it('handles all numbers excluded',()=>expect(numberChoices(1,3,1,[1,2,3])).toEqual([]));
   it('rejects very large ranges',()=>expect(()=>numberChoices(1,10001)).toThrow());
+  it('computes huge safe-integer boundaries and steps exactly without rounding',()=>{
+    const bound=Number.MAX_SAFE_INTEGER;
+    expect(numberChoices(-bound,bound,bound)).toEqual([-bound,0,bound]);
+    expect(numberChoices(-bound,bound,bound,[0])).toEqual([-bound,bound]);
+    expect(numberChoices(-bound,bound,bound-2)).toEqual([-bound,-2,bound-4]);
+    expect(numberChoices(bound-2,bound,2)).toEqual([bound-2,bound]);
+  });
+  it('rejects oversized BigInt-count ranges and non-safe inputs',()=>{
+    const bound=Number.MAX_SAFE_INTEGER;
+    expect(()=>numberChoices(-bound,bound,1)).toThrow('1–10,000');
+    expect(()=>numberChoices(bound+1,bound+1,1)).toThrow('valid whole numbers');
+  });
   it('rejects fractional and reversed ranges',()=>{
     expect(()=>numberChoices(1,3.2)).toThrow();
     expect(()=>numberChoices(4,2)).toThrow();
