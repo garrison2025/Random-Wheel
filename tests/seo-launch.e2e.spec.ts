@@ -24,3 +24,24 @@ test('held landing pages remain noindex in preview, with working internal links'
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Custom number range/i})).toHaveAttribute('href','/random-number-wheel/');
 });
+
+test('number tools expose human-readable breadcrumb hierarchy and relevant links',async({page})=>{
+  await page.goto('/random-number-wheel/1-3/');
+  const crumbs=page.getByRole('navigation',{name:'Breadcrumb'});
+  await expect(crumbs.getByRole('link',{name:'Home'})).toHaveAttribute('href','/');
+  await expect(crumbs.getByRole('link',{name:'Random Number Wheel'})).toHaveAttribute('href','/random-number-wheel/');
+  await expect(crumbs.locator('[aria-current="page"]')).toHaveText('Numbers 1–3');
+  const related=page.getByRole('navigation',{name:'Related number picker tools'});
+  await expect(related.locator('a[href="/random-number-wheel/1-3/"]')).toHaveCount(0);
+  await expect(related.getByRole('link',{name:'Pick a number from 1 to 100'}))
+    .toHaveAttribute('href','/random-number-wheel/1-100/');
+});
+
+test('number wheel pillar links to the home page and loads fonts directly from HTML',async({page})=>{
+  await page.goto('/random-number-wheel/');
+  const crumbs=page.getByRole('navigation',{name:'Breadcrumb'});
+  await expect(crumbs.getByRole('link',{name:'Home'})).toHaveAttribute('href','/');
+  await expect(crumbs.locator('[aria-current="page"]')).toHaveText('Random Number Wheel');
+  await expect(page.locator('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css2"]'))
+    .toHaveCount(1);
+});
