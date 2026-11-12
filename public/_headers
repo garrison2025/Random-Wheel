@@ -1,0 +1,7 @@
+# Keep Cloudflare Pages aliases out of search results while domain redirects are configured.
+# The official https://numberspinner.com host is intentionally unaffected.
+https://random-wheel-58c.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.random-wheel-58c.pages.dev/*
+  X-Robots-Tag: noindex
