@@ -172,7 +172,7 @@ function init(root: HTMLElement) {
     result.textContent='Ready when you are';
     if(instantResult)instantResult.textContent='—';
     resultCard?.classList.remove('is-picked');
-    renderHistory();status(message);
+    renderHistory();status(invalidDraft?'Round reset. Fix settings before drawing.':message,invalidDraft);
     root.dispatchEvent(new CustomEvent('wheelcanvas:reset'));
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
     render();void disc.offsetWidth;applySpinSpeed();
@@ -218,11 +218,16 @@ function init(root: HTMLElement) {
     disc.textContent='';
     const abstract=active.length>36;
     wrap.classList.toggle('is-abstract',abstract);
-    if (!active.length) {disc.style.background='#dce1f1';overlay.textContent='No available choices';return;}
+    if (!active.length) {
+      disc.style.background='#dce1f1';overlay.textContent='No available choices';
+      if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
+      return;
+    }
     if(abstract){
       const bands=12;
       disc.style.background='conic-gradient('+Array.from({length:bands},(_,i)=>COLORS[i%COLORS.length]+' '+(i*100/bands)+'% '+((i+1)*100/bands)+'%').join(',')+')';
       overlay.textContent=active.length+' eligible choices · decorative display only';
+      if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
       return;
     }
     // Restore a valid label after an empty or simplified candidate pool.
@@ -251,6 +256,7 @@ function init(root: HTMLElement) {
       }
     }
     disc.style.background='conic-gradient('+stops.join(',')+')';
+    if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
   }
   function refresh(){
     if(isWords){
