@@ -128,7 +128,8 @@ for (const route of all) {
       const website=schemas.flatMap(raw=>{
         try{return [JSON.parse(raw)];}catch{fail(route,'Malformed homepage JSON-LD');return [];}
       }).filter(x=>x['@type']==='WebSite');
-      if(website.length!==1 || website[0].name!=='Number Spinner'||website[0].url!==site+'/')
+      if(website.length!==1 || website[0].name!=='Number Spinner'||website[0].url!==site+'/'
+        || website[0].sameAs!=='https://github.com/garrison2025/Random-Wheel')
         fail(route,'Expected exactly one correct WebSite JSON-LD alongside the home tool entity');
     } else if(schemas.length)fail(route,'Staging must not advertise official-domain JSON-LD');
   }
@@ -164,6 +165,8 @@ for (const route of all) {
         if(app.url!==site+route || !app.name || !html.includes(app.name)
           || typeof app.description!=='string' || !app.description.trim()
           || app.isAccessibleForFree!==true || app.applicationCategory!=='UtilitiesApplication'
+          || app.sameAs!=='https://github.com/garrison2025/Random-Wheel'
+          || app.maintainer?.name!=='Number Spinner'
           || !Array.isArray(app.featureList)||app.featureList.length<3)
           fail(route,'WebApplication entity is incomplete or does not match this URL');
         if('aggregateRating' in app||'review' in app||'ratingValue' in app)
