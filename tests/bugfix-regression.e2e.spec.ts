@@ -122,7 +122,8 @@ test('wheel recovers its valid overlay after all numbers are excluded',async({pa
   const excluded=page.locator('[data-role="excluded"]');
   await excluded.fill('1, 2, 3');
   await excluded.dispatchEvent('change');
-  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('No available choices');
+  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('Invalid settings · round paused');
+  await expect(page.locator('[data-action="pick"]')).toBeDisabled();
   await excluded.fill('');
   await excluded.dispatchEvent('change');
   await expect(page.locator('[data-role="candidate-count"]')).toContainText('3 active choices');
