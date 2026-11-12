@@ -12,6 +12,16 @@ describe('CSV input parsing',()=>{
     expect(parseImportedEntryLines('One | 2\nTwo\n','list.txt')).toEqual(['One | 2','Two']);
     expect(parseImportedEntryLines('Alice\nBob\n','names.csv')).toEqual(['Alice','Bob']);
   });
+  it('supports an explicitly declared single-column header without eating a real Name entry',()=>{
+    const file='Name\nAlice\nBob\n';
+    expect(parseImportedEntryLines(file,'names.csv')).toEqual(['Name','Alice','Bob']);
+    expect(parseImportedEntryLines(file,'names.csv',true)).toEqual(['Alice','Bob']);
+    expect(parseImportedEntryLines('Name\nAlice','names.txt',true)).toEqual(['Name','Alice']);
+    expect(parseImportedEntryLines('\uFEFFName\nCarol\n','names.csv',true)).toEqual(['Carol']);
+    expect(()=>parseImportedEntryLines('Name\n','names.csv',true)).toThrow('no usable entries');
+    expect(parseImportedEntryLines('Name,Weight\nAlice,2\n','names.csv'))
+      .toEqual(['Alice | 2']);
+  });
   it('rejects blank and invalid weights rather than silently zeroing a ticket',()=>{
     expect(()=>parseImportedEntryLines('Name,Weight\nAlice,\n','names.csv'))
       .toThrow('weights must be whole numbers');
