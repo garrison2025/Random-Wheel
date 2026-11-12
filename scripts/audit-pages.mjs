@@ -80,6 +80,11 @@ for (const route of all) {
     if(presets!==2)fail(route,'Expected two real preset actions for approved workflow examples');
   } else if(hasGuide)fail(route,'Nonapproved route unexpectedly contains an approved-range guide');
 
+  if (route === '/random-number-wheel/1-100/') {
+    if (!html.includes('data-action="instant-pick"') || !html.includes('data-role="instant-result"'))
+      fail(route, '1–100 must let mobile users generate and read an immediate answer above the wheel');
+  }
+
   const shouldIndex = liveMode && approved.includes(route);
 
   const isRangeRoute=/^\/random-number-wheel\/1-\d+\/$/.test(route);
