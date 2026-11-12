@@ -33,7 +33,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Give three people unique turn numbers',
         preset:{batch:3,remove:true,mode:'quick'},
         purpose:'You need all three positions, but no position should be assigned twice.',
-        steps:['Keep the default 1–3 pool.','Switch on Remove winners.','Set How many numbers to draw to 3, then draw once.'],
+        steps:['Keep the default 1–3 pool.','Switch on Remove winners.','Set How many numbers? to 3, then draw once.'],
         outcome:'The three results contain 1, 2 and 3 in a random order; export the history if needed.'
       }
     ],
@@ -54,7 +54,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Assign four different station slots',
         preset:{batch:4,remove:true,mode:'quick'},
         purpose:'Four groups need four distinct positions without a repeated number.',
-        steps:['Keep Step at 1 and leave the exclusion field blank.','Enable Remove winners.','Set How many numbers to draw to 4 for one random ordering.'],
+        steps:['Keep Step at 1 and leave the exclusion field blank.','Enable Remove winners.','Set How many numbers? to 4 for one random ordering.'],
         outcome:'The result lists all four slots once. To repeat the activity, start a new round.'
       }
     ],
@@ -75,7 +75,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Create an order for five activities',
         preset:{batch:5,remove:true,mode:'quick'},
         purpose:'Visit all five stations in an unpredictable order without revisiting one.',
-        steps:['Turn on Remove winners before the first draw.','Enter 5 in How many numbers to draw.','Draw the batch and save the ordered results from the history.'],
+        steps:['Turn on Remove winners before the first draw.','Enter 5 in How many numbers?.','Draw the batch and save the ordered results from the history.'],
         outcome:'The five numbers appear once each; the sequence is random, not sorted.'
       }
     ],
@@ -96,7 +96,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Draw six distinct turn positions',
         preset:{batch:6,remove:true,mode:'quick'},
         purpose:'Assign each position from 1 through 6 once.',
-        steps:['Enable Remove winners.','Set How many numbers to draw to 6.','Generate the batch; use the displayed order as the assignment list.'],
+        steps:['Enable Remove winners.','Set How many numbers? to 6.','Generate the batch; use the displayed order as the assignment list.'],
         outcome:'Every position appears once. This is a shuffle, not a sequence of independent die rolls.'
       }
     ],
@@ -117,7 +117,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Give every present student one turn',
         preset:{batch:17,remove:true,exclude:'4, 7, 12',mode:'quick'},
         purpose:'With those same three students absent, make a no-repeat sequence for the other seventeen.',
-        steps:['Enter 4, 7, 12 as exclusions.','Enable Remove winners.','Set How many numbers to draw to 17 and generate the batch.'],
+        steps:['Enter 4, 7, 12 as exclusions.','Enable Remove winners.','Set How many numbers? to 17 and generate the batch.'],
         outcome:'The result contains seventeen unique present numbers. Export the history if you need a record.'
       }
     ],
@@ -138,7 +138,7 @@ export const APPROVED_RANGE_GUIDES: Record<ApprovedRange,RangeGuide> = {
         title:'Sample 10 different numbers out of 100',
         preset:{batch:10,remove:true,mode:'quick'},
         purpose:'Create a small, non-repeating set from a larger numbered list.',
-        steps:['Enable Remove winners.','Set How many numbers to draw to 10.','Generate the batch, then export the result history if needed.'],
+        steps:['Enable Remove winners.','Set How many numbers? to 10.','Generate the batch, then export the result history if needed.'],
         outcome:'Ten different numbers are selected; the remaining ninety stay available for later draws in the same round.'
       }
     ],
