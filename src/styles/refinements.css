@@ -144,8 +144,10 @@
 .range-guide-card ol{padding-left:1.25rem;margin:14px 0}
 .range-guide-card li{padding-left:2px;margin:9px 0;line-height:1.55;color:#424251}
 .range-guide-outcome{background:#f7f5ec;border-left:3px solid #bd7754;padding:11px 13px;margin:16px 0}
-.range-guide-card>a{display:inline-flex;color:#a44838;font-weight:800;text-decoration:underline;text-underline-offset:3px}
-.range-guide-card>a:focus-visible{outline:2px solid #5147bf;outline-offset:3px}
+.range-guide-apply{display:inline-flex;align-items:center;justify-content:center;max-width:100%;font:inherit;font-size:.87rem;font-weight:800;background:#302c50;color:#fff;border:1px solid #302c50;border-radius:10px;padding:10px 14px;cursor:pointer;line-height:1.35}
+.range-guide-apply:hover{background:#4e456f;color:#fff}
+.range-guide-feedback{min-height:1.3em;color:#484364;font-size:.86rem;line-height:1.5;margin:10px 0}
+.range-guide-apply:focus-visible{outline:3px solid #6557ea;outline-offset:3px}
 .range-guide-note{max-width:960px;color:#66616b;line-height:1.7;margin:15px 0 0;font-size:.88rem}
 @media(max-width:740px){
   .range-guide-grid{grid-template-columns:1fr;gap:12px}
