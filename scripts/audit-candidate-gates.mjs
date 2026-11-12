@@ -12,6 +12,7 @@ const site=readFileSync('src/lib/site.ts','utf8');
 const rangeData=readFileSync('src/data/ranges.ts','utf8');
 const sitemap=readFileSync('src/pages/sitemap.xml.ts','utf8');
 if(!sitemap.includes('LAUNCH_ROUTES'))throw new Error('Sitemap must still use controlled launch list');
+const candidateRobots=process.env.PUBLIC_INDEXABLE==='true'?'noindex, follow':'noindex, nofollow';
 let errors=0;
 for(const c of candidates){
   if(!c.path.startsWith('/')||!c.path.endsWith('/'))throw new Error('Invalid route path');
@@ -22,7 +23,7 @@ for(const c of candidates){
   const htmlFile=join('dist',c.path,'index.html');
   if(!existsSync(htmlFile)){console.error('CANDIDATE NOT BUILT',c.path);errors++;continue;}
   const html=readFileSync(htmlFile,'utf8');
-  if(!/name="robots"\s+content="noindex, nofollow"/.test(html)){console.error('CANDIDATE INADVERTENTLY INDEXABLE',c.path);errors++;}
+  if(!html.includes('name="robots" content="'+candidateRobots+'"')){console.error('CANDIDATE ROBOTS POLICY MISMATCH',c.path, candidateRobots);errors++;}
   if(html.includes('<link rel="canonical"')){console.error('NOINDEX CANDIDATE HAS CANONICAL',c.path);errors++;}
   if(!html.includes('<h1')||!html.includes('name="description"')){console.error('MISSING PAGE ESSENTIALS',c.path);errors++;}
   const slug=/\/random-number-wheel\/(1-\d+)\/$/.exec(c.path)?.[1];
