@@ -65,7 +65,7 @@ for (const route of all) {
   const robotValue = robots ? attr(robots, 'content').toLowerCase() : '';
   const shouldIndex = liveMode && approved.includes(route);
   if(route === '/') {
-    const schemas=[...html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
+    const schemas=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
       .map(match=>match[1]);
     if(liveMode) {
       if(schemas.length!==1)fail(route,'Expected exactly one WebSite JSON-LD block on official home page');
