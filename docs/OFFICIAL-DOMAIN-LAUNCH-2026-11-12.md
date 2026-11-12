@@ -24,13 +24,13 @@
 | 名称 | 值 |
 | --- | --- |
 | `PUBLIC_SITE_URL` | `https://numberspinner.com` |
-| `PUBLIC_INDEXABLE` | `true` |
+| `PUBLIC_INDEXABLE` | 可不设置（正式 main 分支自动开放获准页面；显式 `false` 会强制不索引） |
 
 在 Pages → Settings → Variables and Secrets / Environment variables 中配置。代码在没有 `PUBLIC_SITE_URL` 时也默认官方域名，但是明确配置有助于避免歧义。
 
-**先核对 HTTPS、首页/工具页 200、www 和 pages.dev 的 301，再开启生产 `PUBLIC_INDEXABLE=true` 并重新部署。** Astro 静态站的 robots/canonical/sitemap 是构建期生成的，更改环境变量后必须重新构建。
+**现已使用 Cloudflare Pages 内建的 `CF_PAGES=1` 和 `CF_PAGES_BRANCH=main` 自动识别正式构建，不要求手动设置 `PUBLIC_INDEXABLE=true`。** 13 个首发页面在任何环境都输出指向正式域名的自我 Canonical；在生产 main 构建下自动开放索引、Sitemap 和 robots。Preview 仍为 `noindex`。若已在 Production 显式设置 `PUBLIC_INDEXABLE=false`，须清除该值或手动设为 `true` 后重新部署。
 
-Preview（预览部署）：`PUBLIC_INDEXABLE` 不设置或设为 `false`。不要把生产值复制到 Preview。注意 `random-wheel-58c.pages.dev` 的正式生产别名和 `<hash>.random-wheel-58c.pages.dev` 的预览部署不是同一回事。
+Preview（预览部署）：`PUBLIC_INDEXABLE` 不设置或设为 `false`。不要把生产值复制到 Preview；获准 URL 可有官方 Canonical，但仍被 `noindex` 保护。注意 `random-wheel-58c.pages.dev` 的正式生产别名和 `<hash>.random-wheel-58c.pages.dev` 的预览部署不是同一回事。
 
 代码预设发布白名单恰好 13 个 URL；其他 13 个候选 URL 即便开启生产索引，仍然显式 `noindex`，不会进入 Sitemap。未经单独审核不得扩大白名单。
 
