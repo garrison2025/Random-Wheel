@@ -764,14 +764,14 @@ function init(root: HTMLElement) {
       const batch=(isNumbers||isLetters||isWords)?' · batch '+String(current.batch):'';
       shareSummary!.textContent=typeLabel+' · '+String(current.mode||mode)+' mode'+batch+' · '+(current.remove?'remove winners':'keep winners');
       if(isCustom){
-        const lines=String(current.entries).split(/\\r?\\n/).map(line=>line.trim()).filter(Boolean);
+        const lines=String(current.entries).split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
         shareSample!.textContent=lines.length+' custom entries. Preview: '+lines.slice(0,6).join(' · ')+(lines.length>6?' · …':'');
       }else if(isNumbers){
         shareSample!.textContent='Range '+String(current.min)+'–'+String(current.max)+' · step '+String(current.step)+' · exclusions: '+(String(current.excluded||'none'));
       }else if(isLetters){
         shareSample!.textContent='Alphabet: '+String(current.letterSet)+' · '+String(current.letterCase)+' · exclusions: '+String(current.letterExclude||'none');
       }else if(isWords){
-        shareSample!.textContent='Word collection: '+String(current.wordCategory)+(current.wordCategory==='custom'?' · '+String(current.wordCustom).split(/\\r?\\n/).length+' custom lines':'');
+        shareSample!.textContent='Word collection: '+String(current.wordCategory)+(current.wordCategory==='custom'?' · '+String(current.wordCustom).split(/\r?\n/).length+' custom lines':'');
       }else{
         shareSample!.textContent='Decision options: '+String(current.decisionMode);
       }
