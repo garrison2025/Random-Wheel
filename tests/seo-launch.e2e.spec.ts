@@ -86,3 +86,29 @@ test('held number pages do not inherit approved-range editorial guides',async({p
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
   }
 });
+
+test('1–20 roll-call example preloads absences without drawing a result',async({page})=>{
+  await page.goto('/random-number-wheel/1-20/');
+  const guide=page.locator('[data-approved-range-guide="20"]');
+  await guide.locator('[data-range-preset]').nth(1).click();
+  await expect(page.locator('[data-role="min"]')).toHaveValue('1');
+  await expect(page.locator('[data-role="max"]')).toHaveValue('20');
+  await expect(page.locator('[data-role="excluded"]')).toHaveValue('4, 7, 12');
+  await expect(page.locator('[data-role="batch"]')).toHaveValue('17');
+  await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-role="result"]')).toHaveText('Ready when you are');
+  await expect(guide.locator('[data-range-preset-feedback]')).toContainText('settings loaded');
+});
+
+test('1–6 example switches correctly between independent and unique selections',async({page})=>{
+  await page.goto('/random-number-wheel/1-6/');
+  const buttons=page.locator('[data-approved-range-guide="6"] [data-range-preset]');
+  await buttons.nth(1).click();
+  await expect(page.locator('[data-role="batch"]')).toHaveValue('6');
+  await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await buttons.nth(0).click();
+  await expect(page.locator('[data-role="batch"]')).toHaveValue('1');
+  await expect(page.locator('[data-role="remove"]')).not.toBeChecked();
+  await expect(page.locator('[data-role="excluded"]')).toHaveValue('');
+});
