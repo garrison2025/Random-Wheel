@@ -45,3 +45,16 @@ test('number wheel pillar links to the home page and loads fonts directly from H
   await expect(page.locator('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css2"]'))
     .toHaveCount(1);
 });
+
+test('main number picker surfaces approved high-intent ranges ahead of held candidates',async({page})=>{
+  await page.goto('/random-number-wheel/');
+  const popular=page.locator('.tool-grid').first().locator('.tool-card');
+  await expect(popular).toHaveCount(6);
+  await expect(popular.first()).toHaveAttribute('href','/random-number-wheel/1-100/');
+  await expect(popular.nth(1)).toHaveAttribute('href','/random-number-wheel/1-3/');
+  await expect(popular.locator('a[href="/random-number-wheel/1-8/"]')).toHaveCount(0);
+  await expect(page.getByRole('link',{name:/all number picker tools/i})).toHaveAttribute('href','/tools/');
+  await page.goto('/tools/');
+  await expect(page.getByRole('heading',{name:'More number range tools'})).toBeVisible();
+  await expect(page.getByRole('link',{name:/Numbers 1–8/i})).toHaveAttribute('href','/random-number-wheel/1-8/');
+});
