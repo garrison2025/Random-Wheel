@@ -57,6 +57,8 @@ Preview（预览部署）：`PUBLIC_INDEXABLE` 不设置或设为 `false`。不�
 npm run audit:live
 ```
 
+也可以直接在 GitHub 仓库 **Actions → Official domain audit → Run workflow** 手动启动，不要求本机安装 Node.js。该工作流只做远端 HTTP 检查，不会更改 Cloudflare DNS、索引设置或代码。
+
 脚本 `scripts/audit-live.mjs` 不会变更网站或 Cloudflare 设置。它以 HTTPS 请求检查：
 
 - 首发 13 页：HTTP 200、标题/H1、非 noindex、对应自我 canonical。
