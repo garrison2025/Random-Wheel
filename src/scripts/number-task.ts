@@ -199,7 +199,7 @@ function init(section:HTMLElement){
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='wheelcanvas-'+task+(calledOnly?'-called':'')+'-results.csv';
+    a.href=url;a.download='number-spinner-'+task+(calledOnly?'-called':'')+'-results.csv';
     document.body.append(a);a.click();a.remove();
     window.setTimeout(()=>URL.revokeObjectURL(url),5000);
     tell('CSV downloaded: '+ordered.length+' '+(calledOnly?'already-called':'total')+' results.');
