@@ -22,6 +22,8 @@ function init(root: HTMLElement) {
   const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
   const result=get<HTMLElement>(root,'[data-role="result"]')!;
   const instantResult=get<HTMLOutputElement>(root,'[data-role="instant-result"]');
+  const instantCopy=get<HTMLButtonElement>(root,'[data-action="instant-copy"]');
+  const instantCopyFeedback=get<HTMLElement>(root,'[data-role="instant-copy-feedback"]');
   const resultCard=get<HTMLElement>(root,'.result-card');
   const sparks=get<HTMLElement>(root,'[data-role="winner-sparks"]');
   const feedback=get<HTMLElement>(root,'[data-role="feedback"]')!;
@@ -49,6 +51,7 @@ function init(root: HTMLElement) {
   let importRequestId=0; // Only the newest chosen file may update the wheel.
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
+  let latestDraw:string[]=[];
   let entries:Entry[]=[];
   // Number presets must not inherit a custom range saved on a different URL.
   const savedKey='wheelcanvas.v1.'+(isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
@@ -93,6 +96,7 @@ function init(root: HTMLElement) {
     locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
     const instantButton=get<HTMLButtonElement>(root,'[data-action="instant-pick"]');
     if(instantButton)instantButton.disabled=busy;
+    if(instantCopy)instantCopy.disabled=busy||latestDraw.length===0;
     if(centerButton) centerButton.disabled=busy;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
     root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
@@ -146,7 +150,9 @@ function init(root: HTMLElement) {
   const reset=(message='New round ready.')=>{
     drawGeneration++;
     window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
-    pickedIndices=new Set();winningHistory=[];
+    pickedIndices=new Set();winningHistory=[];latestDraw=[];
+    if(instantCopy)instantCopy.disabled=true;
+    if(instantCopyFeedback)instantCopyFeedback.textContent='';
     clearSparks();
     result.textContent='Ready when you are';
     if(instantResult)instantResult.textContent='—';
@@ -213,7 +219,9 @@ function init(root: HTMLElement) {
       reset('Ready to draw.');
     } catch(error) {
       drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
-      entries=[];pickedIndices.clear();winningHistory=[];renderHistory();
+      entries=[];pickedIndices.clear();winningHistory=[];latestDraw=[];renderHistory();
+      if(instantCopy)instantCopy.disabled=true;
+      if(instantCopyFeedback)instantCopyFeedback.textContent='';
       result.textContent='Check your settings';
       if(instantResult)instantResult.textContent='Check settings';
       resultCard?.classList.remove('is-picked');
@@ -223,6 +231,8 @@ function init(root: HTMLElement) {
   }
   function showWinner(label:string,index:number){
     winningHistory.unshift(label);if(winningHistory.length>1000)winningHistory.pop();
+    latestDraw=[label];
+    if(instantCopyFeedback)instantCopyFeedback.textContent='';
     result.textContent=label;
     if(instantResult)instantResult.textContent=label;
     resultCard?.classList.remove('is-picked');
@@ -258,6 +268,8 @@ function init(root: HTMLElement) {
         const noRepeat=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
         const drawn=drawIndices(active.map(a=>a.entry),requested,noRepeat);
         const values=drawn.map(i=>active[i]!.entry.label);
+        latestDraw=values;
+        if(instantCopyFeedback)instantCopyFeedback.textContent='';
         if(noRepeat) for(const i of drawn) pickedIndices.add(active[i]!.index);
         for(const label of values) winningHistory.unshift(label);
         winningHistory=winningHistory.slice(0,1000);
@@ -448,6 +460,18 @@ function init(root: HTMLElement) {
     } catch(error){
       if(generation===drawGeneration && requestId===importRequestId)
         status(error instanceof Error?error.message:'Could not read the file.',true);
+    }
+  });
+  instantCopy?.addEventListener('click',async()=>{
+    if(!latestDraw.length){
+      if(instantCopyFeedback)instantCopyFeedback.textContent='Generate a result first.';
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(latestDraw.join('\n'));
+      if(instantCopyFeedback)instantCopyFeedback.textContent=latestDraw.length===1?'Number copied.':'Latest batch copied.';
+    }catch{
+      if(instantCopyFeedback)instantCopyFeedback.textContent='Clipboard unavailable. You can select and copy the result.';
     }
   });
   get<HTMLButtonElement>(root,'[data-action="copy"]')?.addEventListener('click',async()=>{
