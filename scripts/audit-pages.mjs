@@ -154,14 +154,21 @@ for (const route of all) {
     if (canonical.length) fail(route, 'Held candidate page must not advertise canonical');
   }
 
-  // Static link checks: ignore fragments, schemes and query-only links.
+  // Build-time internal link integrity: broken hrefs and in-page fragments
+  // are release-blocking, not just advisory. Search crawlers see these links.
   for (const tag of tags(html, 'a')) {
     const href = attr(tag, 'href');
+    if (href.startsWith('#')) {
+      const fragment = decodeURIComponent(href.slice(1));
+      if (fragment && !html.includes('id="' + fragment + '"'))
+        fail(route, 'Broken in-page fragment link: ' + href);
+      continue;
+    }
     if (!href.startsWith('/') || href.startsWith('//')) continue;
     const target = href.split(/[?#]/)[0] || '/';
     if (/\.[a-z0-9]+$/i.test(target)) continue;
     const normalized = target.endsWith('/') ? target : target + '/';
-    if (!all.includes(normalized)) warn(route, 'Local link points outside the audited HTML route list: ' + href);
+    if (!all.includes(normalized)) fail(route, 'Broken internal route link: ' + href);
   }
 }
 
