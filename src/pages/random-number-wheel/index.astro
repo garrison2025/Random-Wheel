@@ -2,10 +2,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Workbench from '../../components/Workbench.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { RANGE_PAGES } from '../../data/ranges';
 ---
 <BaseLayout path="/random-number-wheel/" title="Random Number Wheel Generator — Quick Pick & Spin" description="Spin a random number wheel with a custom range from 1 to 10,000 values. Exclude numbers, use steps, avoid repeats, or pick instantly for free.">
   <section class="hero"><div class="container">
+    <Breadcrumbs items={[{label:"Home",path:"/"},{label:"Random Number Wheel",path:"/random-number-wheel/"}]} />
     <span class="eyebrow">Fair random numbers, zero setup</span>
     <h1>Random Number Wheel</h1>
     <p>Choose your number range, then spin the wheel or get an instant result. Remove winners to draw numbers without repeats.</p>
