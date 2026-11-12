@@ -64,6 +64,21 @@ for (const route of all) {
   const desc = description ? attr(description, 'content') : '';
   const robotValue = robots ? attr(robots, 'content').toLowerCase() : '';
   const shouldIndex = liveMode && approved.includes(route);
+  if(route === '/') {
+    const schemas=[...html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
+      .map(match=>match[1]);
+    if(liveMode) {
+      if(schemas.length!==1)fail(route,'Expected exactly one WebSite JSON-LD block on official home page');
+      else {
+        try {
+          const schema=JSON.parse(schemas[0]);
+          if(schema['@type']!=='WebSite'||schema.name!=='Number Spinner'||schema.url!==site+'/')
+            fail(route,'WebSite JSON-LD has wrong brand or official canonical URL');
+        } catch {fail(route,'Malformed WebSite JSON-LD');}
+      }
+    } else if(schemas.length)fail(route,'Staging must not advertise official WebSite JSON-LD');
+  }
+
 
   if (!/^<!doctype html>/i.test(html.trimStart())) fail(route, 'Missing HTML5 doctype');
   if (!/<html\s[^>]*lang=["']en["']/i.test(html)) fail(route, 'Expected English html lang');
