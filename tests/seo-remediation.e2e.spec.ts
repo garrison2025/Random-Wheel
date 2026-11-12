@@ -11,7 +11,7 @@ test('1–2 page maps a fair number onto user-supplied options',async({page})=>{
   expect(summary).toMatch(/Result: [12] — (Morning shift|Afternoon shift)/);
   await expect(task.locator('.task-result-row')).toHaveCount(1);
   const [download]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export]').click()]);
-  expect(download.suggestedFilename()).toBe('wheelcanvas-two-results.csv');
+  expect(download.suggestedFilename()).toBe('number-spinner-two-results.csv');
 });
 test('1–8 assigns eight teams to different numbered stations',async({page})=>{
   await page.goto('/random-number-wheel/1-8/');
@@ -59,7 +59,7 @@ test('1–30 supports exclusion and one-by-one attendance progress',async({page}
   const chosen=await task.locator('.task-result-number').innerText();
   expect(['3','12','27']).not.toContain(chosen);
   const [download]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export]').click()]);
-  expect(download.suggestedFilename()).toBe('wheelcanvas-attendance-results.csv');
+  expect(download.suggestedFilename()).toBe('number-spinner-attendance-results.csv');
 });
 test('1–1000 secure batch excludes out-of-pool values and reports uniqueness',async({page})=>{
   await page.goto('/random-number-wheel/1-1000/');
@@ -200,7 +200,7 @@ test('classroom keyboard shortcut and called-only CSV never expose future roll n
   ));
   await expect(task.locator('[data-task=progress-text]')).toContainText('1 of 27 called');
   const [calledOnly]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export-called]').click()]);
-  expect(calledOnly.suggestedFilename()).toBe('wheelcanvas-attendance-called-results.csv');
+  expect(calledOnly.suggestedFilename()).toBe('number-spinner-attendance-called-results.csv');
   const stream=await calledOnly.createReadStream();
   const buffers:Buffer[]=[];
   for await(const chunk of stream)buffers.push(Buffer.from(chunk));
@@ -209,7 +209,7 @@ test('classroom keyboard shortcut and called-only CSV never expose future roll n
   expect(calledLines[0]).toContain('Position');
   expect(calledLines[1]).toContain('Student');
   const [full]=await Promise.all([page.waitForEvent('download'),task.locator('[data-task=export]').click()]);
-  expect(full.suggestedFilename()).toBe('wheelcanvas-attendance-results.csv');
+  expect(full.suggestedFilename()).toBe('number-spinner-attendance-results.csv');
   const allStream=await full.createReadStream();
   const allBuffers:Buffer[]=[];
   for await(const chunk of allStream)allBuffers.push(Buffer.from(chunk));
