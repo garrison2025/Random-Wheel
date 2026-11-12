@@ -1,10 +1,13 @@
 export const SITE_NAME = 'Number Spinner';
 export const CONTACT_EMAIL = 'contact@numberspinner.com';
-export const DOMAIN = (import.meta.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
+export const OFFICIAL_ORIGIN = 'https://numberspinner.com';
+export const DOMAIN = (import.meta.env.PUBLIC_SITE_URL || OFFICIAL_ORIGIN).replace(/\/+$/, '');
 
 // Indexing is an explicit opt-in for an official HTTPS domain only.
 // A Cloudflare Pages preview domain must remain non-indexable.
 export function isOfficialIndexDomain(candidate: string): boolean {
+  // Refuse an accidentally configured legacy domain, subdomain, or Pages preview.
+  if (candidate !== OFFICIAL_ORIGIN) return false;
   try {
     const url = new URL(candidate);
     const host = url.hostname.toLowerCase();
