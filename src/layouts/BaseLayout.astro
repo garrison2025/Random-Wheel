@@ -11,6 +11,8 @@ import {resolveSeoPagePolicy} from '../lib/seo-policy';
 interface Props {title:string; description:string; path:string; noindex?:boolean}
 const {title,description,path,noindex=false} = Astro.props;
 const {canonical,robots}=resolveSeoPagePolicy(INDEXABLE,noindex,DOMAIN,path);
+// Cloudflare build SHA allows independent verification that the live HTML is current.
+const deploymentCommit = process.env.CF_PAGES_COMMIT_SHA || '';
 const websiteSchema = JSON.stringify({
   '@context':'https://schema.org',
   '@type':'WebSite',
@@ -24,6 +26,7 @@ const websiteSchema = JSON.stringify({
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#f5f7fb" />
+  {deploymentCommit && <meta name="number-spinner-deployment" content={deploymentCommit} />}
   <meta name="description" content={description} />
   <meta name="robots" content={robots} />
   <title>{title} | {SITE_NAME}</title>
