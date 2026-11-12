@@ -31,11 +31,11 @@ export function geoToolFacts(kind:GeoTool,max?:number):GeoToolFacts{
       features:['Custom integer range','Step intervals','Excluded numbers','Instant result or wheel spin','Up to 100 results per draw','No-repeat draws','CSV and TXT export']
     };
   }
-  if(!Number.isSafeInteger(max)||max!<1||max!>100)throw new RangeError('GEO facts require an approved 1–N range.');
-  const number=max!;
+  if(max === undefined || !Number.isSafeInteger(max) || max < 1 || max > 100)throw new RangeError('GEO facts require an approved 1–N range.');
+  const number=max;
   const noun=number===3?'three-way decisions':number===4?'four-way assignments':number===5?'five-option tasks':number===6?'six-sided-die-style decisions':number===20?'classroom roll calls':'1–100 numbered picks';
   return {
-    name:'Random Number '+String(1)+'–'+number,
+    name:'Random Number 1–'+number,
     path:'/random-number-wheel/1-'+number+'/',
     summary:'Pick an integer from 1 through '+number+' (inclusive) for '+noun+'. Every number starts as an eligible outcome.',
     outcome:number===100
