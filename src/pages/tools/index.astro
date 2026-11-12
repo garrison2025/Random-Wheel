@@ -17,6 +17,23 @@ const otherRanges=RANGE_PAGES.filter(page=>page.indexApproved===false);
       <a class="tool-card" href="/random-word-wheel/"><span class="icon-tile" aria-hidden="true">Aa</span><b>Random Word Wheel</b><p>Ready-made word collections, custom lists and repeat-free random prompts.</p><span class="go">Spin a word →</span></a>
       {primaryRanges.map(page=><a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Use preset →</span></a>)}
     </div>
+    <section class="geo-tool-comparison" aria-labelledby="choose-picker">
+      <h2 class="section-title" id="choose-picker">Which random picker should you use?</h2>
+      <p class="section-intro">Choose by what you need to decide, not just by how the wheel looks. Every tool below uses browser-based random selection.</p>
+      <div class="geo-choice-scroll" role="region" aria-label="Compare random picker tools" tabindex="0">
+        <table class="geo-choice-table">
+          <thead><tr><th scope="col">Your task</th><th scope="col">Best starting tool</th><th scope="col">What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Choose from names, lunch ideas or other custom choices</td><td><a href="/">Custom Spin the Wheel</a></td><td>Edit the list and optionally assign weights; choose a quick or animated draw.</td></tr>
+            <tr><td>Get one random integer from 1 to 100</td><td><a href="/random-number-wheel/1-100/">1–100 Number Picker</a></td><td>Instant result, with optional no-repeat batches and a visual wheel.</td></tr>
+            <tr><td>Use die-style numbers, allowing the same number again</td><td><a href="/random-number-wheel/1-6/">1–6 Number Picker</a></td><td>Six equally eligible numbers for independent draws when Remove winners is off.</td></tr>
+            <tr><td>Choose a numbered classroom participant</td><td><a href="/random-number-wheel/1-20/">1–20 Number Picker</a></td><td>Exclude absent numbers; remove winners if each present number should appear once.</td></tr>
+            <tr><td>Choose your own minimum, maximum or step</td><td><a href="/random-number-wheel/">Custom Number Wheel</a></td><td>Up to 10,000 eligible integers and 1–100 results per draw.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="geo-comparison-note">For probability rules, privacy and limitations, see <a href="/about/#how-results-are-generated">how the tools generate results</a>. These are everyday decision tools, not certified lottery services.</p>
+    </section>
     <h2 class="section-title">More number range tools</h2>
     <p class="section-intro">These additional presets remain free to use. Open the exact range you need, or set any custom range in the main number wheel.</p>
     <div class="tool-grid">
