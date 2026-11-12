@@ -11,6 +11,12 @@ import {resolveSeoPagePolicy} from '../lib/seo-policy';
 interface Props {title:string; description:string; path:string; noindex?:boolean}
 const {title,description,path,noindex=false} = Astro.props;
 const {canonical,robots}=resolveSeoPagePolicy(INDEXABLE,noindex,DOMAIN,path);
+const websiteSchema = JSON.stringify({
+  '@context':'https://schema.org',
+  '@type':'WebSite',
+  name:SITE_NAME,
+  url:DOMAIN+'/'
+}).replace(/</g,'\\u003c');
 ---
 <!doctype html>
 <html lang="en">
@@ -22,6 +28,11 @@ const {canonical,robots}=resolveSeoPagePolicy(INDEXABLE,noindex,DOMAIN,path);
   <meta name="robots" content={robots} />
   <title>{title} | {SITE_NAME}</title>
   {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:site_name" content={SITE_NAME} />
+  <meta name="twitter:card" content="summary" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  {INDEXABLE && path==='/' && <script type="application/ld+json" set:html={websiteSchema} />}
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title + ' | ' + SITE_NAME} />
   <meta property="og:description" content={description} />
