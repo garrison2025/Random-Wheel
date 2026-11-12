@@ -758,6 +758,7 @@ function init(root: HTMLElement) {
   const shareDialog=get<HTMLDialogElement>(root,'[data-role="share-preview"]');
   const shareSummary=get<HTMLElement>(root,'[data-role="share-preview-summary"]');
   const shareSample=get<HTMLElement>(root,'[data-role="share-preview-sample"]');
+  const shareUrlInput=get<HTMLInputElement>(root,'[data-role="share-preview-url"]');
   const shareWarning=get<HTMLElement>(root,'[data-role="share-preview-warning"]');
   const confirmShare=get<HTMLButtonElement>(root,'[data-action="confirm-share"]');
   const exportFromShare=get<HTMLButtonElement>(root,'[data-action="export-setup-from-share"]');
@@ -786,6 +787,7 @@ function init(root: HTMLElement) {
         shareSample!.textContent='Decision options: '+String(current.decisionMode);
       }
       confirmShare!.disabled=!canShare;
+      if(shareUrlInput)shareUrlInput.value=pendingShareUrl;
       if(exportFromShare)exportFromShare.hidden=canShare;
       shareWarning!.textContent=canShare
         ? 'This link stores the setup in its URL fragment. Anyone with the link can read custom choices. Do not share private names or student lists.'
@@ -812,7 +814,9 @@ function init(root: HTMLElement) {
       shareDialog?.close();
       status('Link copied. Anyone with this link can read the included choices; do not share private names.');
     }catch{
-      status('Clipboard unavailable. You can copy the link from the browser address bar after sharing is prepared.',true);
+      status('Clipboard unavailable. Select and copy the share link shown in the preview.',true);
+      shareUrlInput?.focus();
+      shareUrlInput?.select();
     }
   });
   updateModeLabels();
