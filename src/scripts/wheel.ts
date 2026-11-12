@@ -4,6 +4,7 @@ import {historyAsCsv,historyAsText} from '../lib/export';
 import {letterChoices,yesNoChoices} from '../lib/choice-presets';
 import {wordChoices} from '../lib/word-presets';
 import {parseNumericRangeQuery} from '../lib/range-query';
+import {parseImportedEntryLines} from '../lib/import-entries';
 
 const PALETTES:Record<string,string[]>={
   // Existing palette ids are retained for previously shared links and saved configurations.
@@ -16,24 +17,6 @@ let COLORS=PALETTES.sunset!;
 const MAX_HASH_LENGTH = 1700;
 const get = <T extends Element>(root: ParentNode, selector: string): T | null => root.querySelector<T>(selector);
 const asValue = (el: Element | null) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement ? el.value : '';
-function csvRows(content: string): string[][] {
-  const rows: string[][]=[];let cells:string[]=[];let current='';let quoted=false;
-  for (let i=0;i<content.length;i++){
-    const ch=content[i]!;
-    if(ch==='"'){
-      if(quoted && content[i+1]==='"'){current+='"';i++;}
-      else quoted=!quoted;
-    } else if(ch===',' && !quoted){cells.push(current);current='';}
-    else if((ch==='\n'||ch==='\r')&&!quoted){
-      if(ch==='\r'&&content[i+1]==='\n') i++;
-      cells.push(current);if(cells.some(c=>c.trim()))rows.push(cells);
-      cells=[];current='';
-    } else current+=ch;
-  }
-  if(quoted) throw new Error('The CSV file has an unclosed quoted field.');
-  cells.push(current);if(cells.some(c=>c.trim()))rows.push(cells);
-  return rows;
-}
 function init(root: HTMLElement) {
   const disc=get<HTMLElement>(root,'[data-role="wheel-disc"]')!;
   const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
@@ -434,22 +417,7 @@ function init(root: HTMLElement) {
       const generation=drawGeneration;
       const text=await file.text();
       if(locked || generation!==drawGeneration)return; // A newer round or settings change superseded this import.
-      const rows=file.name.toLowerCase().endsWith('.csv')?csvRows(text):text.split(/\r?\n/).map(line=>[line]);
-      if(rows.length && rows[0]![0]?.trim().toLowerCase()==='name' && rows[0]![1]?.trim().toLowerCase()==='weight')rows.shift();
-      if(rows.length>100)throw new Error('Import at most 100 entries.');
-      const lines=rows.filter(r=>r[0]?.trim()).map(row=>{
-        if(row.length>2)throw new Error('CSV should contain Name and optional Weight columns only.');
-        const name=row[0]!.trim();
-        if(/[\r\n|]/.test(name))throw new Error('A name contains a line break or |. Change it before importing to avoid altered draw probabilities.');
-        if(row.length===2){
-          const weight=(row[1]||'').trim();
-          if(!/^\d+$/.test(weight))throw new Error('CSV weights must be whole numbers.');
-          return name+' | '+weight;
-        }
-        return name;
-      });
-      if(!lines.length)throw new Error('The file contains no usable entries.');
-      parseEntries(lines.join('\n'));
+      const lines=parseImportedEntryLines(text,file.name);
       const target=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
       if(target){
         target.value=lines.join('\n');
