@@ -1,0 +1,46 @@
+name: Lighthouse live verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lighthouse-live.yml'
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check installed Chrome
+        shell: bash
+        run: |
+          which google-chrome || which google-chrome-stable || which chromium
+          google-chrome --version || google-chrome-stable --version || chromium --version
+      - name: Run Lighthouse directly against the real site
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes lighthouse@latest https://numberspinner.com/ --quiet \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --output=json --output-path=./lighthouse-live.json
+          node --input-type=module -e "
+            import {readFileSync} from 'node:fs';
+            const l=JSON.parse(readFileSync('lighthouse-live.json','utf8'));
+            const scores=Object.fromEntries(Object.entries(l.categories||{}).map(([k,v])=>[k,Math.round((v.score||0)*100)]));
+            const metrics={};
+            for(const k of ['first-contentful-paint','largest-contentful-paint','cumulative-layout-shift','total-blocking-time']){
+              metrics[k]=l.audits?.[k]?.displayValue||l.audits?.[k]?.numericValue||null;
+            }
+            console.log(JSON.stringify({requestedUrl:l.requestedUrl,finalUrl:l.finalUrl,scores,metrics,warnings:l.runWarnings},null,2));
+          "
+      - name: Upload full Lighthouse audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-live-report
+          path: lighthouse-live.json
+          if-no-files-found: warn
