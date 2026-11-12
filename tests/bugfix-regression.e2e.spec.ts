@@ -16,15 +16,19 @@ test('entry removal setting survives local save and a reload',async({page})=>{
   await expect(page.locator('[data-role="remove"]')).toBeChecked();
 });
 
-test('entry removal setting is included in share links',async({page,context})=>{
+test('entry removal and Quick Pick mode are included in a reviewed share link',async({page,context})=>{
   await context.grantPermissions(['clipboard-read','clipboard-write']);
   await page.goto('/');
   await page.locator('[data-role="remove"]').check();
+  await page.locator('[data-mode="quick"]').click();
   await page.locator('[data-action="share"]').click();
+  await expect(page.locator('[data-role="share-preview"]')).toBeVisible();
+  await page.locator('[data-action="confirm-share"]').click();
   const url=await page.evaluate(()=>navigator.clipboard.readText());
   expect(url).toContain('#wheel=');
   await page.goto(url);
   await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
 });
 
 test('clearing saved setup during spin does not cancel the active draw or erase history',async({page})=>{
