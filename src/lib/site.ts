@@ -1,4 +1,5 @@
 export const SITE_NAME = 'Number Spinner';
+export const CONTACT_EMAIL = 'contact@numberspinner.com';
 export const DOMAIN = (import.meta.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 
 // Indexing is an explicit opt-in for an official HTTPS domain only.
