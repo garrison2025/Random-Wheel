@@ -43,9 +43,22 @@ const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).f
       <h2>The easiest way to make a fair pick</h2>
       <p>Number Spinner turns small everyday decisions into something worth gathering around. Choose a class volunteer, set a meeting order, pick dinner or decide on an activity. Just add your options and spin.</p>
       <h3>How to use your wheel</h3>
-      <p>Enter one choice per line, pick Quick Pick for a fast answer or Spin Wheel for a colorful reveal. Use Remove winners to remove each winning entry (ticket) once. If the same name appears on multiple lines, each line is a separate ticket and that name may still appear again. Save the list locally in your browser for next time.</p>
+      <ol>
+        <li>Enter one choice per line: names, ideas, activities or numbered tasks.</li>
+        <li>Select Quick Pick for an immediate answer or Spin Wheel for a colorful reveal.</li>
+        <li>Turn on Remove winners if the same entry should not be selected twice in this round. Duplicate names on separate lines remain separate entries.</li>
+        <li>Copy or export the results, or save the configuration locally for later use.</li>
+      </ol>
       <h3>Are weighted entries supported?</h3>
       <p>Yes. Add <strong>| 3</strong> after an option to give it three times the weight of an option with weight 1. The wheel segments visually reflect their relative probability.</p>
+      <h3>What does the free random wheel support?</h3>
+      <ul>
+        <li>Pick from 1–100 custom entries, with optional integer weights.</li>
+        <li>Generate numbers from a custom inclusive whole-number range, or load a common preset such as 1–100.</li>
+        <li>Choose independent results with repeats or remove winners for no-repeat selection.</li>
+      </ul>
+      <h3>What is the source of the randomness?</h3>
+      <p>Results use the browser's <code>crypto.getRandomValues()</code> API and rejection sampling. Read the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues">MDN API reference</a>, inspect the <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/lib/random.ts">public sampling implementation</a>, and review <a href="/about/#how-results-are-generated">the method and its limitations</a>. These links explain the mechanism; the website is not an independently certified lottery service.</p>
       <h3>Does anything get uploaded?</h3>
       <p>The draw runs locally using your browser's secure randomness API. Your entries are not uploaded to our server. Sharing a setup embeds your options in the link, so avoid sensitive information.</p>
     </div>
