@@ -4,13 +4,14 @@ import {isOfficialIndexDomain} from '../src/lib/site';
 describe('SEO indexing domain gate',()=>{
   it('accepts ordinary official custom HTTPS domains',()=>{
     expect(isOfficialIndexDomain('https://numberspinner.com')).toBe(true);
-    expect(isOfficialIndexDomain('https://www.numberspinner.com')).toBe(true);
+    expect(isOfficialIndexDomain('https://www.numberspinner.com')).toBe(false);
   });
   it('rejects preview aliases and placeholder domains',()=>{
     for(const domain of [
       'https://random-wheel-58c.pages.dev','https://pages.dev',
       'https://example.com','https://www.example.com',
-      'https://sub.example.co.uk','https://a.example.org'
+      'https://sub.example.co.uk','https://a.example.org',
+      'https://wheelcanvas.com','https://another-custom-domain.com'
     ]) expect(isOfficialIndexDomain(domain)).toBe(false);
   });
   it('rejects non-HTTPS and URLs containing paths, ports, or query strings',()=>{
