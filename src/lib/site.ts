@@ -1,5 +1,5 @@
-export const SITE_NAME = 'WheelCanvas';
-export const DOMAIN = (import.meta.env.PUBLIC_SITE_URL || '').replace(/\/+$/, '');
+export const SITE_NAME = 'Number Spinner';
+export const DOMAIN = (import.meta.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 
 // Indexing is an explicit opt-in for an official HTTPS domain only.
 // A Cloudflare Pages preview domain must remain non-indexable.
