@@ -53,6 +53,18 @@ async function checkPage(path,indexable){
     report(label+' canonical',indexable
       ? canonicals.length===1&&canonicals[0]===ROOT+path
       : canonicals.length===0,canonicals.join(', '));
+    if(path==='/'){
+      const scripts=[...body.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+      let schemaGood=false;
+      try {
+        const schemas=scripts.map(match=>JSON.parse(match[1]));
+        schemaGood=schemas.length===1 && schemas[0]['@type']==='WebSite'
+          && schemas[0].name==='Number Spinner'
+          && schemas[0].url===ROOT+'/';
+      } catch {}
+      report('Homepage WebSite JSON-LD',schemaGood);
+      report('Homepage OG site name',/<meta\b[^>]*property=["']og:site_name["'][^>]*content=["']Number Spinner["']/i.test(body));
+    }
     if(path==='/contact/')report('Contact email visible',body.includes('contact@'+HOST));
   }catch(error){report(label,false,String(error));}
 }
