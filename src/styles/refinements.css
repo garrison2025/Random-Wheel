@@ -154,3 +154,15 @@
   .range-guide-card{padding:19px 17px}
   .approved-range-guide{padding-block:23px 13px}
 }
+
+/* A real keyboard skip path avoids navigating through every control to reach the tool. */
+.skip-link{
+  position:fixed;top:10px;left:10px;z-index:100;
+  transform:translateY(-160%);
+  padding:12px 16px;border:2px solid #171629;border-radius:10px;
+  background:#fff;color:#171629;font-size:.9rem;font-weight:800;
+  box-shadow:0 6px 20px #10102533;
+}
+.skip-link:focus-visible{transform:translateY(0);outline:3px solid #685be9;outline-offset:3px}
+#main-content:focus{outline:none}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
