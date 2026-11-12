@@ -6,7 +6,7 @@ import '../styles/palette.css';
 import '../styles/refinements.css';
 import '../styles/task-workflows.css';
 import '../styles/activity-extras.css';
-import { SITE_NAME, DOMAIN, INDEXABLE } from '../lib/site';
+import { SITE_NAME, DOMAIN, INDEXABLE, CONTACT_EMAIL } from '../lib/site';
 import {resolveSeoPagePolicy} from '../lib/seo-policy';
 interface Props {title:string; description:string; path:string; noindex?:boolean}
 const {title,description,path,noindex=false} = Astro.props;
@@ -45,7 +45,7 @@ const {canonical,robots}=resolveSeoPagePolicy(INDEXABLE,noindex,DOMAIN,path);
     <div class="container foot-flex">
       <div>
         <a href="/" class="brand" aria-label="Number Spinner home"><span class="brand-mark" aria-hidden="true">✳</span><span>Number Spinner</span></a>
-        <p>Little decisions, more fun.<br />Private browser-based random wheels, no signup needed.</p>
+        <p>Little decisions, more fun.<br />Private browser-based random wheels, no signup needed.</p><p><a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></p>
       </div>
       <nav aria-label="Footer navigation"><a href="/tools/">All tools</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a></nav>
     </div>
