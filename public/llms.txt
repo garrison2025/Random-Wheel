@@ -1,0 +1,20 @@
+# Number Spinner
+> Free, browser-based random wheel and number-selection tools. This optional directory links to published, human-readable pages. It is not a ranking or AI indexing signal.
+
+## Interactive tools
+- [Custom Spin the Wheel](https://numberspinner.com/): Enter your own names or choices; optionally adjust weights, remove winners and share configurations.
+- [Random Number Wheel](https://numberspinner.com/random-number-wheel/): Choose a whole-number range, excluded numbers, step, batch size and repetition rule.
+- [Random Number 1–100](https://numberspinner.com/random-number-wheel/1-100/): Instantly generate 1–100 results or animate the same selection.
+- [Random Number 1–3](https://numberspinner.com/random-number-wheel/1-3/)
+- [Random Number 1–4](https://numberspinner.com/random-number-wheel/1-4/)
+- [Random Number 1–5](https://numberspinner.com/random-number-wheel/1-5/)
+- [Random Number 1–6](https://numberspinner.com/random-number-wheel/1-6/)
+- [Random Number 1–20](https://numberspinner.com/random-number-wheel/1-20/)
+
+## Explanations and policies
+- [All tools](https://numberspinner.com/tools/): Select a tool by task.
+- [Methodology](https://numberspinner.com/about/): Browser Web Crypto, unbiased integer draws, weights, repeats and limitations, with code links.
+- [Privacy policy](https://numberspinner.com/privacy/): Local processing, browser storage and link-sharing risks.
+- [Contact and corrections](https://numberspinner.com/contact/)
+
+This is not an independently audited or certified lottery or regulated prize-drawing service. The visible tool pages take precedence over this directory.
