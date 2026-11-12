@@ -9,12 +9,13 @@ const approved = [
   '/', '/random-number-wheel/', '/random-number-wheel/1-3/',
   '/random-number-wheel/1-4/', '/random-number-wheel/1-5/',
   '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
-  '/random-number-wheel/1-100/', '/tools/', '/about/',
+  '/random-number-wheel/1-100/', '/random-number-wheel/1-8/', '/random-number-wheel/1-30/',
+  '/tools/', '/about/',
   '/privacy/', '/terms/', '/contact/'
 ];
 const held = [
   '/random-word-wheel/', '/random-letter-wheel/', '/yes-or-no-wheel/',
-  ...[2, 7, 8, 10, 15, 30, 50, 200, 1000, 10000]
+  ...[2, 7, 10, 15, 50, 200, 1000, 10000]
     .map(n => '/random-number-wheel/1-' + n + '/')
 ];
 const all = [...approved, ...held];
@@ -80,6 +81,13 @@ for (const route of all) {
     if(presets!==2)fail(route,'Expected two real preset actions for approved workflow examples');
   } else if(hasGuide)fail(route,'Nonapproved route unexpectedly contains an approved-range guide');
 
+  // Index-pilot pages earn their separate URLs through a real task workflow.
+  const pilotTask=route==='/random-number-wheel/1-8/'?'stations'
+    :route==='/random-number-wheel/1-30/'?'attendance':null;
+  if(pilotTask && (!html.includes('data-number-task="'+pilotTask+'"')
+    || !html.includes('data-task="generate"')
+    || !html.includes('data-task="export"')))
+    fail(route,'Released candidate lacks a useful distinct activity');
   if (route === '/random-number-wheel/1-100/') {
     if (!html.includes('data-action="instant-pick"') || !html.includes('data-role="instant-result"'))
       fail(route, '1–100 must let mobile users generate and read an immediate answer above the wheel');
@@ -257,7 +265,7 @@ else{
   const directory=read(llmsFile);
   if(!directory.includes('https://numberspinner.com/about/')
     || !directory.includes('https://numberspinner.com/random-number-wheel/1-100/')
-    || directory.includes('/random-number-wheel/1-8/'))
+    || directory.includes('/random-number-wheel/1-7/'))
     fail('LLMS','Tool directory must describe approved pages, without held candidates');
 }
 if (existsSync(sitemapFile)) {
