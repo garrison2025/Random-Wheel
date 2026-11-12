@@ -5,6 +5,7 @@ import Workbench from '../../components/Workbench.astro';
 import NumberTaskStudio from '../../components/NumberTaskStudio.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ApprovedRangeGuide from '../../components/ApprovedRangeGuide.astro';
+import GeoToolSummary from '../../components/GeoToolSummary.astro';
 import {APPROVED_RANGE_GUIDES,type ApprovedRange} from '../../data/approved-range-guides';
 import {NUMBER_TASK_INFO} from '../../data/number-tasks';
 import { RANGE_PAGES, type RangePage } from '../../data/ranges';
@@ -34,6 +35,7 @@ const hasApprovedGuide=page.indexApproved!==false && Object.hasOwn(APPROVED_RANG
     </nav>}
   </div></section>
   <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max} instantFirst={page.max===100}/></div>
+  {hasApprovedGuide && <GeoToolSummary kind="range" max={page.max}/>}
   {hasApprovedGuide && <ApprovedRangeGuide max={page.max as ApprovedRange}/> }
   {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 
   <section class="section"><div class="container">
