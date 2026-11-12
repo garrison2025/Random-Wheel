@@ -72,8 +72,15 @@ async function checkRedirect(origin,tag){
   try{
     const {response}=await request(origin+suffix);
     const target=response.headers.get('location')||'';
-    report(tag+' redirects to canonical',response.status===301&&target===ROOT+suffix,
+    const permanentlyRedirected=response.status===301&&target===ROOT+suffix;
+    report(tag+' redirects to canonical',permanentlyRedirected,
       'status '+response.status+' location='+target);
+    if(tag==='Production pages.dev alias'){
+      const fallbackNoindex=(response.headers.get('x-robots-tag')||'').toLowerCase().includes('noindex');
+      report('Legacy pages.dev alias has safe interim noindex or permanent redirect',
+        permanentlyRedirected || fallbackNoindex,
+        'status '+response.status+' x-robots-tag='+(response.headers.get('x-robots-tag')||''));
+    }
   }catch(error){report(tag+' redirects to canonical',false,String(error));}
 }
 console.log('Auditing Number Spinner HTTP release at '+ROOT);
