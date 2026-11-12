@@ -1,0 +1,31 @@
+name: AI crawler and PageSpeed diagnostics
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+concurrency:
+  group: ai-crawler-pagespeed-diagnostics
+  cancel-in-progress: true
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check public DNS, AI user agents and Google PageSpeed API
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/diagnose-ai-access.mjs | tee crawler-pagespeed-diagnostic.log
+      - name: Upload raw diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-pagespeed-diagnostic
+          path: |
+            crawler-pagespeed-diagnostic.json
+            crawler-pagespeed-diagnostic.log
+          if-no-files-found: warn
