@@ -13,6 +13,8 @@ const {title,description,path,noindex=false} = Astro.props;
 const {canonical,robots}=resolveSeoPagePolicy(INDEXABLE,noindex,DOMAIN,path);
 // Cloudflare build SHA allows independent verification that the live HTML is current.
 const deploymentCommit = process.env.CF_PAGES_COMMIT_SHA || '';
+// Visual fonts are optional enhancement; first paint must not wait on Google Fonts.
+const fontStylesheet = 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=optional';
 const websiteSchema = JSON.stringify({
   '@context':'https://schema.org',
   '@type':'WebSite',
@@ -35,7 +37,9 @@ const websiteSchema = JSON.stringify({
   <meta name="twitter:card" content="summary" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+  <!-- Keep Google's optional visual font from blocking a usable first paint. -->
+  <link rel="preload" as="style" href={fontStylesheet} onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href={fontStylesheet} /></noscript>
   {INDEXABLE && path==='/' && <script type="application/ld+json" set:html={websiteSchema} />}
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title + ' | ' + SITE_NAME} />
