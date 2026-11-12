@@ -41,6 +41,21 @@ jobs:
         env:
           PUBLIC_SITE_URL: https://numberspinner.com
           PUBLIC_INDEXABLE: 'true'
+      - name: Build with Cloudflare main production defaults
+        run: npm run build
+        env:
+          CF_PAGES: '1'
+          CF_PAGES_BRANCH: main
+      - name: Audit automatic production canonical and sitemap
+        run: npm run seo:audit
+        env:
+          CF_PAGES: '1'
+          CF_PAGES_BRANCH: main
+      - name: Audit held routes in automatic production build
+        run: node scripts/audit-candidate-gates.mjs
+        env:
+          CF_PAGES: '1'
+          CF_PAGES_BRANCH: main
       - name: Install Chromium, Firefox and WebKit
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run browser tests
