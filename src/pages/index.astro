@@ -3,6 +3,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Workbench from '../components/Workbench.astro';
 import { RANGE_PAGES } from '../data/ranges';
+const priority=[100,3,4,5,6,20];
+const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).filter(Boolean);
 ---
 <BaseLayout title="Free Spin the Wheel & Random Picker" description="Spin a free decision wheel with your own names and choices. Fair browser-based random results, weighted entries, no-repeat picks and no signup." path="/">
   <section class="hero hero-home">
@@ -27,7 +29,7 @@ import { RANGE_PAGES } from '../data/ranges';
         <a class="tool-card" href="/random-letter-wheel/"><span class="icon-tile" aria-hidden="true">AᐧZ</span><b>Random Letter Wheel</b><p>Pick from A–Z, vowels or consonants.</p><span class="go">Spin letters ↗</span></a>
         <a class="tool-card" href="/yes-or-no-wheel/"><span class="icon-tile" aria-hidden="true">Y/N</span><b>Yes / No Wheel</b><p>Make a balanced binary decision or add Maybe.</p><span class="go">Spin Yes / No ↗</span></a>
         <a class="tool-card" href="/random-word-wheel/"><span class="icon-tile" aria-hidden="true">Aa</span><b>Random Word Wheel</b><p>Pick curated nouns, verbs and story ideas or your own words.</p><span class="go">Try a word wheel ↗</span></a>
-        {RANGE_PAGES.filter(p=>[3,4,5,6,20,100].includes(p.max)).map(p=>(
+        {primaryRanges.map(p=>(
           <a class="tool-card" href={'/random-number-wheel/'+p.slug+'/'}><span class="icon-tile" aria-hidden="true">#{p.max}</span><b>Pick a number 1–{p.max}</b><p>{p.example}</p><span class="go">Pick now ↗</span></a>
         ))}
       </div>
