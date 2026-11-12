@@ -19,7 +19,7 @@ const held = [
 ];
 const all = [...approved, ...held];
 const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true';
-const site = (process.env.PUBLIC_SITE_URL || '').replace(/\/+$/, '');
+const site = (process.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 const validDomain = (() => {
   try {
     const url = new URL(site);
