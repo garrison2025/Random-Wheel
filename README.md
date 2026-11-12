@@ -1,4 +1,4 @@
-# WheelCanvas — Free Random Wheel Tools
+# Number Spinner — Free Random Wheel Tools
 
 Astro + TypeScript free browser-based random wheel. Implements the Random Wheel V1.2 engineering and SEO validation plan.
 
@@ -23,11 +23,15 @@ Node.js 22 recommended.
 
 No backend, database, sign-in or paid AI/API is required. The site includes no advertising or analytics scripts.
 
-## Cloudflare Pages
+## Cloudflare Pages: numberspinner.com
 
-Framework: Astro; build command: npm run build; output directory: dist; Node 22.
+Framework: Astro; build command: `npm run build`; output directory: `dist`; Node.js 22.
 
-Preview and initial build must remain non-indexable. DO NOT enable PUBLIC_INDEXABLE until an actual custom .com domain has been purchased, bound and independently verified, including canonical URL and redirects. Configure PUBLIC_SITE_URL=https://your-actual-domain.com and PUBLIC_INDEXABLE=true for production only. Preview headers / pages.dev and www redirects require separate checks.
+The user has purchased `numberspinner.com`, provided `contact@numberspinner.com` and connected the domain to Cloudflare. **We have not independently verified that the domain is Active under the Pages project's Custom domains tab, serving HTTPS, or redirecting alternatives.**
+
+Official canonical origin: `https://numberspinner.com` (no `www`). For Pages production builds configure `PUBLIC_SITE_URL=https://numberspinner.com`. Once the custom domain returns the correct current build and the redirects have been checked, configure `PUBLIC_INDEXABLE=true` for **Production only**, keep Preview unset/false, and redeploy. The source intentionally defaults to noindex without the opt-in flag; 13 candidate URLs stay noindex even after enablement.
+
+The main `<project>.pages.dev` production alias must use a host-level 301 redirect to the official domain, retaining path and query. Independently 301 `www.numberspinner.com` to the apex. Those cannot be proven or achieved by publishing identical static HTML to multiple hosts. Follow `docs/OFFICIAL-DOMAIN-LAUNCH-2026-11-12.md` and audit the live responses before submitting the Sitemap to Google Search Console.
 
 ## Engineering and SEO accountability
 
@@ -37,7 +41,7 @@ Preview and initial build must remain non-indexable. DO NOT enable PUBLIC_INDEXA
 - docs/RELEASE-GATES.md: engineering Track A and SEO Track B.
 - docs/SEO-KEYWORD-MAP.md: sourced first-release keyword plan.
 
-Domain, Cloudflare production deployment, GSC data, indexing and ad approval are NOT confirmed by source code commits.
+Domain ownership and the provided contact email are user-reported. Pages custom-domain activation, Cloudflare production deployment, GSC data, indexing and ad approval are NOT confirmed by source code commits.
 
 ## V1.5 additions
 - 1–100 number results per draw using secure browser randomness, with optional no-repeat selection and exhausted-pool checks.
