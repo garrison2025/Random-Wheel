@@ -169,7 +169,7 @@ test('oversized share setups are blocked with JSON export guidance',async({page}
   await page.locator('[data-action="share"]').click();
   const dialog=page.locator('[data-role="share-preview"]');
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator('[data-role="confirm-share"]')).toBeDisabled();
+  await expect(dialog.locator('[data-action="confirm-share"]')).toBeDisabled();
   await expect(dialog.locator('[data-role="share-preview-warning"]')).toContainText('Export setup JSON');
   const downloadPromise=page.waitForEvent('download');
   await dialog.locator('[data-action="export-setup-from-share"]').click();
