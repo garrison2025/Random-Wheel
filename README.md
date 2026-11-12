@@ -20,6 +20,7 @@ Node.js 22 recommended.
     node scripts/audit-pages.mjs
     npx playwright install chromium
     npm run test:e2e
+    npm run audit:live   # after the official domain is live
 
 No backend, database, sign-in or paid AI/API is required. The site includes no advertising or analytics scripts.
 
