@@ -19,10 +19,12 @@ const guide=APPROVED_RANGE_GUIDES[max];
           <p>{example.purpose}</p>
           <ol>{example.steps.map(step=><li>{step}</li>)}</ol>
           <p class="range-guide-outcome"><strong>What to expect:</strong> {example.outcome}</p>
-          <a href="#start">Try this with the number wheel</a>
+          <button type="button" class="range-guide-apply" data-range-preset={JSON.stringify({min:1,max,...example.preset,exclude:example.preset.exclude||""})}>Load these wheel settings</button>
         </article>
       ))}
     </div>
+    <p data-range-preset-feedback class="range-guide-feedback" role="status" aria-live="polite"></p>
     <p class="range-guide-note"><strong>Good to know:</strong> {guide.distinction}</p>
   </div>
 </section>
+<script>import '../scripts/range-presets';</script>
