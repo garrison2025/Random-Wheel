@@ -89,7 +89,6 @@ async function checkPage(path,indexable){
         && Array.isArray(app.featureList) && app.featureList.length>=3
         && !('aggregateRating' in app) && !('review' in app));
     } else if(applications.length>0) report(label+' held/support page has no WebApplication',false);
-    }
   }catch(error){report(label,false,String(error));}
 }
 async function checkRedirect(origin,tag){
