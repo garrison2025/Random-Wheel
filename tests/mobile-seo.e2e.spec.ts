@@ -127,3 +127,37 @@ test('reduced-motion settings preserve the same number-picker outcome',async({pa
   await page.locator('[data-action="pick"]').click();
   await expect(page.locator('[data-role="result"]')).not.toHaveText('Ready when you are');
 });
+
+test('1–100 mobile visitors can generate and read a number before the wheel',async({page})=>{
+  await page.setViewportSize({width:320,height:780});
+  await page.goto('/random-number-wheel/1-100/');
+  const fast=page.getByRole('button',{name:'Generate a number now'});
+  const inlineResult=page.locator('[data-role="instant-result"]');
+  const wheel=page.locator('.wheel-wrap');
+  await expect(fast).toBeVisible();
+  const fastBox=await fast.boundingBox();
+  const wheelBox=await wheel.boundingBox();
+  expect(fastBox).not.toBeNull();
+  expect(wheelBox).not.toBeNull();
+  expect(fastBox!.y+fastBox!.height).toBeLessThan(wheelBox!.y);
+  await fast.click();
+  const text=(await inlineResult.textContent())?.trim()||'';
+  const value=Number(text);
+  expect(Number.isInteger(value)).toBe(true);
+  expect(value).toBeGreaterThanOrEqual(1);
+  expect(value).toBeLessThanOrEqual(100);
+  await expect(page.locator('[data-role="result"]')).toHaveText(text);
+  await page.locator('[data-action="reset"]').click();
+  await expect(inlineResult).toHaveText('—');
+  await page.goto('/random-number-wheel/1-20/');
+  await expect(page.locator('[data-action="instant-pick"]')).toHaveCount(0);
+});
+
+test('1–100 desktop retains full wheel presentation and quick pick workflow',async({page})=>{
+  await page.setViewportSize({width:1280,height:800});
+  await page.goto('/random-number-wheel/1-100/');
+  await expect(page.locator('.instant-first')).toBeHidden();
+  await expect(page.locator('.wheel-wrap')).toBeVisible();
+  await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="result"]')).not.toHaveText('Ready when you are');
+});
