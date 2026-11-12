@@ -24,6 +24,11 @@ describe('approved number range content quality',()=>{
         expect(example.steps).toHaveLength(3);
         example.steps.forEach(step=>expect(step.length).toBeGreaterThan(20));
         expect(example.outcome.length).toBeGreaterThan(40);
+        expect(example.preset.batch).toBeGreaterThanOrEqual(1);
+        expect(example.preset.batch).toBeLessThanOrEqual(100);
+        expect(['quick','spin']).toContain(example.preset.mode);
+        if(example.preset.remove)expect(example.preset.batch).toBeLessThanOrEqual(max);
+        if(example.preset.exclude)expect(max).toBe(20);
       }
     }
     expect(headings.size).toBe(6);
