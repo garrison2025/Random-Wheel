@@ -230,3 +230,10 @@ body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sa
 .share-preview-url-label{display:block;margin:10px 0 5px;color:#666174;font-size:.69rem;font-weight:800}
 .share-preview-url{width:100%;padding:10px;border:1px solid #e5ded3;border-radius:8px;background:#f8f5ef;color:#343247;font-size:.7rem}
 .share-preview-url:focus{outline:2px solid #d28a70;outline-offset:1px}
+
+/* Fullscreen grows taller than the viewport after the optional probability
+   disclosure was added. Keep the exit control reachable and let the stage scroll. */
+.stage:fullscreen{height:100dvh;min-height:0;max-height:100dvh;overflow-x:hidden;overflow-y:auto;justify-content:flex-start;scrollbar-gutter:stable}
+.stage:fullscreen .stage-head{flex-shrink:0}
+.stage:fullscreen .wheel-wrap{width:min(52vh,500px);flex-shrink:0}
+.stage:fullscreen .probability-panel{flex-shrink:0}
