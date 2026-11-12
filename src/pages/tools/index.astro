@@ -2,6 +2,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { RANGE_PAGES } from '../../data/ranges';
+const priority=[100,3,4,5,6,20];
+const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).filter(Boolean);
+const otherRanges=RANGE_PAGES.filter(page=>page.indexApproved===false);
 ---
 <BaseLayout path="/tools/" title="Free Random Wheel Tools" description="Explore Number Spinner free random tools: custom spin the wheel, random number wheel, quick number pickers and classroom number draws.">
   <section class="hero"><div class="container"><span class="eyebrow">Tools directory</span><h1>Pick the tool that fits your moment.</h1><p>Explore custom names, words, letters, Yes/No decisions or an exact number range—all free and private.</p></div></section>
@@ -12,7 +15,12 @@ import { RANGE_PAGES } from '../../data/ranges';
       <a class="tool-card" href="/random-letter-wheel/"><span class="icon-tile" aria-hidden="true">AᐧZ</span><b>Random Letter Wheel</b><p>Spin A–Z, vowels or consonants, exclude letters and avoid repeats.</p><span class="go">Open alphabet wheel →</span></a>
       <a class="tool-card" href="/yes-or-no-wheel/"><span class="icon-tile" aria-hidden="true">Y/N</span><b>Yes or No Wheel</b><p>Try a fair 50/50 decision, or include Maybe as a third answer.</p><span class="go">Open Yes/No wheel →</span></a>
       <a class="tool-card" href="/random-word-wheel/"><span class="icon-tile" aria-hidden="true">Aa</span><b>Random Word Wheel</b><p>Ready-made word collections, custom lists and repeat-free random prompts.</p><span class="go">Spin a word →</span></a>
-      {RANGE_PAGES.map(page=><a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Use preset →</span></a>)}
+      {primaryRanges.map(page=><a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Use preset →</span></a>)}
+    </div>
+    <h2 class="section-title">More number range tools</h2>
+    <p class="section-intro">These additional presets remain free to use. Open the exact range you need, or set any custom range in the main number wheel.</p>
+    <div class="tool-grid">
+      {otherRanges.map(page=><a class="tool-card" href={'/random-number-wheel/'+page.slug+'/'}><span class="icon-tile">🎲</span><b>Numbers 1–{page.max}</b><p>{page.example}</p><span class="go">Use preset →</span></a>)}
     </div>
   </div></section>
 </BaseLayout>
