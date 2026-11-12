@@ -1,0 +1,28 @@
+---
+import {DOMAIN,INDEXABLE} from '../lib/site';
+type Crumb = {label:string;path:string};
+interface Props {items:Crumb[];noindex?:boolean}
+const {items,noindex=false}=Astro.props;
+const schema=JSON.stringify({
+  '@context':'https://schema.org',
+  '@type':'BreadcrumbList',
+  itemListElement:items.map((item,index)=>({
+    '@type':'ListItem',
+    position:index+1,
+    name:item.label,
+    item:DOMAIN+item.path
+  }))
+}).replace(/</g,'\\u003c');
+---
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    {items.map((item,index)=>(
+      <li>
+        {index===items.length-1
+          ? <span aria-current="page">{item.label}</span>
+          : <a href={item.path}>{item.label}</a>}
+      </li>
+    ))}
+  </ol>
+</nav>
+{INDEXABLE && !noindex && <script type="application/ld+json" set:html={schema} />}
