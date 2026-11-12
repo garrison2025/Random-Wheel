@@ -21,6 +21,7 @@ const all = [...approved, ...held];
 const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true';
 const site = (process.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 const validDomain = (() => {
+  if(site !== 'https://numberspinner.com') return false;
   try {
     const url = new URL(site);
     const host = url.hostname.toLowerCase();
@@ -47,7 +48,7 @@ const attr = (tag, name) =>
 const tags = (html, name) =>
   [...html.matchAll(new RegExp('<' + name + '\\b[^>]*>', 'gi'))].map(m => m[0]);
 
-if (expectedIndex && !validDomain) fail('GLOBAL', 'PUBLIC_INDEXABLE=true requires a real custom HTTPS domain, not pages.dev.');
+if (expectedIndex && !validDomain) fail('GLOBAL', 'PUBLIC_INDEXABLE=true requires https://numberspinner.com as the only official canonical origin.');
 if (new Set(all).size !== all.length) fail('GLOBAL', 'Duplicate route in the audit inventory.');
 
 for (const route of all) {
