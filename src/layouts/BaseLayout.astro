@@ -19,7 +19,9 @@ const websiteSchema = JSON.stringify({
   '@context':'https://schema.org',
   '@type':'WebSite',
   name:SITE_NAME,
-  url:DOMAIN+'/'
+  url:DOMAIN+'/',
+  sameAs:'https://github.com/garrison2025/Random-Wheel',
+  publisher:{'@type':'Organization',name:SITE_NAME,url:DOMAIN+'/'}
 }).replace(/</g,'\\u003c');
 ---
 <!doctype html>
