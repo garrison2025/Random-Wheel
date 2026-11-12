@@ -4,6 +4,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Workbench from '../../components/Workbench.astro';
 import NumberTaskStudio from '../../components/NumberTaskStudio.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ApprovedRangeGuide from '../../components/ApprovedRangeGuide.astro';
+import {APPROVED_RANGE_GUIDES,type ApprovedRange} from '../../data/approved-range-guides';
 import {NUMBER_TASK_INFO} from '../../data/number-tasks';
 import { RANGE_PAGES, type RangePage } from '../../data/ranges';
 export function getStaticPaths(){
@@ -13,6 +15,7 @@ interface Props{page:RangePage}
 const {page}=Astro.props;
 const path='/random-number-wheel/'+page.slug+'/';
 const taskInfo=NUMBER_TASK_INFO[page.max];
+const hasApprovedGuide=page.indexApproved!==false && Object.hasOwn(APPROVED_RANGE_GUIDES,page.max);
 ---
 <BaseLayout noindex={page.indexApproved===false} path={path} title={page.title} description={page.description}>
   <section class="hero"><div class="container">
@@ -31,6 +34,7 @@ const taskInfo=NUMBER_TASK_INFO[page.max];
     </nav>}
   </div></section>
   <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max}/></div>
+  {hasApprovedGuide && <ApprovedRangeGuide max={page.max as ApprovedRange}/> }
   {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 
   <section class="section"><div class="container">
     <div class="article">
