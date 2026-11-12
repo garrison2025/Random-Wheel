@@ -43,3 +43,19 @@ test('GEO did not expose held candidates as approved tools or change robots poli
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
   }
 });
+
+test('tool comparison helps readers choose an actual tool without mobile overflow',async({page})=>{
+  await page.setViewportSize({width:360,height:800});
+  await page.goto('/tools/');
+  const comparison=page.getByRole('region',{name:'Compare random picker tools'});
+  await expect(comparison).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Which random picker should you use?'})).toBeVisible();
+  await expect(comparison.locator('tbody tr')).toHaveCount(5);
+  await expect(comparison.getByRole('link',{name:'1–100 Number Picker'}))
+    .toHaveAttribute('href','/random-number-wheel/1-100/');
+  const dimensions=await page.evaluate(()=>({
+    documentWidth:document.documentElement.scrollWidth,
+    viewportWidth:document.documentElement.clientWidth
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth+1);
+});
