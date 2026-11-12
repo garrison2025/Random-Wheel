@@ -125,17 +125,60 @@ for (const route of all) {
     const schemas=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
       .map(match=>match[1]);
     if(liveMode) {
-      if(schemas.length!==1)fail(route,'Expected exactly one WebSite JSON-LD block on official home page');
-      else {
-        try {
-          const schema=JSON.parse(schemas[0]);
-          if(schema['@type']!=='WebSite'||schema.name!=='Number Spinner'||schema.url!==site+'/')
-            fail(route,'WebSite JSON-LD has wrong brand or official canonical URL');
-        } catch {fail(route,'Malformed WebSite JSON-LD');}
-      }
-    } else if(schemas.length)fail(route,'Staging must not advertise official WebSite JSON-LD');
+      const website=schemas.flatMap(raw=>{
+        try{return [JSON.parse(raw)];}catch{fail(route,'Malformed homepage JSON-LD');return [];}
+      }).filter(x=>x['@type']==='WebSite');
+      if(website.length!==1 || website[0].name!=='Number Spinner'||website[0].url!==site+'/')
+        fail(route,'Expected exactly one correct WebSite JSON-LD alongside the home tool entity');
+    } else if(schemas.length)fail(route,'Staging must not advertise official-domain JSON-LD');
   }
 
+
+  // GEO entities must describe visible user-facing content, not invented
+  // ratings or promises of an AI citation. Only the eight launch tool pages qualify.
+  const geoToolRoutes=[
+    '/', '/random-number-wheel/', '/random-number-wheel/1-3/',
+    '/random-number-wheel/1-4/', '/random-number-wheel/1-5/',
+    '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
+    '/random-number-wheel/1-100/'
+  ];
+  const isGeoTool=geoToolRoutes.includes(route);
+  const jsonLd=[...html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
+    .map(match=>match[1]).filter(Boolean);
+  const entities=[];
+  for(const raw of jsonLd){
+    try{entities.push(JSON.parse(raw));}
+    catch{fail(route,'Invalid structured data JSON-LD');}
+  }
+  const applications=entities.filter(x=>x['@type']==='WebApplication');
+  if(isGeoTool){
+    if(!html.includes('data-geo-tool="'+route+'"'))
+      fail(route,'Missing visible, route-specific tool facts for GEO');
+    if(!html.includes('/about/#how-results-are-generated'))
+      fail(route,'GEO facts must link to source-backed methodology');
+    if(shouldIndex){
+      if(applications.length!==1)
+        fail(route,'Approved tool requires one WebApplication matching visible facts');
+      else{
+        const app=applications[0];
+        if(app.url!==site+route || !app.name || !html.includes(app.name)
+          || typeof app.description!=='string' || !app.description.trim()
+          || app.isAccessibleForFree!==true || app.applicationCategory!=='UtilitiesApplication'
+          || !Array.isArray(app.featureList)||app.featureList.length<3)
+          fail(route,'WebApplication entity is incomplete or does not match this URL');
+        if('aggregateRating' in app||'review' in app||'ratingValue' in app)
+          fail(route,'Unverified rating or review in GEO data');
+      }
+    } else if(applications.length)
+      fail(route,'Preview tool page must not advertise official-domain WebApplication');
+  }else if(applications.length || html.includes('data-geo-tool='))
+    fail(route,'Held/non-tool page must not inherit approved WebApplication or facts');
+  if(route==='/about/'){
+    if(!html.includes('id="how-results-are-generated"')
+      || !html.includes('/src/lib/random.ts')
+      || !html.includes('/src/scripts/wheel.ts'))
+      fail(route,'About page lacks inspectable source-backed methodology');
+  }
 
   if (!/^<!doctype html>/i.test(html.trimStart())) fail(route, 'Missing HTML5 doctype');
   if (!/<html\s[^>]*lang=["']en["']/i.test(html)) fail(route, 'Expected English html lang');
