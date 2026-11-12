@@ -105,3 +105,26 @@ test('malicious inherited palette names cannot corrupt shared wheel setups',asyn
   await page.locator('[data-action="pick"]').click();
   expect(['North','South']).toContain((await page.locator('[data-role="result"]').textContent())?.trim());
 });
+
+test('wheel recovers its valid overlay after all numbers are excluded',async({page})=>{
+  await page.goto('/random-number-wheel/1-3/');
+  const excluded=page.locator('[data-role="excluded"]');
+  await excluded.fill('1, 2, 3');
+  await excluded.dispatchEvent('change');
+  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('No available choices');
+  await excluded.fill('');
+  await excluded.dispatchEvent('change');
+  await expect(page.locator('[data-role="candidate-count"]')).toContainText('3 active choices');
+  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('All eligible numbers included');
+});
+
+test('rapid edit immediately followed by a spin does not reset the winner',async({page})=>{
+  await page.goto('/');
+  await page.locator('[data-role="entries"]').fill('Alpha\nBeta\nGamma');
+  // Fill queues the debounced edit handler; starting a spin must cancel it.
+  await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
+  await page.waitForTimeout(350);
+  await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
+  await expect(page.locator('[data-role="result"]')).toContainText(/Alpha|Beta|Gamma/, {timeout:7000});
+});
