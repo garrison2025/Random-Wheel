@@ -33,7 +33,7 @@ const hasApprovedGuide=page.indexApproved!==false && Object.hasOwn(APPROVED_RANG
       <a href="#classroom-roll-call">Classroom roll call</a>
     </nav>}
   </div></section>
-  <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max}/></div>
+  <div class="container main-overlap"><Workbench kind="numbers" min={1} max={page.max} instantFirst={page.max===100}/></div>
   {hasApprovedGuide && <ApprovedRangeGuide max={page.max as ApprovedRange}/> }
   {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 
   <section class="section"><div class="container">
