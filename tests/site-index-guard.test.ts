@@ -4,7 +4,7 @@ import {isOfficialIndexDomain} from '../src/lib/site';
 describe('SEO indexing domain gate',()=>{
   it('accepts ordinary official custom HTTPS domains',()=>{
     expect(isOfficialIndexDomain('https://numberspinner.com')).toBe(true);
-    expect(isOfficialIndexDomain('https://www.wheelcanvas.com')).toBe(true);
+    expect(isOfficialIndexDomain('https://www.numberspinner.com')).toBe(true);
   });
   it('rejects preview aliases and placeholder domains',()=>{
     for(const domain of [
