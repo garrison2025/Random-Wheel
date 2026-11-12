@@ -170,5 +170,9 @@ test('oversized share setups are blocked with JSON export guidance',async({page}
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('[data-role="confirm-share"]')).toBeDisabled();
   await expect(dialog.locator('[data-role="share-preview-warning"]')).toContainText('Export setup JSON');
-  await expect(page.locator('[data-action="export-setup"]')).toBeEnabled();
+  const downloadPromise=page.waitForEvent('download');
+  await dialog.locator('[data-action="export-setup-from-share"]').click();
+  const download=await downloadPromise;
+  expect(download.suggestedFilename()).toBe('number-spinner-setup.json');
+  await expect(dialog).not.toBeVisible();
 });
