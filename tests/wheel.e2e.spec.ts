@@ -239,9 +239,9 @@ test('results download as actual CSV and TXT',async({page})=>{
   await page.locator('[data-role=remove]').check();
   await page.locator('[data-action=pick]').click();
   const [csvDownload]=await Promise.all([page.waitForEvent('download'),page.locator('[data-action=export-csv]').click()]);
-  expect(csvDownload.suggestedFilename()).toBe('wheelcanvas-results.csv');
+  expect(csvDownload.suggestedFilename()).toBe('number-spinner-results.csv');
   const [txtDownload]=await Promise.all([page.waitForEvent('download'),page.locator('[data-action=export-txt]').click()]);
-  expect(txtDownload.suggestedFilename()).toBe('wheelcanvas-results.txt');
+  expect(txtDownload.suggestedFilename()).toBe('number-spinner-results.txt');
 });
 
 test('speed and saved number ranges stay isolated across presets',async({page})=>{
