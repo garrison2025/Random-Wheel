@@ -49,5 +49,6 @@ export const INDEXABLE = shouldIndexApprovedPages(
 export const LAUNCH_ROUTES = [
   '/', '/random-number-wheel/', '/random-number-wheel/1-3/', '/random-number-wheel/1-4/',
   '/random-number-wheel/1-5/', '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
-  '/random-number-wheel/1-100/', '/tools/', '/about/', '/privacy/', '/terms/', '/contact/'
+  '/random-number-wheel/1-100/', '/random-number-wheel/1-8/', '/random-number-wheel/1-30/',
+  '/tools/', '/about/', '/privacy/', '/terms/', '/contact/'
 ] as const;
