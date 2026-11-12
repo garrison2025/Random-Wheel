@@ -469,13 +469,17 @@ test('explicit range query overrides saved generic settings but never overwrites
   await expect(page.locator('[data-role=max]')).toHaveValue('5');
 });
 
-test('exact range query does not change the static page canonical or index status',async({request})=>{
+test('exact range query preserves the official self-canonical and preview robots policy',async({request})=>{
   const plain=await request.get('/random-number-wheel/');
   const preset=await request.get('/random-number-wheel/?min=1&max=14');
   expect(plain.ok()).toBe(true);
   expect(preset.ok()).toBe(true);
   const html=await preset.text();
+  const original=await plain.text();
+  const canonical='<link rel="canonical" href="https://numberspinner.com/random-number-wheel/">';
   expect(html).toContain('noindex, nofollow');
-  expect(html).not.toContain('<link rel="canonical"');
-  expect(await plain.text()).toContain('<h1>Random Number Wheel</h1>');
+  expect(html).toContain(canonical);
+  expect(original).toContain(canonical);
+  expect((html.match(/rel="canonical"/g)||[]).length).toBe(1);
+  expect(html).toContain('<h1>Random Number Wheel</h1>');
 });
