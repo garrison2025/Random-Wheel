@@ -89,6 +89,14 @@ async function checkPage(path,indexable){
         && Array.isArray(app.featureList) && app.featureList.length>=3
         && !('aggregateRating' in app) && !('review' in app));
     } else if(applications.length>0) report(label+' held/support page has no WebApplication',false);
+    if(path==='/about/'){
+      const documentation=schemas.filter(x=>x['@type']==='TechArticle');
+      report('Methodology real publisher and reviewed date',
+        documentation.length===1
+        && documentation[0].author?.name==='Number Spinner'
+        && documentation[0].dateModified==='2026-11-12'
+        && body.includes('datetime="2026-11-12"'));
+    }
   }catch(error){report(label,false,String(error));}
 }
 async function checkRedirect(origin,tag){
@@ -127,6 +135,9 @@ try {
   report('robots.txt HTTP',response.status===200,'status '+response.status);
   report('robots.txt crawl permitted',!/^Disallow:\s*\/\s*$/mi.test(body)
     && body.includes('Sitemap: '+ROOT+'/sitemap.xml'));
+  report('AI search bots explicitly allowed in robots.txt',
+    ['OAI-SearchBot','Claude-SearchBot','PerplexityBot','Googlebot','Bingbot']
+      .every(bot=>body.includes('User-agent: '+bot+'\nAllow: /')));
 }catch(error){report('robots.txt',false,String(error));}
 try{
   const {response,body}=await request(ROOT+'/sitemap.xml');
@@ -137,6 +148,14 @@ try{
     && new Set(links).size===links.length&&links.every(url=>expected.includes(url))
     && expected.every(url=>links.includes(url)),'found '+links.length+' URLs');
 }catch(error){report('Sitemap',false,String(error));}
+try{
+  const {response,body}=await request(ROOT+'/llms.txt');
+  report('Optional llms.txt HTTP',response.status===200,'status '+response.status);
+  report('Optional llms.txt contains only approved tool citations',
+    body.includes(ROOT+'/random-number-wheel/1-100/')
+    && body.includes(ROOT+'/about/')
+    && !body.includes('/random-number-wheel/1-8/'));
+}catch(error){report('Optional llms.txt fetch',false,String(error));}
 await checkRedirect('https://www.'+HOST,'www');
 await checkRedirect(PAGE_ALIAS,'Production pages.dev alias');
 console.log(JSON.stringify({origin:ROOT,checks:checks.length,passed:checks.filter(x=>x.passed).length,
