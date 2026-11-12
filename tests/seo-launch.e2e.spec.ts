@@ -74,7 +74,7 @@ test('approved number pages have unique task-first guides with working tool anch
     await expect(guide).toHaveCount(1);
     await expect(guide.getByRole('heading',{name:heading})).toBeVisible();
     await expect(guide.locator('.range-guide-card')).toHaveCount(2);
-    await expect(guide.getByRole('link',{name:'Try this with the number wheel'})).toHaveCount(2);
+    await expect(guide.getByRole('button',{name:'Load these wheel settings'})).toHaveCount(2);
     await expect(page.locator('#start')).toHaveCount(1);
   }
 });
