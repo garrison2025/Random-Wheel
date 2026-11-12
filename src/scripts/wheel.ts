@@ -186,6 +186,8 @@ function init(root: HTMLElement) {
       overlay.textContent=active.length+' possibilities';
       return;
     }
+    // Restore a valid label after an empty or simplified candidate pool.
+    overlay.textContent=isNumbers?'All eligible numbers included':'All eligible choices included';
     let degree=0;
     const stops:string[]=[];
     for(let i=0;i<active.length;i++){
@@ -249,6 +251,7 @@ function init(root: HTMLElement) {
   }
   function pick(){
     if(locked || root.dataset.roundComplete==='true') return;
+    window.clearTimeout(editTimer); // A delayed edit should not reset a newly started spin.
     try{
       entries=readChoices();
       const active=activeChoices();
