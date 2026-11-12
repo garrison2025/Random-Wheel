@@ -1,11 +1,27 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import {DOMAIN,INDEXABLE} from '../../lib/site';
+// Actual review date for the methodology content; update only when it is reviewed.
+const methodologyReviewed='2026-11-12';
+const methodSchema=JSON.stringify({
+  '@context':'https://schema.org',
+  '@type':'TechArticle',
+  headline:'How Number Spinner works',
+  mainEntityOfPage:DOMAIN+'/about/',
+  url:DOMAIN+'/about/',
+  author:{'@type':'Organization',name:'Number Spinner',url:DOMAIN+'/'},
+  publisher:{'@type':'Organization',name:'Number Spinner',url:DOMAIN+'/'},
+  dateModified:methodologyReviewed,
+  about:['Web Crypto random selection','Unbiased integer sampling','No-repeat random draws']
+}).replace(/</g,'\\u003c');
 ---
 <BaseLayout path="/about/" title="How Our Random Picks Work" description="How Number Spinner uses browser Web Crypto, unbiased integer sampling, optional weights and no-repeat draws; learn the limits and inspect source code.">
+  {INDEXABLE && <script type="application/ld+json" set:html={methodSchema} />}
   <section class="hero"><div class="container">
     <span class="eyebrow">Our methods and limits</span>
     <h1>How Number Spinner works</h1>
     <p>Free, browser-based random selection tools for names, numbers, classroom activities and everyday choices. Here is what they do—and what they do not claim to do.</p>
+    <p>Maintained by the Number Spinner project · Methodology reviewed <time datetime="2026-11-12">November 12, 2026</time> · <a href="https://github.com/garrison2025/Random-Wheel">Source repository</a></p>
   </div></section>
   <section class="section"><div class="container article geo-methodology">
     <h2 id="how-results-are-generated">How results are generated</h2>
@@ -28,6 +44,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <h2 id="sources-and-corrections">Inspectable implementation and corrections</h2>
     <p>These descriptions are based on the site's publicly readable implementation, rather than claimed customer counts or unverifiable randomness certifications. Inspect the <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/lib/random.ts">random number and weighting algorithms</a> and the <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/scripts/wheel.ts">wheel interaction and result logic</a>. The browser API itself is described by <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues">MDN's Crypto.getRandomValues reference</a>.</p>
     <p>For a reproducible bug or factual correction, open a report in the <a href="https://github.com/garrison2025/Random-Wheel/issues">public issue tracker</a> or see <a href="/contact/">contact options</a>. Do not put private names, student records, or sensitive information into public reports.</p>
+    <p><strong>Technical references:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues">MDN's Web Crypto reference</a> and the <a href="https://www.w3.org/TR/WebCryptoAPI/">W3C Web Cryptography specification</a> document the browser API. The <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/lib/random.ts">public code</a> shows how the website maps random values to eligible outcomes. These references explain the mechanism, not an independent certification.</p>
     <p>These technical details describe the current general-purpose tool; source availability does not imply any independent security audit. See our <a href="/privacy/">privacy policy</a> for hosting, link sharing and local storage information.</p>
   </div></section>
 </BaseLayout>
