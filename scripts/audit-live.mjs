@@ -71,6 +71,14 @@ for(let i=0;i<routes.length;i+=5){
   await Promise.all(routes.slice(i,i+5).map(({path,indexable})=>checkPage(path,indexable)));
 }
 try {
+  const {response,body}=await request(ROOT+'/this-random-wheel-page-does-not-exist-seo-audit-404/');
+  report('Unknown path serves true HTTP 404',response.status===404,'status '+response.status);
+  const errorRobots=getMeta(body,'robots').toLowerCase();
+  report('Unknown path has noindex',errorRobots.includes('noindex'),'meta='+errorRobots);
+  report('Unknown path is not the home page',/page (isn.t here|not found)|404/i.test(body)
+    && getCanonical(body).length===0,'canonical='+getCanonical(body).join(','));
+}catch(error){report('Unknown path / soft-404 check',false,String(error));}
+try {
   const {response,body}=await request(ROOT+'/robots.txt');
   report('robots.txt HTTP',response.status===200,'status '+response.status);
   report('robots.txt crawl permitted',!/^Disallow:\s*\/\s*$/mi.test(body)
