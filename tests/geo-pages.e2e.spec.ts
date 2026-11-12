@@ -1,0 +1,45 @@
+import {expect,test} from '@playwright/test';
+
+const approved=[
+  '/', '/random-number-wheel/', '/random-number-wheel/1-3/',
+  '/random-number-wheel/1-4/', '/random-number-wheel/1-5/',
+  '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
+  '/random-number-wheel/1-100/'
+];
+
+test('every launch tool has visible, route-specific answer facts without duplicate schema in preview',async({page})=>{
+  for(const path of approved){
+    await page.goto(path);
+    const facts=page.locator('[data-geo-tool]');
+    await expect(facts).toHaveCount(1);
+    await expect(facts).toHaveAttribute('data-geo-tool',path);
+    await expect(facts.locator('h2')).toContainText('At a glance:');
+    await expect(facts.locator('dl dt')).toHaveText([
+      'What you get','How the draw works','Repeats and exclusions','Privacy and sharing'
+    ]);
+    await expect(facts.locator('a[href="/about/#how-results-are-generated"]')).toHaveCount(1);
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+  }
+});
+
+test('GEO evidence links lead to the original methodology in human-readable HTML',async({page})=>{
+  await page.goto('/random-number-wheel/1-100/');
+  await page.locator('[data-geo-tool] a[href="/about/#how-results-are-generated"]').click();
+  await expect(page).toHaveURL(/\/about\/#how-results-are-generated$/);
+  await expect(page.locator('#how-results-are-generated')).toHaveText('How results are generated');
+  await expect(page.getByRole('link',{name:'random number and weighting algorithms'}))
+    .toHaveAttribute('href',/github\.com\/garrison2025\/Random-Wheel\/blob\/main\/src\/lib\/random\.ts$/);
+  await expect(page.getByRole('link',{name:'wheel interaction and result logic'}))
+    .toHaveAttribute('href',/github\.com\/garrison2025\/Random-Wheel\/blob\/main\/src\/scripts\/wheel\.ts$/);
+  await expect(page.getByRole('link',{name:'MDN\'s Crypto.getRandomValues reference'}))
+    .toHaveAttribute('href',/developer\.mozilla\.org/);
+});
+
+test('GEO did not expose held candidates as approved tools or change robots policy',async({page})=>{
+  for(const path of ['/random-number-wheel/1-8/','/random-number-wheel/1-30/','/random-letter-wheel/']){
+    await page.goto(path);
+    await expect(page.locator('[data-geo-tool]')).toHaveCount(0);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+  }
+});
