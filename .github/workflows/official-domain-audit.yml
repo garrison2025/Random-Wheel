@@ -11,4 +11,11 @@ jobs:
         with:
           node-version: 22
       - name: Verify official domain, redirects and SEO whitelist
-        run: npm run audit:live
+        run: npm run audit:live 2>&1 | tee official-domain-audit.log
+      - name: Archive pass/fail details for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-domain-audit-report
+          path: official-domain-audit.log
+          if-no-files-found: warn
