@@ -639,7 +639,7 @@ function init(root: HTMLElement) {
   function applyConfig(value:unknown){
     const c=validateConfigValue(value);
     const removal=get<HTMLInputElement>(root,'[data-role="remove"]');
-    if(removal && c.remove!==undefined)removal.checked=c.remove;
+    if(removal && typeof c.remove==='boolean')removal.checked=c.remove;
     const setText=(key:string,val:unknown)=>{
       if(val===undefined)return; // Older saved setups may omit newer optional fields.
       if(typeof val!=='string' || val.length>=12000)throw new Error('Invalid '+key+' value in saved setup.');
