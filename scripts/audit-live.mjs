@@ -10,12 +10,13 @@ const approved = [
   '/', '/random-number-wheel/', '/random-number-wheel/1-3/',
   '/random-number-wheel/1-4/', '/random-number-wheel/1-5/',
   '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
-  '/random-number-wheel/1-100/', '/tools/', '/about/',
+  '/random-number-wheel/1-100/', '/random-number-wheel/1-8/', '/random-number-wheel/1-30/',
+  '/tools/', '/about/',
   '/privacy/', '/terms/', '/contact/'
 ];
 const held = [
   '/random-word-wheel/', '/random-letter-wheel/', '/yes-or-no-wheel/',
-  ...[2,7,8,10,15,30,50,200,1000,10000].map(n=>'/random-number-wheel/1-'+n+'/')
+  ...[2,7,10,15,50,200,1000,10000].map(n=>'/random-number-wheel/1-'+n+'/')
 ];
 const failures=[],checks=[],recommendations=[];
 const report=(label,good,details='',required=true)=>{
@@ -157,7 +158,7 @@ try{
   report('Optional llms.txt contains only approved tool citations',
     body.includes(ROOT+'/random-number-wheel/1-100/')
     && body.includes(ROOT+'/about/')
-    && !body.includes('/random-number-wheel/1-8/'));
+    && !body.includes('/random-number-wheel/1-7/'));
 }catch(error){report('Optional llms.txt fetch',false,String(error));}
 await checkRedirect('https://www.'+HOST,'www');
 await checkRedirect(PAGE_ALIAS,'Production pages.dev alias');
