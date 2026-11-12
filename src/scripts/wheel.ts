@@ -269,6 +269,7 @@ function init(root: HTMLElement) {
         const drawn=drawIndices(active.map(a=>a.entry),requested,noRepeat);
         const values=drawn.map(i=>active[i]!.entry.label);
         latestDraw=values;
+        if(instantCopy)instantCopy.disabled=false;
         if(instantCopyFeedback)instantCopyFeedback.textContent='';
         if(noRepeat) for(const i of drawn) pickedIndices.add(active[i]!.index);
         for(const label of values) winningHistory.unshift(label);
