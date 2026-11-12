@@ -21,6 +21,7 @@ function init(root: HTMLElement) {
   const disc=get<HTMLElement>(root,'[data-role="wheel-disc"]')!;
   const wrap=get<HTMLElement>(root,'[data-role="wheel-wrap"]')!;
   const result=get<HTMLElement>(root,'[data-role="result"]')!;
+  const instantResult=get<HTMLOutputElement>(root,'[data-role="instant-result"]');
   const resultCard=get<HTMLElement>(root,'.result-card');
   const sparks=get<HTMLElement>(root,'[data-role="winner-sparks"]');
   const feedback=get<HTMLElement>(root,'[data-role="feedback"]')!;
@@ -146,6 +147,7 @@ function init(root: HTMLElement) {
     pickedIndices=new Set();winningHistory=[];
     clearSparks();
     result.textContent='Ready when you are';
+    if(instantResult)instantResult.textContent='—';
     resultCard?.classList.remove('is-picked');
     renderHistory();status(message);
     root.dispatchEvent(new CustomEvent('wheelcanvas:reset'));
@@ -211,6 +213,7 @@ function init(root: HTMLElement) {
       drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
       entries=[];pickedIndices.clear();winningHistory=[];renderHistory();
       result.textContent='Check your settings';
+      if(instantResult)instantResult.textContent='Check settings';
       resultCard?.classList.remove('is-picked');
       status(error instanceof Error?error.message:'Invalid choices.',true);
       render();
@@ -219,6 +222,7 @@ function init(root: HTMLElement) {
   function showWinner(label:string,index:number){
     winningHistory.unshift(label);if(winningHistory.length>1000)winningHistory.pop();
     result.textContent=label;
+    if(instantResult)instantResult.textContent=label;
     resultCard?.classList.remove('is-picked');
     // Restart a subtle reveal animation for successive draws.
     void resultCard?.offsetWidth;
@@ -258,6 +262,7 @@ function init(root: HTMLElement) {
         clearSparks();
         resultCard?.classList.remove('is-picked');
         result.textContent=values.length<=7 ? values.join(' · ') : values.slice(0,7).join(' · ')+' … (+'+(values.length-7)+')';
+        if(instantResult)instantResult.textContent=result.textContent;
         resultCard?.classList.add('is-picked');
         renderHistory();render();
         status('Generated '+values.length+' secure results'+(noRepeat?' without repeats.':'.')+' Export CSV or TXT for the full history.');
@@ -296,6 +301,7 @@ function init(root: HTMLElement) {
     } catch(error){
       setBusy(false);
       status(error instanceof Error?error.message:'Random selection failed.',true);
+      if(instantResult)instantResult.textContent='Check settings';
     }
   }
 
@@ -321,6 +327,12 @@ function init(root: HTMLElement) {
     status(mode==='quick'?'Instant result mode selected.':'Animated wheel mode selected.');
   }));
   pickButton.addEventListener('click',pick);
+  get<HTMLButtonElement>(root,'[data-action="instant-pick"]')?.addEventListener('click',()=>{
+    if(locked || root.dataset.roundComplete==='true')return;
+    // Use the same secure sampling and result path as the regular Quick Pick.
+    root.querySelector<HTMLButtonElement>('[data-mode="quick"]')?.click();
+    pick();
+  });
   centerButton?.addEventListener('click',pick);
   // A horizontal swipe on the wheel triggers a single draw. Vertical
   // gestures are left to the browser for normal scrolling on mobile.
