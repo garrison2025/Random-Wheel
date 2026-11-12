@@ -18,7 +18,10 @@ const held = [
     .map(n => '/random-number-wheel/1-' + n + '/')
 ];
 const all = [...approved, ...held];
-const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true';
+const expectedIndex = process.env.PUBLIC_INDEXABLE === 'true'
+  || (process.env.PUBLIC_INDEXABLE !== 'false'
+    && process.env.CF_PAGES === '1'
+    && process.env.CF_PAGES_BRANCH === 'main');
 const site = (process.env.PUBLIC_SITE_URL || 'https://numberspinner.com').replace(/\/+$/, '');
 const validDomain = (() => {
   if(site !== 'https://numberspinner.com') return false;
@@ -141,13 +144,15 @@ for (const route of all) {
   if (seenDescriptions.has(desc)) fail(route, 'Duplicate description with ' + seenDescriptions.get(desc));
   else seenDescriptions.set(desc, route);
 
-  if (shouldIndex) {
-    if (robotValue.includes('noindex')) fail(route, 'Approved production page unexpectedly noindex');
-    if (canonical.length !== 1) fail(route, 'Expected exactly one canonical');
-    else if (attr(canonical[0], 'href') !== site + route) fail(route, 'Canonical must equal configured official URL');
+  if (approved.includes(route)) {
+    // Canonical must exist even when a staging build is intentionally noindex.
+    if (canonical.length !== 1) fail(route, 'Approved URL must have exactly one canonical in every build');
+    else if (attr(canonical[0], 'href') !== site + route) fail(route, 'Canonical must equal official self URL');
+    if (shouldIndex && robotValue.includes('noindex')) fail(route, 'Approved production page unexpectedly noindex');
+    if (!shouldIndex && !robotValue.includes('noindex')) fail(route, 'Approved staging page unexpectedly indexable');
   } else {
-    if (!robotValue.includes('noindex')) fail(route, 'Unapproved or staging page exposed for indexing');
-    if (canonical.length) fail(route, 'Held/staging page must not advertise canonical');
+    if (!robotValue.includes('noindex')) fail(route, 'Held candidate page unexpectedly indexable');
+    if (canonical.length) fail(route, 'Held candidate page must not advertise canonical');
   }
 
   // Static link checks: ignore fragments, schemes and query-only links.
