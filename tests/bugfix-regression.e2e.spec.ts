@@ -8,12 +8,14 @@ test('empty number minimum cannot silently introduce zero',async({page})=>{
   await expect(page.locator('[data-role="result"]')).not.toHaveText('0');
 });
 
-test('entry removal setting survives local save and a reload',async({page})=>{
+test('entry removal and selected mode survive local save and a reload',async({page})=>{
   await page.goto('/');
   await page.locator('[data-role="remove"]').check();
+  await page.locator('[data-mode="quick"]').click();
   await page.locator('[data-action="save"]').click();
   await page.reload();
   await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
 });
 
 test('entry removal and Quick Pick mode are included in a reviewed share link',async({page,context})=>{
