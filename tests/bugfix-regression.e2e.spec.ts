@@ -39,11 +39,11 @@ test('clearing saved setup during spin does not cancel the active draw or erase 
   await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
   await expect(page.locator('[data-action="clear"]')).toBeEnabled();
   await page.locator('[data-action="clear"]').click();
+  await expect(page.locator('[data-role="feedback"]')).toContainText('Current picks and history are unchanged');
   await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
   await page.waitForTimeout(1900);
   await expect(page.locator('[data-role="result"]')).toContainText(/Alex|Jordan|Taylor|Morgan|Casey|Sam/);
   await expect(page.locator('[data-role="history"] .history-chip')).toHaveCount(1);
-  await expect(page.locator('[data-role="feedback"]')).toContainText('Current picks and history are unchanged');
 });
 
 test('CSV header is skipped and explicit blank weight is rejected',async({page})=>{
