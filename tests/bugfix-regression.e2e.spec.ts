@@ -128,3 +128,30 @@ test('rapid edit immediately followed by a spin does not reset the winner',async
   await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
   await expect(page.locator('[data-role="result"]')).toContainText(/Alpha|Beta|Gamma/, {timeout:7000});
 });
+
+test('an older file read never overwrites a newer invalid import',async({page})=>{
+  await page.addInitScript(()=>{
+    const original=File.prototype.text;
+    File.prototype.text=function(){
+      const file=this;
+      return new Promise<string>((resolve,reject)=>{
+        setTimeout(()=>original.call(file).then(resolve,reject),
+          file.name==='first.csv'?400:20);
+      });
+    };
+  });
+  await page.goto('/');
+  const previous=await page.locator('[data-role="entries"]').inputValue();
+  const upload=page.locator('[data-role="file"]');
+  await upload.setInputFiles({
+    name:'first.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Name,Weight\nAlpha,2\nBeta,1\n')
+  });
+  await upload.setInputFiles({
+    name:'second.csv',mimeType:'text/csv',
+    buffer:Buffer.from('Name,Weight\nGamma,\n')
+  });
+  await expect(page.locator('[data-role="feedback"]')).toContainText('weights must be whole numbers');
+  await page.waitForTimeout(450);
+  await expect(page.locator('[data-role="entries"]')).toHaveValue(previous);
+});
