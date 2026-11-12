@@ -30,7 +30,11 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
       <span class="instant-first-label">QUICK RESULT · NO SPIN REQUIRED</span>
       <div class="instant-first-row">
         <button type="button" data-action="instant-pick">⚡ Generate a number now</button>
-        <output data-role="instant-result" aria-label="Instant number result">—</output>
+        <output data-role="instant-result" aria-label="Instant number result" aria-live="polite">—</output>
+      </div>
+      <div class="instant-copy-row">
+        <button type="button" class="instant-copy" data-action="instant-copy" disabled>Copy latest result</button>
+        <span data-role="instant-copy-feedback" role="status" aria-live="polite"></span>
       </div>
     </div>}
     <div class="stage-visual-tagline">THIS ONE IS UP TO CHANCE</div>
