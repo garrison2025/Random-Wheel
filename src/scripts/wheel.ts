@@ -575,12 +575,59 @@ function init(root: HTMLElement) {
     if(isWords)return {type:'words',...shared,wordCategory:asValue(get(root,'[data-role="word-category"]')),wordCustom:asValue(get(root,'[data-role="word-custom"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     return {type:'numbers',...shared,batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
-  function applyConfig(value:unknown){
-    if(!value || typeof value!=='object')throw new Error('Invalid saved setup.');
+  function validateConfigValue(value:unknown):Record<string,unknown>{
+    if(!value || typeof value!=='object' || Array.isArray(value))throw new Error('Invalid setup file.');
     const c=value as Record<string,unknown>;
     const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers';
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
-    if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in saved setup.');
+    if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in setup.');
+    if(c.mode!==undefined && c.mode!=='spin' && c.mode!=='quick')throw new Error('Invalid draw mode in setup.');
+    const palette=c.palette===undefined?paletteName:c.palette;
+    if(typeof palette!=='string' || !Object.hasOwn(PALETTES,palette))throw new Error('Choose a valid wheel palette in the setup.');
+    const speed=c.speed===undefined?asValue(get(root,'[data-role="speed"]')):c.speed;
+    if(typeof speed!=='string' || !['fast','normal','slow'].includes(speed))throw new Error('Choose a valid spin duration in the setup.');
+    const text=(key:string,selector:string)=>{
+      const candidate=c[key]===undefined?asValue(get(root,selector)):c[key];
+      if(typeof candidate!=='string' || candidate.length>=12000)throw new Error('Invalid '+key+' value in setup.');
+      return candidate;
+    };
+    let candidate:Entry[];
+    if(isCustom){
+      candidate=parseEntries(text('entries','[data-role="entries"]'));
+    }else if(isLetters){
+      candidate=letterChoices(
+        text('letterSet','[data-role="letter-set"]'),
+        text('letterExclude','[data-role="letter-exclude"]'),
+        text('letterCase','[data-role="letter-case"]')
+      );
+    }else if(isYesNo){
+      candidate=yesNoChoices(text('decisionMode','[data-role="decision-mode"]'));
+    }else if(isWords){
+      candidate=wordChoices(
+        text('wordCategory','[data-role="word-category"]'),
+        text('wordCustom','[data-role="word-custom"]')
+      );
+    }else{
+      const minText=text('min','[data-role="min"]');
+      const maxText=text('max','[data-role="max"]');
+      const stepText=text('step','[data-role="step"]');
+      const min=Number(minText),max=Number(maxText),step=Number(stepText);
+      if(![min,max,step].every(Number.isSafeInteger))throw new Error('Number range values must be safe whole numbers.');
+      candidate=numberChoices(min,max,step,parseExclusions(text('excluded','[data-role="excluded"]')))
+        .map(number=>({label:String(number),weight:1}));
+    }
+    const eligible=candidate.filter(entry=>entry.weight>0).length;
+    if(!eligible)throw new Error('The setup contains no eligible choices.');
+    const remove=c.remove===undefined?(get<HTMLInputElement>(root,'[data-role="remove"]')?.checked??false):c.remove;
+    const hasBatch=isNumbers||isLetters||isWords;
+    const batchValue=hasBatch?(c.batch===undefined?asValue(get(root,'[data-role="batch"]')):c.batch):'1';
+    if(typeof batchValue!=='string' || !batchValue.trim() || !Number.isSafeInteger(Number(batchValue)) || Number(batchValue)<1 || Number(batchValue)>100)
+      throw new Error('Invalid batch size in setup.');
+    if(remove && Number(batchValue)>eligible)throw new Error('Not enough eligible choices for the no-repeat batch.');
+    return c;
+  }
+  function applyConfig(value:unknown){
+    const c=validateConfigValue(value);
     const removal=get<HTMLInputElement>(root,'[data-role="remove"]');
     if(removal)removal.checked=c.remove===true;
     const setText=(key:string,val:unknown)=>{
@@ -595,7 +642,6 @@ function init(root: HTMLElement) {
         throw new Error('Invalid batch size in saved setup.');
       setText('batch',val);
     };
-    if(c.mode!==undefined && c.mode!=='spin' && c.mode!=='quick')throw new Error('Invalid draw mode in saved setup.');
     if(c.mode==='spin'||c.mode==='quick'){
       mode=c.mode;
       root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>
