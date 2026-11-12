@@ -760,6 +760,7 @@ function init(root: HTMLElement) {
   const shareSample=get<HTMLElement>(root,'[data-role="share-preview-sample"]');
   const shareWarning=get<HTMLElement>(root,'[data-role="share-preview-warning"]');
   const confirmShare=get<HTMLButtonElement>(root,'[data-action="confirm-share"]');
+  const exportFromShare=get<HTMLButtonElement>(root,'[data-action="export-setup-from-share"]');
   let pendingShareUrl='';
   get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',()=>{
     try{
@@ -785,6 +786,7 @@ function init(root: HTMLElement) {
         shareSample!.textContent='Decision options: '+String(current.decisionMode);
       }
       confirmShare!.disabled=!canShare;
+      if(exportFromShare)exportFromShare.hidden=canShare;
       shareWarning!.textContent=canShare
         ? 'This link stores the setup in its URL fragment. Anyone with the link can read custom choices. Do not share private names or student lists.'
         : 'This setup is too large for a reliable share link. Use Export setup JSON instead; the file stays on your device.';
@@ -795,6 +797,11 @@ function init(root: HTMLElement) {
   get<HTMLButtonElement>(root,'[data-action="cancel-share"]')?.addEventListener('click',()=>{
     pendingShareUrl='';
     if(shareDialog?.open)shareDialog.close();
+  });
+  exportFromShare?.addEventListener('click',()=>{
+    pendingShareUrl='';
+    if(shareDialog?.open)shareDialog.close();
+    get<HTMLButtonElement>(root,'[data-action="export-setup"]')?.click();
   });
   confirmShare?.addEventListener('click',async()=>{
     const url=pendingShareUrl;
