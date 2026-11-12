@@ -48,7 +48,8 @@ function init(root: HTMLElement) {
   let sparkTimer:number|undefined;
   let spinTimer:number|undefined;
   let drawGeneration=0;
-  let importRequestId=0; // Only the newest chosen file may update the wheel.
+  let importRequestId=0; // Only the newest chosen list file may update the wheel.
+  let setupImportRequestId=0; // Ignore an older asynchronous JSON setup import.
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let latestDraw:string[]=[];
@@ -107,7 +108,7 @@ function init(root: HTMLElement) {
     syncDrawAvailability();
     if(instantCopy)instantCopy.disabled=busy||latestDraw.length===0;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
-    root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"],[data-action="import-setup"]').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('.sidebar button').forEach(el=>{el.disabled=busy;});
   };
   const updateModeLabels=()=>{
     const quantity=Number(asValue(get(root,'[data-role="batch"]')));
@@ -694,6 +695,49 @@ function init(root: HTMLElement) {
       status(error instanceof Error?error.message:'Could not save; browser storage may be unavailable.',true);
     }
   });
+  get<HTMLButtonElement>(root,'[data-action="export-setup"]')?.addEventListener('click',()=>{
+    try{
+      if(!flushPendingEdit())return;
+      validateCurrentSetup();
+      const blob=new Blob([JSON.stringify(config(),null,2)],{type:'application/json;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;link.download='number-spinner-setup.json';
+      document.body.append(link);link.click();link.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),5000);
+      status('Setup JSON exported. The file contains your custom choices; keep it private.');
+    }catch(error){status(error instanceof Error?error.message:'Could not export setup JSON.',true);}
+  });
+  const setupFile=get<HTMLInputElement>(root,'[data-role="setup-file"]');
+  get<HTMLButtonElement>(root,'[data-action="import-setup"]')?.addEventListener('click',()=>{
+    if(!locked)setupFile?.click();
+  });
+  setupFile?.addEventListener('change',async()=>{
+    const file=setupFile.files?.[0];
+    if(!file)return;
+    const requestId=++setupImportRequestId;
+    if(file.size>100000){
+      status('Choose a setup JSON file under 100 KB.',true);
+      setupFile.value='';
+      return;
+    }
+    if(locked){setupFile.value='';return;}
+    setBusy(true);
+    try{
+      const raw=await file.text();
+      if(requestId!==setupImportRequestId || !locked)return;
+      const parsed=JSON.parse(raw) as unknown;
+      // applyConfig validates the entire object before changing any live control.
+      applyConfig(parsed);
+      setBusy(false);
+      status('Setup imported. Save wheel if you want to keep it in this browser.');
+    }catch(error){
+      setBusy(false);
+      status(error instanceof Error?'Setup JSON was not imported: '+error.message:'Could not import setup JSON.',true);
+    }finally{
+      setupFile.value='';
+    }
+  });
   get<HTMLButtonElement>(root,'[data-action="clear"]')?.addEventListener('click',()=>{
     try{
       // This action manages storage only. Start over is the explicit way to
@@ -702,16 +746,58 @@ function init(root: HTMLElement) {
       status('Saved setup removed. Current picks and history are unchanged.');
     }catch(error){status(error instanceof Error?error.message:'Could not clear browser storage.',true);}
   });
-  get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',async()=>{
+  const shareDialog=get<HTMLDialogElement>(root,'[data-role="share-preview"]');
+  const shareSummary=get<HTMLElement>(root,'[data-role="share-preview-summary"]');
+  const shareSample=get<HTMLElement>(root,'[data-role="share-preview-sample"]');
+  const shareWarning=get<HTMLElement>(root,'[data-role="share-preview-warning"]');
+  const confirmShare=get<HTMLButtonElement>(root,'[data-action="confirm-share"]');
+  let pendingShareUrl='';
+  get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',()=>{
     try{
       if(!flushPendingEdit())return;
       validateCurrentSetup();
-      const encoded=encodeURIComponent(JSON.stringify(config()));
-      if(encoded.length>MAX_HASH_LENGTH)throw new Error('Setup too long for a share link; use a shorter list. Your data stays local.');
-      const url=location.origin+location.pathname+location.search+'#wheel='+encoded;
+      const current=config();
+      const encoded=encodeURIComponent(JSON.stringify(current));
+      const canShare=encoded.length<=MAX_HASH_LENGTH;
+      pendingShareUrl=canShare?location.origin+location.pathname+location.search+'#wheel='+encoded:'';
+      const typeLabel=isCustom?'Custom wheel':isNumbers?'Number range':isLetters?'Letter wheel':isWords?'Word wheel':'Yes / No wheel';
+      const batch=(isNumbers||isLetters||isWords)?' · batch '+String(current.batch):'';
+      shareSummary!.textContent=typeLabel+' · '+String(current.mode||mode)+' mode'+batch+' · '+(current.remove?'remove winners':'keep winners');
+      if(isCustom){
+        const lines=String(current.entries).split(/\\r?\\n/).map(line=>line.trim()).filter(Boolean);
+        shareSample!.textContent=lines.length+' custom entries. Preview: '+lines.slice(0,6).join(' · ')+(lines.length>6?' · …':'');
+      }else if(isNumbers){
+        shareSample!.textContent='Range '+String(current.min)+'–'+String(current.max)+' · step '+String(current.step)+' · exclusions: '+(String(current.excluded||'none'));
+      }else if(isLetters){
+        shareSample!.textContent='Alphabet: '+String(current.letterSet)+' · '+String(current.letterCase)+' · exclusions: '+String(current.letterExclude||'none');
+      }else if(isWords){
+        shareSample!.textContent='Word collection: '+String(current.wordCategory)+(current.wordCategory==='custom'?' · '+String(current.wordCustom).split(/\\r?\\n/).length+' custom lines':'');
+      }else{
+        shareSample!.textContent='Decision options: '+String(current.decisionMode);
+      }
+      confirmShare!.disabled=!canShare;
+      shareWarning!.textContent=canShare
+        ? 'This link stores the setup in its URL fragment. Anyone with the link can read custom choices. Do not share private names or student lists.'
+        : 'This setup is too large for a reliable share link. Use Export setup JSON instead; the file stays on your device.';
+      if(shareDialog && typeof shareDialog.showModal==='function')shareDialog.showModal();
+      else status('Share preview is unavailable in this browser.',true);
+    }catch(error){status(error instanceof Error?error.message:'Could not prepare share preview.',true);}
+  });
+  get<HTMLButtonElement>(root,'[data-action="cancel-share"]')?.addEventListener('click',()=>{
+    pendingShareUrl='';
+    if(shareDialog?.open)shareDialog.close();
+  });
+  confirmShare?.addEventListener('click',async()=>{
+    const url=pendingShareUrl;
+    if(!url){status('This setup is too large for a share link. Export setup JSON instead.',true);return;}
+    try{
       await navigator.clipboard.writeText(url);
+      pendingShareUrl='';
+      shareDialog?.close();
       status('Link copied. Anyone with this link can read the included choices; do not share private names.');
-    } catch(error){status(error instanceof Error?error.message:'Could not copy setup link.',true);}
+    }catch{
+      status('Clipboard unavailable. You can copy the link from the browser address bar after sharing is prepared.',true);
+    }
   });
   updateModeLabels();
   const defaultSetup=config();
