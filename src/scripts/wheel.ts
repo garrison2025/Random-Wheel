@@ -380,7 +380,7 @@ function init(root: HTMLElement) {
     const blob=new Blob([content],{type:type==='csv'?'text/csv;charset=utf-8':'text/plain;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const link=document.createElement('a');
-    link.href=url;link.download='wheelcanvas-results.'+type;
+    link.href=url;link.download='number-spinner-results.'+type;
     document.body.append(link);link.click();link.remove();
     window.setTimeout(()=>URL.revokeObjectURL(url),5000);
     status('Results exported to '+type.toUpperCase()+'.');
