@@ -64,6 +64,41 @@ for (const route of all) {
   const desc = description ? attr(description, 'content') : '';
   const robotValue = robots ? attr(robots, 'content').toLowerCase() : '';
   const shouldIndex = liveMode && approved.includes(route);
+
+  const isRangeRoute=/^\/random-number-wheel\/1-\d+\/$/.test(route);
+  if(route==='/random-number-wheel/' || isRangeRoute) {
+    if(!html.includes('aria-label="Breadcrumb"'))
+      fail(route, 'The number-wheel hierarchy must have visible breadcrumb navigation');
+    const breadcrumbBlocks=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+      .map(match=>match[1]).filter(Boolean);
+    let breadcrumbs=[];
+    try {
+      breadcrumbs=breadcrumbBlocks.map(x=>JSON.parse(x))
+        .filter(x=>x['@type']==='BreadcrumbList');
+    } catch {
+      fail(route,'Invalid JSON-LD in number-wheel hierarchy');
+    }
+    if(shouldIndex) {
+      if(breadcrumbs.length!==1)
+        fail(route,'Approved number page requires exactly one matching BreadcrumbList');
+      else {
+        const elements=breadcrumbs[0].itemListElement;
+        const expectedLength=isRangeRoute?3:2;
+        if(!Array.isArray(elements)||elements.length!==expectedLength
+          ||elements[0]?.item!==site+'/'
+          ||elements[1]?.item!==site+'/random-number-wheel/'
+          ||elements.at(-1)?.item!==site+route)
+          fail(route,'BreadcrumbList does not match visible number-wheel hierarchy');
+      }
+    } else if(breadcrumbs.length)
+      fail(route,'Noindex/preview page must not emit official-domain BreadcrumbList');
+    if(isRangeRoute && html.includes('aria-label="Related number picker tools"')) {
+      const related=html.match(/<nav\b[^>]*aria-label="Related number picker tools"[^>]*>([\s\S]*?)<\/nav>/i)?.[1]||'';
+      if(related.includes('href="'+route+'"'))
+        fail(route,'Related number tools include a redundant self-link');
+    }
+  }
+
   if(route === '/') {
     const schemas=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
       .map(match=>match[1]);
