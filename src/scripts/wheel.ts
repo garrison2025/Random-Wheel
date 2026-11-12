@@ -592,8 +592,9 @@ function init(root: HTMLElement) {
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
     if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in setup.');
     if(c.mode!==undefined && c.mode!=='spin' && c.mode!=='quick')throw new Error('Invalid draw mode in setup.');
-    const palette=c.palette===undefined?paletteName:c.palette;
-    if(typeof palette!=='string' || !Object.hasOwn(PALETTES,palette))throw new Error('Choose a valid wheel palette in the setup.');
+    // Preserve legacy links with unknown color IDs: setPalette ignores them
+    // rather than rejecting otherwise valid entries or inherited property names.
+    if(c.palette!==undefined && typeof c.palette!=='string')throw new Error('Invalid palette value in setup.');
     const speed=c.speed===undefined?asValue(get(root,'[data-role="speed"]')):c.speed;
     if(typeof speed!=='string' || !['fast','normal','slow'].includes(speed))throw new Error('Choose a valid spin duration in the setup.');
     const text=(key:string,selector:string)=>{
