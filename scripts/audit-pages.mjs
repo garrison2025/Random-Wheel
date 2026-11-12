@@ -143,7 +143,7 @@ for (const route of all) {
     '/random-number-wheel/1-100/'
   ];
   const isGeoTool=geoToolRoutes.includes(route);
-  const jsonLd=[...html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
+  const jsonLd=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
     .map(match=>match[1]).filter(Boolean);
   const entities=[];
   for(const raw of jsonLd){
