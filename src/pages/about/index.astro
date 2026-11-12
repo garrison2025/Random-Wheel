@@ -1,17 +1,33 @@
-
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout path="/about/" title="About" description="Learn how Number Spinner provides free, browser-based number picking and spinning wheel tools without an account.">
-<section class="hero"><div class="container"><span class="eyebrow">About this tool</span><h1>Less debating. More doing.</h1><p>Number Spinner is a simple collection of free in-browser random selection tools.</p></div></section>
-<section class="section"><div class="container article">
-  <h2>Our approach</h2>
-  <p>Random choices should be easy to make and easy to explain. We focus on fast tools that load directly at the right range, give clear results, and work without uploading names or class lists.</p>
-  <h3>How random results work</h3>
-  <p>Eligible choices are sampled with the browser Web Crypto API. Uniform draws use rejection sampling to avoid integer modulo bias. The animation visualizes the selected outcome; it does not determine the outcome.</p>
-  <h3>What this site is not</h3>
-  <p>This is a general-purpose helper for classrooms, games and everyday choices, not an audited or independently certified lottery drawing service. Do not use it where regulated verification or legal certification is required.</p>
-  <h3>Our privacy principle</h3>
-  <p>The main tool works without logins, remote accounts, or a server-side database. Optional local saving uses your browser storage; you can clear it. Sharing a configuration can expose its contents to anyone who receives the link.</p>
-</div></section>
+<BaseLayout path="/about/" title="About Number Spinner — How Our Random Tools Work" description="How Number Spinner uses browser Web Crypto, unbiased integer sampling, optional weights and no-repeat draws; learn the limits and inspect source code.">
+  <section class="hero"><div class="container">
+    <span class="eyebrow">Our methods and limits</span>
+    <h1>How Number Spinner works</h1>
+    <p>Free, browser-based random selection tools for names, numbers, classroom activities and everyday choices. Here is what they do—and what they do not claim to do.</p>
+  </div></section>
+  <section class="section"><div class="container article geo-methodology">
+    <h2 id="how-results-are-generated">How results are generated</h2>
+    <p>Number Spinner's core random selection runs in your browser. It obtains random bytes through the browser's <code>crypto.getRandomValues()</code> API and uses rejection sampling when mapping random integers into the number of eligible choices. Rejection sampling avoids the small distribution bias that can arise from a simple modulo operation.</p>
+    <p>The number is chosen by the random-selection code, not by the visible animation. The animated wheel is a way to reveal the result. When a range contains many numbers, the graphic uses a simplified set of colored slices; the full eligible number pool remains available to the picker.</p>
+    <h3>Equal chances versus weighted choices</h3>
+    <p>For a fresh independent draw from 1 through 100 with no exclusions and a step of 1, each number has a probability of 1/100 (1%). The same principle applies to other inclusive number ranges. With a range of 1–20 but three numbers excluded, each of the remaining 17 numbers has a 1/17 chance on a new independent draw.</p>
+    <p>For custom names or choices, each entry starts at weight 1. Writing <code>Pizza | 3</code> gives that entry three times the selection weight of an entry at weight 1; this is not a guarantee of any outcome. Repeating the same name on separate lines creates separate entries.</p>
+    <h3>Drawing without replacement</h3>
+    <p>When Remove winners is on, an already selected entry is not selected again in that round. You can also generate a batch of 1–100 results. If you need unique values, enable Remove winners before drawing the batch; if repeats are allowed, each draw may select the same value again. Reset starts a new round.</p>
+
+    <h2>What is available, and what are the limits?</h2>
+    <dl class="geo-method-list">
+      <div><dt>Number range</dt><dd>Whole-number ranges with a positive step and up to 10,000 eligible values before exclusions.</dd></div>
+      <div><dt>Batch selection</dt><dd>Up to 100 picks per draw; uniqueness depends on the Remove winners setting and available choices.</dd></div>
+      <div><dt>Privacy</dt><dd>Choice processing happens locally in the browser. Optional saved configurations use localStorage; sharing a setup places its content into the link fragment, visible to anyone you share it with.</dd></div>
+      <div><dt>Reliability</dt><dd>Results depend on a functioning browser Web Crypto implementation. This website is not an independently audited or certified lottery, cryptographic key generator, or regulated prize-drawing service.</dd></div>
+    </dl>
+
+    <h2 id="sources-and-corrections">Inspectable implementation and corrections</h2>
+    <p>These descriptions are based on the site's publicly readable implementation, rather than claimed customer counts or unverifiable randomness certifications. Inspect the <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/lib/random.ts">random number and weighting algorithms</a> and the <a href="https://github.com/garrison2025/Random-Wheel/blob/main/src/scripts/wheel.ts">wheel interaction and result logic</a>. The browser API itself is described by <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues">MDN's Crypto.getRandomValues reference</a>.</p>
+    <p>For a reproducible bug or factual correction, open a report in the <a href="https://github.com/garrison2025/Random-Wheel/issues">public issue tracker</a> or see <a href="/contact/">contact options</a>. Do not put private names, student records, or sensitive information into public reports.</p>
+    <p>These technical details describe the current general-purpose tool; source availability does not imply any independent security audit. See our <a href="/privacy/">privacy policy</a> for hosting, link sharing and local storage information.</p>
+  </div></section>
 </BaseLayout>
