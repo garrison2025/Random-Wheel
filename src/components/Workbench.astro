@@ -1,7 +1,7 @@
 
 ---
-interface Props {kind?:'custom'|'numbers'|'letters'|'yesno'|'words'; min?:number; max?:number}
-const {kind='numbers',min=1,max=100} = Astro.props;
+interface Props {kind?:'custom'|'numbers'|'letters'|'yesno'|'words'; min?:number; max?:number; instantFirst?:boolean}
+const {kind='numbers',min=1,max=100,instantFirst=false} = Astro.props;
 const isLetters=kind==='letters';
 const isYesNo=kind==='yesno';
 const isWords=kind==='words';
@@ -26,6 +26,13 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
         <button type="button" class="stage-icon-button" data-action="fullscreen" aria-label="Toggle fullscreen wheel" title="Fullscreen">⛶</button>
       </div>
     </div>
+    {instantFirst && kind==='numbers' && <div class="instant-first" aria-label="Instant random number picker">
+      <span class="instant-first-label">QUICK RESULT · NO SPIN REQUIRED</span>
+      <div class="instant-first-row">
+        <button type="button" data-action="instant-pick">⚡ Generate a number now</button>
+        <output data-role="instant-result" aria-label="Instant number result">—</output>
+      </div>
+    </div>}
     <div class="stage-visual-tagline">THIS ONE IS UP TO CHANCE</div>
     <div class="wheel-wrap" data-role="wheel-wrap" aria-label="Animated random selection wheel">
       {lights.map(p=><span class="rim-light" aria-hidden="true" style={'left:'+p.x+'%;top:'+p.y+'%'}></span>)}
