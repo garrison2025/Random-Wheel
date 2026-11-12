@@ -152,6 +152,7 @@ test('share setup previews privacy and restores the selected Quick Pick mode',as
   await expect(dialog.locator('[data-role="share-preview-summary"]')).toContainText('quick mode');
   await expect(dialog.locator('[data-role="share-preview-sample"]')).toContainText('3 custom entries');
   await expect(dialog.locator('[data-role="share-preview-warning"]')).toContainText('Anyone with the link can read custom choices');
+  await expect(dialog.locator('[data-role="share-preview-url"]')).toHaveValue(/#wheel=/);
   await dialog.locator('[data-action="confirm-share"]').click();
   const url=await page.evaluate(()=>navigator.clipboard.readText());
   expect(url).toContain('#wheel=');
