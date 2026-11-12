@@ -108,7 +108,10 @@ function init(root: HTMLElement) {
     syncDrawAvailability();
     if(instantCopy)instantCopy.disabled=busy||latestDraw.length===0;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
-    root.querySelectorAll<HTMLButtonElement>('.sidebar button').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('.sidebar button').forEach(el=>{
+      // Clear saved only removes the local config and is safe during a spin.
+      el.disabled=busy && el.dataset.action!=='clear';
+    });
   };
   const updateModeLabels=()=>{
     const quantity=Number(asValue(get(root,'[data-role="batch"]')));
