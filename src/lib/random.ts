@@ -41,10 +41,18 @@ export function weightedIndex(weights: readonly number[], source: RandomSource =
 
 export function numberChoices(min: number, max: number, step = 1, exclusions: readonly number[] = []): number[] {
   if (![min, max, step].every(Number.isSafeInteger) || step < 1 || min > max) throw new RangeError('Enter valid whole numbers with a positive step.');
-  const size = Math.floor((max - min) / step) + 1;
-  if (!Number.isFinite(size) || size < 1 || size > 10000) throw new RangeError('The available range must contain 1–10,000 numbers.');
-  const omit = new Set(exclusions);
-  return Array.from({length: size}, (_, i) => min + i * step).filter(v => !omit.has(v));
+  // min, max and step may individually be safe integers while max-min and
+  // min+i*step overflow Number precision. Compute the sequence exactly.
+  const lower=BigInt(min),upper=BigInt(max),increment=BigInt(step);
+  const count=(upper-lower)/increment+1n;
+  if(count<1n || count>10000n)throw new RangeError('The available range must contain 1–10,000 numbers.');
+  const omit=new Set(exclusions);
+  return Array.from({length:Number(count)},(_,i)=>{
+    const exact=lower+BigInt(i)*increment;
+    const value=Number(exact);
+    if(!Number.isSafeInteger(value))throw new RangeError('A generated number exceeds the safe integer limit.');
+    return value;
+  }).filter(value=>!omit.has(value));
 }
 
 export function parseExclusions(input: string): number[] {
