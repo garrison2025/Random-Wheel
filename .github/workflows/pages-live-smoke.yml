@@ -3,10 +3,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: cloudflare-pages-live-smoke
+  cancel-in-progress: true
 jobs:
   live:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - name: Verify Cloudflare deployment has the new UI
         env:
@@ -81,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           SITE="https://numberspinner.com"
-          for attempt in $(seq 1 12); do
+          for attempt in $(seq 1 24); do
             echo "Canonical check attempt $attempt for $SITE"
             if curl --fail --location --silent --show-error --max-time 20 "$SITE/?sha=$GITHUB_SHA" -o /tmp/number-spinner-home.html \
               && grep -Fq '<link rel="canonical" href="https://numberspinner.com/"' /tmp/number-spinner-home.html \
