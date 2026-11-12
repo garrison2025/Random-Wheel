@@ -45,6 +45,7 @@ function init(root: HTMLElement) {
   let sparkTimer:number|undefined;
   let spinTimer:number|undefined;
   let drawGeneration=0;
+  let importRequestId=0; // Only the newest chosen file may update the wheel.
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let entries:Entry[]=[];
@@ -410,13 +411,14 @@ function init(root: HTMLElement) {
     .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
   get<HTMLInputElement>(root,'[data-role="file"]')?.addEventListener('change',async event=>{
     if(locked)return;
+    const requestId=++importRequestId;
     const file=(event.currentTarget as HTMLInputElement).files?.[0];
     if(!file)return;
+    const generation=drawGeneration;
     if(file.size>50000){status('Choose a file under 50 KB.',true);return;}
     try {
-      const generation=drawGeneration;
       const text=await file.text();
-      if(locked || generation!==drawGeneration)return; // A newer round or settings change superseded this import.
+      if(locked || generation!==drawGeneration || requestId!==importRequestId)return; // Ignore superseded imports.
       const lines=parseImportedEntryLines(text,file.name);
       const target=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
       if(target){
@@ -427,7 +429,10 @@ function init(root: HTMLElement) {
         }
         refresh();
       }
-    } catch(error){status(error instanceof Error?error.message:'Could not read the file.',true);}
+    } catch(error){
+      if(generation===drawGeneration && requestId===importRequestId)
+        status(error instanceof Error?error.message:'Could not read the file.',true);
+    }
   });
   get<HTMLButtonElement>(root,'[data-action="copy"]')?.addEventListener('click',async()=>{
     if(!winningHistory.length){status('Draw a result first.');return;}
