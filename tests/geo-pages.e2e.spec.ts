@@ -59,3 +59,19 @@ test('tool comparison helps readers choose an actual tool without mobile overflo
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth+1);
 });
+
+test('homepage presents actionable steps and cites inspectable randomness sources',async({page})=>{
+  await page.goto('/');
+  const article=page.locator('.article').first();
+  await expect(article.getByRole('heading',{name:'How to use your wheel'})).toBeVisible();
+  await expect(article.locator('ol li')).toHaveCount(4);
+  await expect(article.locator('ul li')).toHaveCount(3);
+  await expect(article.getByRole('link',{name:'MDN API reference'}))
+    .toHaveAttribute('href','https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues');
+  await expect(article.getByRole('link',{name:'public sampling implementation'}))
+    .toHaveAttribute('href',/github\.com\/garrison2025\/Random-Wheel/);
+  await page.goto('/about/');
+  await expect(page.locator('time[datetime="2026-11-12"]')).toBeVisible();
+  await expect(page.getByRole('link',{name:'W3C Web Cryptography specification'}))
+    .toHaveAttribute('href','https://www.w3.org/TR/WebCryptoAPI/');
+});
