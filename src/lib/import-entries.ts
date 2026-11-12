@@ -51,12 +51,17 @@ export function csvRows(content:string):string[][] {
 }
 
 /** Validate imported tickets before touching the browser's active choices. */
-export function parseImportedEntryLines(content:string,filename:string):string[] {
+export function parseImportedEntryLines(content:string,filename:string,hasHeaderRow=false):string[] {
   const isCsv=filename.toLowerCase().endsWith('.csv');
-  const rows=isCsv?csvRows(content):content.split(/\r?\n/).map(line=>[line]);
-  if(isCsv && rows.length &&
-    rows[0]![0]?.trim().toLowerCase()==='name' &&
-    rows[0]![1]?.trim().toLowerCase()==='weight')rows.shift();
+  const rows=isCsv?csvRows(content.replace(/^\uFEFF/,'')):content.split(/\r?\n/).map(line=>[line]);
+  // Name alone is ambiguous: it may be a real person's name. Only discard
+  // a single-column header when the user explicitly enables the option.
+  // Retain backward compatibility for the unambiguous Name,Weight pair.
+  const first=rows[0];
+  const knownTwoColumnHeader=first?.length===2
+    && first[0]?.trim().toLowerCase()==='name'
+    && first[1]?.trim().toLowerCase()==='weight';
+  if(isCsv && rows.length && (hasHeaderRow || knownTwoColumnHeader))rows.shift();
   if(rows.length>100)throw new Error('Import at most 100 entries.');
   const lines=rows.filter(row=>row.some(cell=>cell.trim())).map(row=>{
     if(row.length>2)throw new Error('CSV should contain Name and optional Weight columns only.');
