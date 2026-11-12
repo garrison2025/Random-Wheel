@@ -1,0 +1,108 @@
+import {expect,test} from '@playwright/test';
+
+/**
+ * Mobile lab checks for the three organic-search entry points.
+ * LCP/CLS below are observations from headless Chromium, NOT CrUX field data.
+ * The actionable release gate is that a visitor can see and use the tool
+ * without horizontal clipping or inaccessible controls.
+ */
+const targets=[
+  {name:'home',path:'/',maximum:null},
+  {name:'general-number',path:'/random-number-wheel/',maximum:10},
+  {name:'number-1-100',path:'/random-number-wheel/1-100/',maximum:100}
+] as const;
+
+for(const target of targets){
+  for(const viewport of [320,390]){
+    test(`mobile SEO: ${target.name} is usable at ${viewport}px`,async({page})=>{
+      await page.setViewportSize({width:viewport,height:780});
+      await page.addInitScript(()=>{
+        const metrics={lcp:0,cls:0};
+        (window as typeof window & {__numberSpinnerMetrics?:typeof metrics}).__numberSpinnerMetrics=metrics;
+        try{
+          new PerformanceObserver(list=>{
+            for(const entry of list.getEntries())metrics.lcp=entry.startTime;
+          }).observe({type:'largest-contentful-paint',buffered:true});
+        }catch{}
+        try{
+          new PerformanceObserver(list=>{
+            for(const entry of list.getEntries()){
+              const shift=entry as PerformanceEntry & {value:number;hadRecentInput:boolean};
+              if(!shift.hadRecentInput)metrics.cls+=shift.value;
+            }
+          }).observe({type:'layout-shift',buffered:true});
+        }catch{}
+      });
+      const response=await page.goto(target.path,{waitUntil:'domcontentloaded'});
+      expect(response?.status()).toBe(200);
+      await expect(page.locator('main h1')).toHaveCount(1);
+      await expect(page.locator('main [data-wheel-app]')).toBeVisible();
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+        'href','https://numberspinner.com'+target.path
+      );
+      const pick=page.locator('main [data-action="pick"]');
+      await expect(pick).toBeVisible();
+      const rect=await pick.boundingBox();
+      expect(rect?.height||0).toBeGreaterThanOrEqual(44);
+      const overflow=await page.evaluate(()=>({
+        rootWidth:document.documentElement.scrollWidth,
+        viewportWidth:document.documentElement.clientWidth
+      }));
+      expect(overflow.rootWidth).toBeLessThanOrEqual(overflow.viewportWidth+1);
+
+      if(target.maximum!==null){
+        await expect(page.locator('[data-role="min"]')).toHaveValue('1');
+        await expect(page.locator('[data-role="max"]')).toHaveValue(String(target.maximum));
+        await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
+        await pick.click();
+        const result=page.locator('[data-role="result"]');
+        await expect(result).not.toHaveText('Ready when you are');
+        const n=Number((await result.textContent())?.trim());
+        expect(Number.isInteger(n)).toBe(true);
+        expect(n).toBeGreaterThanOrEqual(1);
+        expect(n).toBeLessThanOrEqual(target.maximum);
+      }
+
+      const metrics=await page.evaluate(()=>{
+        const navigation=performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming|undefined;
+        const readings=(window as typeof window & {__numberSpinnerMetrics?:{lcp:number;cls:number}}).__numberSpinnerMetrics;
+        return {
+          viewportWidth:document.documentElement.clientWidth,
+          lcpLabMs:Math.round(readings?.lcp||0),
+          clsLab:Number((readings?.cls||0).toFixed(4)),
+          ttfbLabMs:navigation?Math.round(navigation.responseStart-navigation.requestStart):null
+        };
+      });
+      console.log('[mobile-seo-lab]',target.name,viewport,JSON.stringify(metrics));
+      await test.info().attach('mobile-seo-lab.json',{
+        body:Buffer.from(JSON.stringify({route:target.path,...metrics},null,2)),
+        contentType:'application/json'
+      });
+      if(viewport===390){
+        await test.info().attach('mobile-viewport.png',{
+          body:await page.screenshot({fullPage:false,animations:'disabled'}),
+          contentType:'image/png'
+        });
+      }
+    });
+  }
+}
+
+test('keyboard users can bypass global navigation and reach main content',async({page})=>{
+  await page.goto('/');
+  await page.keyboard.press('Tab');
+  const skip=page.getByRole('link',{name:'Skip to main content'});
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#main-content$/);
+  await expect(page.locator('#main-content')).toBeVisible();
+});
+
+test('reduced-motion settings preserve the same number-picker outcome',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.goto('/random-number-wheel/1-100/');
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
+  await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="result"]')).not.toHaveText('Ready when you are');
+});
