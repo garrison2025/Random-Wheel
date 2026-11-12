@@ -85,12 +85,13 @@ jobs:
             echo "Canonical check attempt $attempt for $SITE"
             if curl --fail --location --silent --show-error --max-time 20 "$SITE/?sha=$GITHUB_SHA" -o /tmp/number-spinner-home.html \
               && grep -Fq '<link rel="canonical" href="https://numberspinner.com/"' /tmp/number-spinner-home.html \
+              && grep -Fq "name=\"number-spinner-deployment\" content=\"$GITHUB_SHA\"" /tmp/number-spinner-home.html \
               && curl --fail --location --silent --show-error --max-time 20 "$SITE/random-number-wheel/1-100/?sha=$GITHUB_SHA" -o /tmp/number-spinner-range.html \
               && grep -Fq '<link rel="canonical" href="https://numberspinner.com/random-number-wheel/1-100/"' /tmp/number-spinner-range.html; then
-              echo "OFFICIAL CANONICAL VERIFIED: homepage and random-number-wheel/1-100/"
+              echo "LIVE BUILD SHA + OFFICIAL CANONICAL VERIFIED: homepage and random-number-wheel/1-100/"
               exit 0
             fi
             sleep 12
           done
-          echo "Official-domain canonical tags were not detected after retries." >&2
+          echo "Official build SHA or canonical tags were not detected after retries." >&2
           exit 1
