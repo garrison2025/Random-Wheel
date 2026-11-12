@@ -393,6 +393,8 @@ function init(root: HTMLElement) {
     .forEach(el=>{
       el.addEventListener('input',()=>{
         if(locked)return;
+        // Direct typing supersedes any pending asynchronous file import.
+        if(el.matches('[data-role="entries"],[data-role="word-custom"]'))importRequestId++;
         window.clearTimeout(editTimer);
         editTimer=window.setTimeout(refresh,180);
       });
