@@ -1,0 +1,28 @@
+---
+import {APPROVED_RANGE_GUIDES,type ApprovedRange} from '../data/approved-range-guides';
+interface Props {max:ApprovedRange}
+const {max}=Astro.props;
+const guide=APPROVED_RANGE_GUIDES[max];
+---
+<section class="section approved-range-guide" data-approved-range-guide={max} aria-labelledby={"range-guide-heading-"+max}>
+  <div class="container">
+    <div class="range-guide-intro">
+      <span class="eyebrow">REAL-WORLD EXAMPLES</span>
+      <h2 id={"range-guide-heading-"+max}>{guide.heading}</h2>
+      <p>{guide.intro}</p>
+    </div>
+    <div class="range-guide-grid">
+      {guide.examples.map((example,index)=>(
+        <article class="range-guide-card">
+          <div class="range-guide-step-label">EXAMPLE {index+1}</div>
+          <h3>{example.title}</h3>
+          <p>{example.purpose}</p>
+          <ol>{example.steps.map(step=><li>{step}</li>)}</ol>
+          <p class="range-guide-outcome"><strong>What to expect:</strong> {example.outcome}</p>
+          <a href="#start">Try this with the number wheel</a>
+        </article>
+      ))}
+    </div>
+    <p class="range-guide-note"><strong>Good to know:</strong> {guide.distinction}</p>
+  </div>
+</section>
