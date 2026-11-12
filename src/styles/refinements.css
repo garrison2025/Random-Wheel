@@ -197,3 +197,19 @@
     line-height:1.2;font-variant-numeric:tabular-nums;
   }
 }
+
+/* Copy is a secondary affordance; keep the primary instant draw prominent. */
+@media(max-width:560px){
+  .instant-copy-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;min-height:44px}
+  .instant-first .instant-copy{
+    min-height:44px;padding:7px 10px;border:1px solid #79728f;
+    border-radius:9px;background:#45405e;color:#f7f2ff;
+    font-size:.72rem;font-weight:800;white-space:nowrap;
+  }
+  .instant-first .instant-copy:hover:not(:disabled){background:#555071;color:#fff}
+  .instant-first .instant-copy:disabled{background:#45405e;color:#d3cce2;opacity:.55}
+  .instant-copy-row [data-role="instant-copy-feedback"]{
+    flex:1;min-width:92px;line-height:1.35;font-size:.68rem;
+    color:#ece7ff;overflow-wrap:anywhere;
+  }
+}
