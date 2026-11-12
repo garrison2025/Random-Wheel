@@ -12,7 +12,11 @@ const site=readFileSync('src/lib/site.ts','utf8');
 const rangeData=readFileSync('src/data/ranges.ts','utf8');
 const sitemap=readFileSync('src/pages/sitemap.xml.ts','utf8');
 if(!sitemap.includes('LAUNCH_ROUTES'))throw new Error('Sitemap must still use controlled launch list');
-const candidateRobots=process.env.PUBLIC_INDEXABLE==='true'?'noindex, follow':'noindex, nofollow';
+const productionIndexing = process.env.PUBLIC_INDEXABLE === 'true'
+  || (process.env.PUBLIC_INDEXABLE !== 'false'
+    && process.env.CF_PAGES === '1'
+    && process.env.CF_PAGES_BRANCH === 'main');
+const candidateRobots = productionIndexing ? 'noindex, follow' : 'noindex, nofollow';
 let errors=0;
 for(const c of candidates){
   if(!c.path.startsWith('/')||!c.path.endsWith('/'))throw new Error('Invalid route path');
