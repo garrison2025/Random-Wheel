@@ -54,9 +54,10 @@ jobs:
               && grep -Fq 'data-absent-number="30"' /tmp/rw-attendance30.html \
               && grep -Fq 'data-task="undo"' /tmp/rw-attendance30.html \
               && grep -Fq 'data-task="export-called"' /tmp/rw-attendance30.html \
-              && grep -Eq 'name="robots" content="noindex, (follow|nofollow)"' /tmp/rw-attendance30.html; then
+              && grep -Fq '<link rel="canonical" href="https://numberspinner.com/random-number-wheel/1-8/"' /tmp/rw-station8.html \
+              && grep -Fq '<link rel="canonical" href="https://numberspinner.com/random-number-wheel/1-30/"' /tmp/rw-attendance30.html; then
                 all_ok=1
-                for preset in '1-2:2' '1-8:8' '1-10:10' '1-50:50' '1-7:7' '1-15:15' '1-30:30' '1-200:200' '1-1000:1000' '1-10000:10000'; do
+                for preset in '1-2:2' '1-10:10' '1-50:50' '1-7:7' '1-15:15' '1-200:200' '1-1000:1000' '1-10000:10000'; do
                   slug="${preset%%:*}"
                   maximum="${preset##*:}"
                   page="/tmp/rw-${slug}.html"
@@ -69,7 +70,7 @@ jobs:
                   fi
                 done
                 if [ "$all_ok" -ne 1 ]; then sleep 12; continue; fi
-                echo "LIVE VERIFIED: 10 number candidate pages + word/letter/yes-no pages hard-noindex and all configured controls present"
+                echo "LIVE VERIFIED: 2 published task-range pages + 8 held number pages and 3 held specialty tools, all controls present"
                 echo "Homepage response bytes: $(wc -c < /tmp/rw-home.html)"
                 echo "Number page response bytes: $(wc -c < /tmp/rw-number.html)"
                 exit 0
