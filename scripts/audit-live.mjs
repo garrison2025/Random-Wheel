@@ -56,17 +56,39 @@ async function checkPage(path,indexable){
     report(label+' canonical',indexable
       ? canonicals.length===1&&canonicals[0]===ROOT+path
       : canonicals.length===0,canonicals.join(', '));
+    const jsonLd=[...body.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+    const schemas=[];
+    for(const match of jsonLd){
+      try{schemas.push(JSON.parse(match[1]));}
+      catch{report(label+' JSON-LD syntax',false);}
+    }
+    const websites=schemas.filter(x=>x['@type']==='WebSite');
+    const applications=schemas.filter(x=>x['@type']==='WebApplication');
     if(path==='/'){
-      const scripts=[...body.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
-      let schemaGood=false;
-      try {
-        const schemas=scripts.map(match=>JSON.parse(match[1]));
-        schemaGood=schemas.length===1 && schemas[0]['@type']==='WebSite'
-          && schemas[0].name==='Number Spinner'
-          && schemas[0].url===ROOT+'/';
-      } catch {}
-      report('Homepage WebSite JSON-LD',schemaGood);
+      report('Homepage WebSite JSON-LD',websites.length===1
+        && websites[0].name==='Number Spinner'
+        && websites[0].url===ROOT+'/');
       report('Homepage OG site name',/<meta\b[^>]*property=["']og:site_name["'][^>]*content=["']Number Spinner["']/i.test(body));
+    }
+    const geoToolPaths=new Set([
+      '/', '/random-number-wheel/', '/random-number-wheel/1-3/',
+      '/random-number-wheel/1-4/', '/random-number-wheel/1-5/',
+      '/random-number-wheel/1-6/', '/random-number-wheel/1-20/',
+      '/random-number-wheel/1-100/'
+    ]);
+    if(geoToolPaths.has(path)){
+      const app=applications[0];
+      report(label+' visible GEO facts',body.includes('data-geo-tool="'+path+'"')
+        && body.includes('/about/#how-results-are-generated'));
+      report(label+' WebApplication JSON-LD',applications.length===1
+        && app?.url===ROOT+path
+        && typeof app?.name==='string' && body.includes(app.name)
+        && typeof app?.description==='string' && app.description.length>50
+        && app.isAccessibleForFree===true
+        && app.applicationCategory==='UtilitiesApplication'
+        && Array.isArray(app.featureList) && app.featureList.length>=3
+        && !('aggregateRating' in app) && !('review' in app));
+    } else if(applications.length>0) report(label+' held/support page has no WebApplication',false);
     }
   }catch(error){report(label,false,String(error));}
 }
