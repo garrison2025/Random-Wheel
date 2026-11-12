@@ -21,9 +21,11 @@ export function isOfficialIndexDomain(candidate: string): boolean {
   }
 }
 /**
- * An explicit PUBLIC_INDEXABLE value always wins. Without one, only a
- * Cloudflare Pages production build from main enables the approved URLs.
- * Local/CI and non-main preview builds remain noindex by default.
+ * The official Cloudflare Pages main build must never ship a noindex homepage.
+ * Its production-branch identity takes precedence over a stale legacy
+ * PUBLIC_INDEXABLE=false setting in Cloudflare's environment.
+ * Non-main Pages previews always remain protected. Local/CI builds still
+ * default to noindex unless explicitly testing a production configuration.
  */
 export function shouldIndexApprovedPages(
   domain: string,
@@ -31,9 +33,10 @@ export function shouldIndexApprovedPages(
   pages: string | undefined,
   branch: string | undefined
 ): boolean {
-  if (!isOfficialIndexDomain(domain) || setting === 'false') return false;
-  if (setting === 'true') return true;
-  return pages === '1' && branch === 'main';
+  if (!isOfficialIndexDomain(domain)) return false;
+  if (pages === '1' && branch === 'main') return true;
+  if (pages === '1' && branch !== 'main') return false;
+  return setting === 'true';
 }
 
 export const INDEXABLE = shouldIndexApprovedPages(
