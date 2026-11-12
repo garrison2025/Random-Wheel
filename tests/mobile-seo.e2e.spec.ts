@@ -161,3 +161,68 @@ test('1–100 desktop retains full wheel presentation and quick pick workflow',a
   await page.locator('[data-action="pick"]').click();
   await expect(page.locator('[data-role="result"]')).not.toHaveText('Ready when you are');
 });
+
+test('mobile 1–100 copies the latest result and disables copy after reset',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'clipboard',{
+      configurable:true,value:{writeText:async (value:string)=>{
+        (window as typeof window & {__copiedNumber?:string}).__copiedNumber=value;
+      }}
+    });
+  });
+  await page.goto('/random-number-wheel/1-100/');
+  const copy=page.locator('[data-action="instant-copy"]');
+  await expect(copy).toBeDisabled();
+  await page.locator('[data-action="instant-pick"]').click();
+  await expect(copy).toBeEnabled();
+  const value=(await page.locator('[data-role="instant-result"]').textContent())?.trim();
+  await copy.click();
+  expect(await page.evaluate(()=>(window as typeof window & {__copiedNumber?:string}).__copiedNumber))
+    .toBe(value);
+  await expect(page.locator('[data-role="instant-copy-feedback"]')).toHaveText('Number copied.');
+  await page.locator('[data-action="reset"]').click();
+  await expect(copy).toBeDisabled();
+  await expect(page.locator('[data-role="instant-result"]')).toHaveText('—');
+});
+
+test('mobile batch copy contains all results rather than a truncated visual preview',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'clipboard',{
+      configurable:true,value:{writeText:async (value:string)=>{
+        (window as typeof window & {__copiedNumber?:string}).__copiedNumber=value;
+      }}
+    });
+  });
+  await page.goto('/random-number-wheel/1-100/');
+  const count=page.locator('[data-role="batch"]');
+  await count.fill('10');
+  await count.dispatchEvent('change');
+  await page.locator('[data-action="instant-pick"]').click();
+  await expect(page.locator('[data-action="instant-copy"]')).toBeEnabled();
+  await page.locator('[data-action="instant-copy"]').click();
+  const values=(await page.evaluate(()=>
+    (window as typeof window & {__copiedNumber?:string}).__copiedNumber))?.split('\n')||[];
+  expect(values).toHaveLength(10);
+  values.forEach(v=>{
+    expect(Number(v)).toBeGreaterThanOrEqual(1);
+    expect(Number(v)).toBeLessThanOrEqual(100);
+  });
+  await expect(page.locator('[data-role="instant-copy-feedback"]')).toHaveText('Latest batch copied.');
+});
+
+test('instant clipboard rejection gives an inline message and leaves the result intact',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'clipboard',{
+      configurable:true,value:{writeText:async()=>{throw Error('denied');}}
+    });
+  });
+  await page.goto('/random-number-wheel/1-100/');
+  await page.locator('[data-action="instant-pick"]').click();
+  const before=await page.locator('[data-role="instant-result"]').textContent();
+  await page.locator('[data-action="instant-copy"]').click();
+  await expect(page.locator('[data-role="instant-copy-feedback"]')).toContainText('Clipboard unavailable');
+  await expect(page.locator('[data-role="instant-result"]')).toHaveText(before||'');
+});
