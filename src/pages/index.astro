@@ -2,6 +2,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Workbench from '../components/Workbench.astro';
+import GeoToolSummary from '../components/GeoToolSummary.astro';
 import { RANGE_PAGES } from '../data/ranges';
 const priority=[100,3,4,5,6,20];
 const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).filter(Boolean);
@@ -19,6 +20,7 @@ const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).f
     </div>
   </section>
   <div class="container main-overlap"><Workbench kind="custom"/></div>
+  <GeoToolSummary kind="custom"/>
   <section class="section">
     <div class="container">
       <span class="eyebrow">QUICK STARTS</span>
