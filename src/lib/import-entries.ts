@@ -62,7 +62,7 @@ export function parseImportedEntryLines(content:string,filename:string):string[]
     if(row.length>2)throw new Error('CSV should contain Name and optional Weight columns only.');
     const name=(row[0]||'').trim();
     if(!name)throw new Error('Each imported entry needs a name.');
-    if(/[\r\n|]/.test(name))throw new Error('A name contains a line break or |. Change it before importing to avoid altered draw probabilities.');
+    if(/[\r\n]/.test(name) || (isCsv && name.includes('|')))throw new Error('A name contains a line break or |. Change it before importing to avoid altered draw probabilities.');
     if(row.length===2){
       const weight=(row[1]||'').trim();
       if(!/^\d+$/.test(weight))throw new Error('CSV weights must be whole numbers.');
