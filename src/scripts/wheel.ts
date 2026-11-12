@@ -765,7 +765,7 @@ function init(root: HTMLElement) {
     try{
       if(!flushPendingEdit())return;
       validateCurrentSetup();
-      const current=config();
+      const current=config() as Record<string,unknown>;
       const encoded=encodeURIComponent(JSON.stringify(current));
       const canShare=encoded.length<=MAX_HASH_LENGTH;
       pendingShareUrl=canShare?location.origin+location.pathname+location.search+'#wheel='+encoded:'';
