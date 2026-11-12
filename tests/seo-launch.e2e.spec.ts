@@ -60,7 +60,8 @@ test('number pillar shows six popular cards and links to the full range director
   await expect(page.getByRole('link',{name:/all number picker tools/i})).toHaveAttribute('href','/tools/');
   await page.goto('/tools/');
   await expect(page.getByRole('heading',{name:'More number range tools'})).toBeVisible();
-  await expect(page.getByRole('link',{name:/Numbers 1–8/i})).toHaveAttribute('href','/random-number-wheel/1-8/');
+  await expect(page.locator('a[href="/random-number-wheel/1-8/"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/random-number-wheel/1-30/"]').first()).toBeVisible();
 });
 
 test('approved number pages have unique task-first guides with working tool anchors',async({page})=>{
