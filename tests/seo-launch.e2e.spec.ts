@@ -58,3 +58,31 @@ test('main number picker surfaces approved high-intent ranges ahead of held cand
   await expect(page.getByRole('heading',{name:'More number range tools'})).toBeVisible();
   await expect(page.getByRole('link',{name:/Numbers 1–8/i})).toHaveAttribute('href','/random-number-wheel/1-8/');
 });
+
+test('approved number pages have unique task-first guides with working tool anchors',async({page})=>{
+  const approved=[
+    {max:3,heading:'Three-way decisions and fair first turns'},
+    {max:4,heading:'Four-corner games and station selection'},
+    {max:5,heading:'Five-option games, task picks and rotations'},
+    {max:6,heading:'A six-sided die or a six-person draw?'},
+    {max:20,heading:'A roll call for twenty numbered students'},
+    {max:100,heading:'Instant 1–100 picks and unique number samples'}
+  ];
+  for(const {max,heading} of approved){
+    await page.goto('/random-number-wheel/1-'+max+'/');
+    const guide=page.locator('[data-approved-range-guide="'+max+'"]');
+    await expect(guide).toHaveCount(1);
+    await expect(guide.getByRole('heading',{name:heading})).toBeVisible();
+    await expect(guide.locator('.range-guide-card')).toHaveCount(2);
+    await expect(guide.getByRole('link',{name:'Try this with the number wheel'})).toHaveCount(2);
+    await expect(page.locator('#start')).toHaveCount(1);
+  }
+});
+
+test('held number pages do not inherit approved-range editorial guides',async({page})=>{
+  for(const max of [2,7,8,10,15,30,50,200,1000,10000]){
+    await page.goto('/random-number-wheel/1-'+max+'/');
+    await expect(page.locator('[data-approved-range-guide]')).toHaveCount(0);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+  }
+});
