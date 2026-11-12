@@ -74,8 +74,8 @@ for (const route of all) {
     const cards=(html.match(/class="range-guide-card"/g)||[]).length;
     if(cards!==2)fail(route,'Expected two actionable workflow examples; found '+cards);
     if(!html.includes('What to expect:'))fail(route,'Expected outcome guidance for range tasks');
-    const anchors=(html.match(/href="#start"/g)||[]).length;
-    if(anchors<2)fail(route,'Missing direct action links from workflow examples to picker');
+    const presets=(html.match(/data-range-preset=/g)||[]).length;
+    if(presets!==2)fail(route,'Expected two real preset actions for approved workflow examples');
   } else if(hasGuide)fail(route,'Nonapproved route unexpectedly contains an approved-range guide');
 
   const shouldIndex = liveMode && approved.includes(route);
