@@ -55,6 +55,7 @@ function init(root: HTMLElement) {
   let latestDraw:string[]=[];
   let entries:Entry[]=[];
   let invalidDraft=false; // Invalid editor text pauses draws but must never discard the last valid round.
+  let holdLastSpinFrame=false; // Keep the last animated winner sector under the pointer until the next draw.
   // The applied selection policy must match the pool represented by pickedIndices.
   let appliedRemove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
   // Number presets must not inherit a custom range saved on a different URL.
@@ -211,6 +212,8 @@ function init(root: HTMLElement) {
     });
   }
   function render(){
+    // Rebuilding the segments replaces the visual frame of the last spin.
+    holdLastSpinFrame=false;
     const active=activeChoices();
     renderProbabilities();
     const total=active.reduce((s,a)=>s+a.entry.weight,0);
@@ -281,7 +284,15 @@ function init(root: HTMLElement) {
       // back to the identical pool resumes every already-picked ticket.
       if(changed || removalChanged)reset('Ready to draw.');
       else if(wasInvalid){
-        render();
+        if(holdLastSpinFrame){
+          // Only the draft was invalid; the no-repeat ledger and winning frame
+          // still describe the original pool. Do not repaint its now-removed
+          // winning sector until the next spin starts, or the pointer would
+          // appear to indicate a different choice than the displayed result.
+          counter.textContent=activeChoices().length+' choices remaining';
+          overlay.textContent=isNumbers?'All eligible numbers included':'All eligible choices included';
+          renderProbabilities();
+        }else render();
         status('Previous round restored. Unpicked entries are still available.');
       }
       return true;
@@ -315,6 +326,7 @@ function init(root: HTMLElement) {
     // Hold the selected segment at the pointer until the next spin, then paint the remaining entries.
     if(mode==='quick' || !removeWinner) render();
     else {
+      holdLastSpinFrame=true;
       counter.textContent=activeChoices().length+' choices remaining';
       renderProbabilities();
     }
