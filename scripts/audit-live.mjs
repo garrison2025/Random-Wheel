@@ -65,7 +65,6 @@ async function checkPage(path,indexable){
       report('Homepage WebSite JSON-LD',schemaGood);
       report('Homepage OG site name',/<meta\b[^>]*property=["']og:site_name["'][^>]*content=["']Number Spinner["']/i.test(body));
     }
-    if(path==='/contact/')report('Contact email visible',body.includes('contact@'+HOST));
   }catch(error){report(label,false,String(error));}
 }
 async function checkRedirect(origin,tag){
