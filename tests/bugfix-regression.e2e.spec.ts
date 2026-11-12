@@ -8,33 +8,44 @@ test('empty number minimum cannot silently introduce zero',async({page})=>{
   await expect(page.locator('[data-role="result"]')).not.toHaveText('0');
 });
 
-test('entry removal setting survives local save and a reload',async({page})=>{
+test('entry removal and selected mode survive local save and a reload',async({page})=>{
   await page.goto('/');
   await page.locator('[data-role="remove"]').check();
+  await page.locator('[data-mode="quick"]').click();
   await page.locator('[data-action="save"]').click();
   await page.reload();
   await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
 });
 
-test('entry removal setting is included in share links',async({page,context})=>{
+test('entry removal and Quick Pick mode are included in a reviewed share link',async({page,context})=>{
   await context.grantPermissions(['clipboard-read','clipboard-write']);
   await page.goto('/');
   await page.locator('[data-role="remove"]').check();
+  await page.locator('[data-mode="quick"]').click();
   await page.locator('[data-action="share"]').click();
+  await expect(page.locator('[data-role="share-preview"]')).toBeVisible();
+  await page.locator('[data-action="confirm-share"]').click();
   const url=await page.evaluate(()=>navigator.clipboard.readText());
   expect(url).toContain('#wheel=');
   await page.goto(url);
   await expect(page.locator('[data-role="remove"]')).toBeChecked();
+  await expect(page.locator('[data-mode="quick"]')).toHaveAttribute('aria-pressed','true');
 });
 
-test('clearing saved setup during spin never restores an old result',async({page})=>{
+test('clearing saved setup during spin does not cancel the active draw or erase history',async({page})=>{
   await page.goto('/');
+  await page.locator('[data-action="save"]').click();
   await page.locator('[data-role="speed"]').selectOption('fast');
   await page.locator('[data-action="pick"]').click();
+  await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
+  await expect(page.locator('[data-action="clear"]')).toBeEnabled();
   await page.locator('[data-action="clear"]').click();
-  await expect(page.locator('[data-role="result"]')).toHaveText('Ready when you are');
+  await expect(page.locator('[data-role="feedback"]')).toContainText('Current picks and history are unchanged');
+  await expect(page.locator('[data-role="result"]')).toHaveText('Spinning…');
   await page.waitForTimeout(1900);
-  await expect(page.locator('[data-role="result"]')).toHaveText('Ready when you are');
+  await expect(page.locator('[data-role="result"]')).toContainText(/Alex|Jordan|Taylor|Morgan|Casey|Sam/);
+  await expect(page.locator('[data-role="history"] .history-chip')).toHaveCount(1);
 });
 
 test('CSV header is skipped and explicit blank weight is rejected',async({page})=>{
@@ -111,7 +122,8 @@ test('wheel recovers its valid overlay after all numbers are excluded',async({pa
   const excluded=page.locator('[data-role="excluded"]');
   await excluded.fill('1, 2, 3');
   await excluded.dispatchEvent('change');
-  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('No available choices');
+  await expect(page.locator('[data-role="wheel-overlay"]')).toHaveText('Invalid settings · round paused');
+  await expect(page.locator('[data-action="pick"]')).toBeDisabled();
   await excluded.fill('');
   await excluded.dispatchEvent('change');
   await expect(page.locator('[data-role="candidate-count"]')).toContainText('3 active choices');

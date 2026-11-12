@@ -48,11 +48,13 @@ function init(root: HTMLElement) {
   let sparkTimer:number|undefined;
   let spinTimer:number|undefined;
   let drawGeneration=0;
-  let importRequestId=0; // Only the newest chosen file may update the wheel.
+  let importRequestId=0; // Only the newest chosen list file may update the wheel.
+  let setupImportRequestId=0; // Ignore an older asynchronous JSON setup import.
   let pickedIndices = new Set<number>();
   let winningHistory:string[]=[];
   let latestDraw:string[]=[];
   let entries:Entry[]=[];
+  let invalidDraft=false; // Invalid editor text pauses draws but must never discard the last valid round.
   // The applied selection policy must match the pool represented by pickedIndices.
   let appliedRemove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
   // Number presets must not inherit a custom range saved on a different URL.
@@ -94,19 +96,30 @@ function init(root: HTMLElement) {
     sparks.append(pieces);
     sparkTimer=window.setTimeout(clearSparks,1250);
   }
-  const setBusy=(busy:boolean)=>{
-    locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
+  const syncDrawAvailability=()=>{
+    const disabled=locked||invalidDraft||root.dataset.roundComplete==='true';
+    pickButton.disabled=disabled;
     const instantButton=get<HTMLButtonElement>(root,'[data-action="instant-pick"]');
-    if(instantButton)instantButton.disabled=busy;
+    if(instantButton)instantButton.disabled=disabled;
+    if(centerButton)centerButton.disabled=disabled;
+  };
+  const setBusy=(busy:boolean)=>{
+    locked=busy;resetButton.disabled=busy;
+    syncDrawAvailability();
     if(instantCopy)instantCopy.disabled=busy||latestDraw.length===0;
-    if(centerButton) centerButton.disabled=busy;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
-    root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('.sidebar button').forEach(el=>{
+      // Clear saved only removes the local config and is safe during a spin.
+      el.disabled=busy && el.dataset.action!=='clear';
+    });
   };
   const updateModeLabels=()=>{
-    pickButton.textContent=mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
-    if(centerLabel) centerLabel.textContent=mode==='quick'?'PICK':'SPIN';
-    if(centerButton)centerButton.setAttribute('aria-label',mode==='quick'?'Pick a random result':'Spin the wheel');
+    const quantity=Number(asValue(get(root,'[data-role="batch"]')));
+    const batch=(isNumbers||isLetters||isWords) && Number.isSafeInteger(quantity) && quantity>1 && quantity<=100;
+    const plural=isNumbers?'numbers':isLetters?'letters':'words';
+    pickButton.textContent=batch?'⚡ Pick '+quantity+' '+plural:mode==='quick'?'⚡ Pick instantly':'✳ Spin the wheel';
+    if(centerLabel) centerLabel.textContent=batch||mode==='quick'?'PICK':'SPIN';
+    if(centerButton)centerButton.setAttribute('aria-label',batch?'Pick '+quantity+' '+plural:mode==='quick'?'Pick a random result':'Spin the wheel');
   };
   const readChoices=():Entry[]=>{
     if(isCustom) return parseEntries(asValue(get(root,'[data-role="entries"]')));
@@ -159,7 +172,7 @@ function init(root: HTMLElement) {
     result.textContent='Ready when you are';
     if(instantResult)instantResult.textContent='—';
     resultCard?.classList.remove('is-picked');
-    renderHistory();status(message);
+    renderHistory();status(invalidDraft?'Round reset. Fix settings before drawing.':message,invalidDraft);
     root.dispatchEvent(new CustomEvent('wheelcanvas:reset'));
     disc.style.transition='none';disc.style.transform='rotate(0deg)';rotation=0;
     render();void disc.offsetWidth;applySpinSpeed();
@@ -168,18 +181,53 @@ function init(root: HTMLElement) {
     const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
     return entries.map((entry,index)=>({entry,index})).filter(v=>v.entry.weight>0 && (!remove || !pickedIndices.has(v.index)));
   }
+  function renderProbabilities(){
+    const list=get<HTMLOListElement>(root,'[data-role="probability-list"]');
+    const caption=get<HTMLElement>(root,'[data-role="probability-caption"]');
+    if(!list || !caption)return;
+    const active=activeChoices();
+    const total=active.reduce((sum,v)=>sum+v.entry.weight,0);
+    list.replaceChildren();
+    if(!active.length){
+      caption.textContent='No eligible tickets remain. Start over to begin a new round.';
+      return;
+    }
+    if(invalidDraft){
+      caption.textContent='The draft is invalid. The last valid pool and no-repeat history are preserved; drawing is paused.';
+    }else if(active.length>100 && active.every(v=>v.entry.weight===active[0]!.entry.weight)){
+      caption.textContent=active.length+' eligible tickets · each has a 1/'+active.length+' chance ('+(100/active.length).toFixed(4)+'%). The simplified wheel is decorative; every eligible ticket remains in the draw.';
+      return;
+    }else if(active.length>100){
+      caption.textContent='Showing the first 100 of '+active.length+' eligible tickets. Probabilities are calculated against the full active pool.';
+    }else{
+      caption.textContent=active.length+' eligible tickets · exact chance per ticket, recalculated after each no-repeat draw.';
+    }
+    active.slice(0,100).forEach(({entry,index})=>{
+      const item=document.createElement('li');
+      // Duplicate names are independent tickets; show their original ticket indices.
+      const percentage=(entry.weight/total*100).toFixed(4);
+      item.textContent='#'+(index+1)+' '+entry.label+' — weight '+entry.weight+'/'+total+' · '+percentage+'%';
+      list.append(item);
+    });
+  }
   function render(){
     const active=activeChoices();
+    renderProbabilities();
     const total=active.reduce((s,a)=>s+a.entry.weight,0);
     counter.textContent=active.length + (active.length===1?' active choice':' active choices');
     disc.textContent='';
     const abstract=active.length>36;
     wrap.classList.toggle('is-abstract',abstract);
-    if (!active.length) {disc.style.background='#dce1f1';overlay.textContent='No available choices';return;}
+    if (!active.length) {
+      disc.style.background='#dce1f1';overlay.textContent='No available choices';
+      if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
+      return;
+    }
     if(abstract){
       const bands=12;
       disc.style.background='conic-gradient('+Array.from({length:bands},(_,i)=>COLORS[i%COLORS.length]+' '+(i*100/bands)+'% '+((i+1)*100/bands)+'%').join(',')+')';
-      overlay.textContent=active.length+' possibilities';
+      overlay.textContent=active.length+' eligible choices · decorative display only';
+      if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
       return;
     }
     // Restore a valid label after an empty or simplified candidate pool.
@@ -208,6 +256,7 @@ function init(root: HTMLElement) {
       }
     }
     disc.style.background='conic-gradient('+stops.join(',')+')';
+    if(invalidDraft){counter.textContent='Fix settings to continue';overlay.textContent='Invalid settings · round paused';}
   }
   function refresh(){
     if(isWords){
@@ -215,9 +264,10 @@ function init(root: HTMLElement) {
       const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
       if(controls)controls.hidden=category?.value!=='custom';
     }
+    const wasInvalid=invalidDraft;
     try {
       const next=readChoices();
-      if(!next.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
+      if(!next.some(e=>e.weight>0))throw new Error('At least one choice must have a positive weight.');
       const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
       const changed=entries.length!==next.length || entries.some((entry,i)=>
         entry.label!==next[i]?.label || entry.weight!==next[i]?.weight
@@ -225,20 +275,26 @@ function init(root: HTMLElement) {
       const removalChanged=appliedRemove!==remove;
       entries=next;
       appliedRemove=remove;
-      // Non-semantic edits (e.g. a trailing newline) must not erase previous
-      // winners or restart a no-repeat round.
+      invalidDraft=false;
+      syncDrawAvailability();
+      // Editing a valid pool starts a new round; correcting an invalid draft
+      // back to the identical pool resumes every already-picked ticket.
       if(changed || removalChanged)reset('Ready to draw.');
+      else if(wasInvalid){
+        render();
+        status('Previous round restored. Unpicked entries are still available.');
+      }
       return true;
     } catch(error) {
-      drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
-      entries=[];pickedIndices.clear();winningHistory=[];latestDraw=[];renderHistory();
-      if(instantCopy)instantCopy.disabled=true;
-      if(instantCopyFeedback)instantCopyFeedback.textContent='';
-      result.textContent='Check your settings';
-      if(instantResult)instantResult.textContent='Check settings';
-      resultCard?.classList.remove('is-picked');
+      // Do not destroy the last valid pool or the no-repeat ledger. Merely
+      // suspend new draws until the user fixes the draft input.
+      invalidDraft=true;
+      syncDrawAvailability();
+      counter.textContent='Fix settings to continue';
+      overlay.textContent='Invalid settings · round paused';
+      const probabilityCaption=get<HTMLElement>(root,'[data-role="probability-caption"]');
+      if(probabilityCaption)probabilityCaption.textContent='The draft is invalid. Your last valid candidate pool and no-repeat history are preserved; drawing is paused.';
       status(error instanceof Error?error.message:'Invalid choices.',true);
-      render();
       return false;
     }
   }
@@ -258,7 +314,10 @@ function init(root: HTMLElement) {
     celebrate();
     // Hold the selected segment at the pointer until the next spin, then paint the remaining entries.
     if(mode==='quick' || !removeWinner) render();
-    else counter.textContent=activeChoices().length+' choices remaining';
+    else {
+      counter.textContent=activeChoices().length+' choices remaining';
+      renderProbabilities();
+    }
     setBusy(false);
     root.dispatchEvent(new CustomEvent('wheelcanvas:result',{detail:{label}}));
   }
@@ -267,6 +326,7 @@ function init(root: HTMLElement) {
     // An uncommitted edit changes which index represents which ticket.
     // Apply it and reset the old winner indices BEFORE selecting a result.
     if(!flushPendingEdit())return;
+    if(invalidDraft && !refresh())return;
     try{
       entries=readChoices();
       const active=activeChoices();
@@ -305,10 +365,11 @@ function init(root: HTMLElement) {
       resultCard?.classList.remove('is-picked');
       result.textContent=mode==='spin'?'Spinning…':'Picking…';
       status(mode==='spin'?'Spinning…':'Picking…');
-      if(mode==='quick' || matchMedia('(prefers-reduced-motion: reduce)').matches){
+      if(mode==='quick'){
         showWinner(chosen.entry.label,chosen.index);
         return;
       }
+      const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
       const abstract=active.length>36;
       let landing:number;
       if (abstract) landing=secureIndex(360);
@@ -317,6 +378,15 @@ function init(root: HTMLElement) {
         const start=active.slice(0,selected).reduce((n,e)=>n+e.entry.weight,0)/total*360;
         const width=chosen.entry.weight/total*360;
         landing=(360-(start+width/2)%360)%360;
+      }
+      if(reducedMotion){
+        // Use the same sampled winning sector as animated spin, but reposition
+        // instantly. Never leave the pointer on a different visible choice.
+        rotation=landing;
+        disc.style.transition='none';
+        disc.style.transform='rotate('+landing+'deg)';
+        showWinner(chosen.entry.label,chosen.index);
+        return;
       }
       const current=((rotation%360)+360)%360;
       const delta=(landing-current+360)%360;
@@ -349,6 +419,7 @@ function init(root: HTMLElement) {
   document.addEventListener('fullscreenchange',()=>{
     if(fullscreenButton) fullscreenButton.setAttribute('aria-label',document.fullscreenElement?'Exit fullscreen':'Toggle fullscreen wheel');
   });
+  get<HTMLInputElement>(root,'[data-role="batch"]')?.addEventListener('input',updateModeLabels);
   root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
     if(locked)return;
     mode=button.dataset.mode==='spin'?'spin':'quick';
@@ -507,21 +578,69 @@ function init(root: HTMLElement) {
     catch{status('Copy is unavailable. Select the history and copy manually.',true);}
   });
   function config(){
-    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),remove:get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false};
+    const shared={palette:paletteName,speed:asValue(get(root,'[data-role="speed"]')),remove:get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false,mode};
     if(isCustom)return {type:'custom',...shared,entries:asValue(get(root,'[data-role="entries"]'))};
     if(isLetters)return {type:'letters',...shared,letterSet:asValue(get(root,'[data-role="letter-set"]')),letterCase:asValue(get(root,'[data-role="letter-case"]')),letterExclude:asValue(get(root,'[data-role="letter-exclude"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     if(isYesNo)return {type:'yesno',...shared,decisionMode:asValue(get(root,'[data-role="decision-mode"]'))};
     if(isWords)return {type:'words',...shared,wordCategory:asValue(get(root,'[data-role="word-category"]')),wordCustom:asValue(get(root,'[data-role="word-custom"]')),batch:asValue(get(root,'[data-role="batch"]'))};
     return {type:'numbers',...shared,batch:asValue(get(root,'[data-role="batch"]')),min:asValue(get(root,'[data-role="min"]')),max:asValue(get(root,'[data-role="max"]')),step:asValue(get(root,'[data-role="step"]')),excluded:asValue(get(root,'[data-role="excluded"]'))};
   }
-  function applyConfig(value:unknown){
-    if(!value || typeof value!=='object')throw new Error('Invalid saved setup.');
+  function validateConfigValue(value:unknown):Record<string,unknown>{
+    if(!value || typeof value!=='object' || Array.isArray(value))throw new Error('Invalid setup file.');
     const c=value as Record<string,unknown>;
     const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers';
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
-    if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in saved setup.');
+    if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in setup.');
+    if(c.mode!==undefined && c.mode!=='spin' && c.mode!=='quick')throw new Error('Invalid draw mode in setup.');
+    // Preserve legacy links with unknown color IDs: setPalette ignores them
+    // rather than rejecting otherwise valid entries or inherited property names.
+    if(c.palette!==undefined && typeof c.palette!=='string')throw new Error('Invalid palette value in setup.');
+    const speed=c.speed===undefined?asValue(get(root,'[data-role="speed"]')):c.speed;
+    if(typeof speed!=='string' || !['fast','normal','slow'].includes(speed))throw new Error('Choose a valid spin duration in the setup.');
+    const text=(key:string,selector:string)=>{
+      const candidate=c[key]===undefined?asValue(get(root,selector)):c[key];
+      if(typeof candidate!=='string' || candidate.length>=12000)throw new Error('Invalid '+key+' value in setup.');
+      return candidate;
+    };
+    let candidate:Entry[];
+    if(isCustom){
+      candidate=parseEntries(text('entries','[data-role="entries"]'));
+    }else if(isLetters){
+      candidate=letterChoices(
+        text('letterSet','[data-role="letter-set"]'),
+        text('letterExclude','[data-role="letter-exclude"]'),
+        text('letterCase','[data-role="letter-case"]')
+      );
+    }else if(isYesNo){
+      candidate=yesNoChoices(text('decisionMode','[data-role="decision-mode"]'));
+    }else if(isWords){
+      candidate=wordChoices(
+        text('wordCategory','[data-role="word-category"]'),
+        text('wordCustom','[data-role="word-custom"]')
+      );
+    }else{
+      const minText=text('min','[data-role="min"]');
+      const maxText=text('max','[data-role="max"]');
+      const stepText=text('step','[data-role="step"]');
+      const min=Number(minText),max=Number(maxText),step=Number(stepText);
+      if(![min,max,step].every(Number.isSafeInteger))throw new Error('Number range values must be safe whole numbers.');
+      candidate=numberChoices(min,max,step,parseExclusions(text('excluded','[data-role="excluded"]')))
+        .map(number=>({label:String(number),weight:1}));
+    }
+    const eligible=candidate.filter(entry=>entry.weight>0).length;
+    if(!eligible)throw new Error('The setup contains no eligible choices.');
+    const remove=c.remove===undefined?(get<HTMLInputElement>(root,'[data-role="remove"]')?.checked??false):c.remove;
+    const hasBatch=isNumbers||isLetters||isWords;
+    const batchValue=hasBatch?(c.batch===undefined?asValue(get(root,'[data-role="batch"]')):c.batch):'1';
+    if(typeof batchValue!=='string' || !batchValue.trim() || !Number.isSafeInteger(Number(batchValue)) || Number(batchValue)<1 || Number(batchValue)>100)
+      throw new Error('Invalid batch size in setup.');
+    if(remove && Number(batchValue)>eligible)throw new Error('Not enough eligible choices for the no-repeat batch.');
+    return c;
+  }
+  function applyConfig(value:unknown){
+    const c=validateConfigValue(value);
     const removal=get<HTMLInputElement>(root,'[data-role="remove"]');
-    if(removal)removal.checked=c.remove===true;
+    if(removal && typeof c.remove==='boolean')removal.checked=c.remove;
     const setText=(key:string,val:unknown)=>{
       if(val===undefined)return; // Older saved setups may omit newer optional fields.
       if(typeof val!=='string' || val.length>=12000)throw new Error('Invalid '+key+' value in saved setup.');
@@ -534,6 +653,11 @@ function init(root: HTMLElement) {
         throw new Error('Invalid batch size in saved setup.');
       setText('batch',val);
     };
+    if(c.mode==='spin'||c.mode==='quick'){
+      mode=c.mode;
+      root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button=>
+        button.setAttribute('aria-pressed',String(button.dataset.mode===mode)));
+    }
     if(typeof c.palette==='string')setPalette(c.palette);
     if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
     if(isCustom)setText('entries',c.entries);
@@ -556,6 +680,7 @@ function init(root: HTMLElement) {
     // Successful parsing of entries alone is insufficient: a restored
     // no-repeat batch must also fit its eligible candidate pool.
     validateCurrentSetup();
+    updateModeLabels();
   }
   function validateCurrentSetup(){
     const candidate=readChoices();
@@ -580,21 +705,120 @@ function init(root: HTMLElement) {
       status(error instanceof Error?error.message:'Could not save; browser storage may be unavailable.',true);
     }
   });
-  get<HTMLButtonElement>(root,'[data-action="clear"]')?.addEventListener('click',()=>{
-    localStorage.removeItem(savedKey);
-    if(location.hash.startsWith('#wheel=')) window.history.replaceState(null,'',location.pathname+location.search);
-    status('Saved setup removed from this browser.');reset();
-  });
-  get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',async()=>{
+  get<HTMLButtonElement>(root,'[data-action="export-setup"]')?.addEventListener('click',()=>{
     try{
       if(!flushPendingEdit())return;
       validateCurrentSetup();
-      const encoded=encodeURIComponent(JSON.stringify(config()));
-      if(encoded.length>MAX_HASH_LENGTH)throw new Error('Setup too long for a share link; use a shorter list. Your data stays local.');
-      const url=location.origin+location.pathname+location.search+'#wheel='+encoded;
+      const blob=new Blob([JSON.stringify(config(),null,2)],{type:'application/json;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;link.download='number-spinner-setup.json';
+      document.body.append(link);link.click();link.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),5000);
+      status('Setup JSON exported. The file contains your custom choices; keep it private.');
+    }catch(error){status(error instanceof Error?error.message:'Could not export setup JSON.',true);}
+  });
+  const setupFile=get<HTMLInputElement>(root,'[data-role="setup-file"]');
+  get<HTMLButtonElement>(root,'[data-action="import-setup"]')?.addEventListener('click',()=>{
+    if(!locked)setupFile?.click();
+  });
+  setupFile?.addEventListener('change',async()=>{
+    const file=setupFile.files?.[0];
+    if(!file)return;
+    const requestId=++setupImportRequestId;
+    if(file.size>100000){
+      status('Choose a setup JSON file under 100 KB.',true);
+      setupFile.value='';
+      return;
+    }
+    if(locked){setupFile.value='';return;}
+    setBusy(true);
+    try{
+      const raw=await file.text();
+      if(requestId!==setupImportRequestId || !locked)return;
+      const parsed=JSON.parse(raw) as unknown;
+      // applyConfig validates the entire object before changing any live control.
+      applyConfig(parsed);
+      setBusy(false);
+      status('Setup imported. Save wheel if you want to keep it in this browser.');
+    }catch(error){
+      setBusy(false);
+      status(error instanceof Error?'Setup JSON was not imported: '+error.message:'Could not import setup JSON.',true);
+    }finally{
+      setupFile.value='';
+    }
+  });
+  get<HTMLButtonElement>(root,'[data-action="clear"]')?.addEventListener('click',()=>{
+    try{
+      // This action manages storage only. Start over is the explicit way to
+      // cancel an ongoing spin or erase the current draw history.
+      localStorage.removeItem(savedKey);
+      status('Saved setup removed. Current picks and history are unchanged.');
+    }catch(error){status(error instanceof Error?error.message:'Could not clear browser storage.',true);}
+  });
+  const shareDialog=get<HTMLDialogElement>(root,'[data-role="share-preview"]');
+  const shareSummary=get<HTMLElement>(root,'[data-role="share-preview-summary"]');
+  const shareSample=get<HTMLElement>(root,'[data-role="share-preview-sample"]');
+  const shareUrlInput=get<HTMLInputElement>(root,'[data-role="share-preview-url"]');
+  const shareWarning=get<HTMLElement>(root,'[data-role="share-preview-warning"]');
+  const confirmShare=get<HTMLButtonElement>(root,'[data-action="confirm-share"]');
+  const exportFromShare=get<HTMLButtonElement>(root,'[data-action="export-setup-from-share"]');
+  let pendingShareUrl='';
+  get<HTMLButtonElement>(root,'[data-action="share"]')?.addEventListener('click',()=>{
+    try{
+      if(!flushPendingEdit())return;
+      validateCurrentSetup();
+      const current=config() as Record<string,unknown>;
+      const encoded=encodeURIComponent(JSON.stringify(current));
+      const canShare=encoded.length<=MAX_HASH_LENGTH;
+      pendingShareUrl=canShare?location.origin+location.pathname+location.search+'#wheel='+encoded:'';
+      const typeLabel=isCustom?'Custom wheel':isNumbers?'Number range':isLetters?'Letter wheel':isWords?'Word wheel':'Yes / No wheel';
+      const batch=(isNumbers||isLetters||isWords)?' · batch '+String(current.batch):'';
+      shareSummary!.textContent=typeLabel+' · '+String(current.mode||mode)+' mode'+batch+' · '+(current.remove?'remove winners':'keep winners');
+      if(isCustom){
+        const lines=String(current.entries).split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+        shareSample!.textContent=lines.length+' custom entries. Preview: '+lines.slice(0,6).join(' · ')+(lines.length>6?' · …':'');
+      }else if(isNumbers){
+        shareSample!.textContent='Range '+String(current.min)+'–'+String(current.max)+' · step '+String(current.step)+' · exclusions: '+(String(current.excluded||'none'));
+      }else if(isLetters){
+        shareSample!.textContent='Alphabet: '+String(current.letterSet)+' · '+String(current.letterCase)+' · exclusions: '+String(current.letterExclude||'none');
+      }else if(isWords){
+        shareSample!.textContent='Word collection: '+String(current.wordCategory)+(current.wordCategory==='custom'?' · '+String(current.wordCustom).split(/\r?\n/).length+' custom lines':'');
+      }else{
+        shareSample!.textContent='Decision options: '+String(current.decisionMode);
+      }
+      confirmShare!.disabled=!canShare;
+      if(shareUrlInput)shareUrlInput.value=pendingShareUrl;
+      if(exportFromShare)exportFromShare.hidden=canShare;
+      shareWarning!.textContent=canShare
+        ? 'This link stores the setup in its URL fragment. Anyone with the link can read custom choices. Do not share private names or student lists.'
+        : 'This setup is too large for a reliable share link. Use Export setup JSON instead; the file stays on your device.';
+      if(shareDialog && typeof shareDialog.showModal==='function')shareDialog.showModal();
+      else status('Share preview is unavailable in this browser.',true);
+    }catch(error){status(error instanceof Error?error.message:'Could not prepare share preview.',true);}
+  });
+  get<HTMLButtonElement>(root,'[data-action="cancel-share"]')?.addEventListener('click',()=>{
+    pendingShareUrl='';
+    if(shareDialog?.open)shareDialog.close();
+  });
+  exportFromShare?.addEventListener('click',()=>{
+    pendingShareUrl='';
+    if(shareDialog?.open)shareDialog.close();
+    get<HTMLButtonElement>(root,'[data-action="export-setup"]')?.click();
+  });
+  confirmShare?.addEventListener('click',async()=>{
+    const url=pendingShareUrl;
+    if(!url){status('This setup is too large for a share link. Export setup JSON instead.',true);return;}
+    try{
       await navigator.clipboard.writeText(url);
+      pendingShareUrl='';
+      shareDialog?.close();
       status('Link copied. Anyone with this link can read the included choices; do not share private names.');
-    } catch(error){status(error instanceof Error?error.message:'Could not copy setup link.',true);}
+    }catch{
+      status('Clipboard unavailable. Select and copy the share link shown in the preview.',true);
+      shareUrlInput?.focus();
+      shareUrlInput?.select();
+    }
   });
   updateModeLabels();
   const defaultSetup=config();

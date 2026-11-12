@@ -59,6 +59,11 @@ const lights=Array.from({length:32},(_,i)=>({x:(50+47.2*Math.sin(i*Math.PI/16)).
     </div>
     <p class="feedback" role="status" data-role="feedback" aria-live="polite"></p>
     <div class="history" data-role="history" aria-label="Past results">Your recent picks will appear here.</div>
+    <details class="probability-panel">
+      <summary>View exact draw probabilities</summary>
+      <p data-role="probability-caption">Probabilities update with the active candidate pool.</p>
+      <ol data-role="probability-list"></ol>
+    </details>
   </section>
   <section class="panel sidebar" id="wheel-settings" aria-label="Customize wheel">
     <div class="sidebar-title-wrap">
@@ -247,12 +252,31 @@ Sam</textarea>
     <div class="small-actions">
       <button type="button" class="secondary" data-action="save">▣ Save wheel</button>
       <button type="button" class="secondary" data-action="share">↗ Share setup</button>
+      <button type="button" class="secondary" data-action="export-setup">↓ Export setup JSON</button>
+      <button type="button" class="secondary" data-action="import-setup">↑ Import setup JSON</button>
       <button type="button" class="secondary" data-action="copy">▤ Copy results</button>
       <button type="button" class="secondary" data-action="export-csv">↓ Export CSV</button>
       <button type="button" class="secondary" data-action="export-txt">↓ Export TXT</button>
       <button type="button" class="secondary" data-action="clear">↺ Clear saved</button>
     </div>
-    <div class="copy-block"><strong>Private, fair and free</strong><div>Your list stays in your browser. A shared link contains your options—avoid including personal information.</div></div>
+    <input type="file" data-role="setup-file" accept=".json,application/json" hidden/>
+    <div class="copy-block"><strong>Private, fair and free</strong><div>Your list stays in your browser. A shared link contains your options—avoid including personal information. Large setups can be exported as a local JSON file.</div></div>
+    <dialog class="share-preview-dialog" data-role="share-preview" aria-labelledby="share-preview-title">
+      <div class="share-preview-inner">
+        <span class="share-preview-kicker">CHECK BEFORE SHARING</span>
+        <h3 id="share-preview-title">Share this wheel setup?</h3>
+        <p data-role="share-preview-summary"></p>
+        <div class="share-preview-sample" data-role="share-preview-sample"></div>
+        <label class="share-preview-url-label" for="share-preview-url">Share link</label>
+        <input id="share-preview-url" class="share-preview-url" data-role="share-preview-url" type="text" readonly/>
+        <p class="share-preview-warning" data-role="share-preview-warning"></p>
+        <div class="share-preview-actions">
+          <button type="button" class="secondary" data-action="cancel-share">Cancel</button>
+          <button type="button" class="secondary" data-action="export-setup-from-share" hidden>Export JSON instead</button>
+          <button type="button" class="primary" data-action="confirm-share">Copy share link</button>
+        </div>
+      </div>
+    </dialog>
     <div class="sidebar-footnote"><span class="dot"></span>No account. No uploads. Unlimited spins.</div>
   </section>
 </div>

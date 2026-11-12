@@ -293,7 +293,7 @@ test('letter wheel reports when exclusions remove the entire alphabet',async({pa
   await page.locator('[data-role=letter-set]').selectOption('vowels');
   await page.locator('[data-role=letter-exclude]').fill('A E I O U');
   await expect(page.locator('[data-role=feedback]')).toContainText('No letters remain');
-  await page.locator('[data-action=pick]').click();
+  await expect(page.locator('[data-action=pick]')).toBeDisabled();
   await expect(page.locator('.history-chip')).toHaveCount(0);
 });
 
