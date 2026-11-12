@@ -96,6 +96,18 @@ for (const route of all) {
   }
 }
 
+// Cloudflare Pages serves unknown routes as the home page when no top-level
+// 404.html exists. A dedicated error document is therefore a release gate.
+const notFoundFile = 'dist/404.html';
+if (!existsSync(notFoundFile)) fail('404', 'Missing dist/404.html: Cloudflare Pages could return SPA fallback 200s.');
+else {
+  const html = read(notFoundFile);
+  const robot = tags(html, 'meta').find(t => attr(t,'name').toLowerCase() === 'robots');
+  if (!/noindex/i.test(attr(robot,'content'))) fail('404', 'Custom 404 page must have noindex');
+  if (tags(html, 'link').some(t => attr(t,'rel').toLowerCase() === 'canonical'))
+    fail('404', '404 page must not advertise a canonical');
+  if (!/<h1\b[^>]*>[\s\S]*?<\/h1>/i.test(html)) fail('404', 'Custom 404 page needs a visible H1');
+}
 const sitemapFile = 'dist/sitemap.xml';
 const robotsFile = 'dist/robots.txt';
 if (!existsSync(sitemapFile)) fail('SITEMAP', 'Missing sitemap.xml');
