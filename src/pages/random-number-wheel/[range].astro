@@ -3,6 +3,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Workbench from '../../components/Workbench.astro';
 import NumberTaskStudio from '../../components/NumberTaskStudio.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import {NUMBER_TASK_INFO} from '../../data/number-tasks';
 import { RANGE_PAGES, type RangePage } from '../../data/ranges';
 export function getStaticPaths(){
@@ -15,6 +16,7 @@ const taskInfo=NUMBER_TASK_INFO[page.max];
 ---
 <BaseLayout noindex={page.indexApproved===false} path={path} title={page.title} description={page.description}>
   <section class="hero"><div class="container">
+    <Breadcrumbs items={[{label:"Home",path:"/"},{label:"Random Number Wheel",path:"/random-number-wheel/"},{label:"Numbers 1–"+page.max,path}]} noindex={page.indexApproved===false} />
     <span class="eyebrow">Instant number picker · 1 to {page.max}</span>
     <h1>{page.headline}</h1>
     <p>{page.intro}</p>
