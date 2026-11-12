@@ -95,14 +95,19 @@ function init(root: HTMLElement) {
     sparks.append(pieces);
     sparkTimer=window.setTimeout(clearSparks,1250);
   }
-  const setBusy=(busy:boolean)=>{
-    locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
+  const syncDrawAvailability=()=>{
+    const disabled=locked||invalidDraft||root.dataset.roundComplete==='true';
+    pickButton.disabled=disabled;
     const instantButton=get<HTMLButtonElement>(root,'[data-action="instant-pick"]');
-    if(instantButton)instantButton.disabled=busy;
+    if(instantButton)instantButton.disabled=disabled;
+    if(centerButton)centerButton.disabled=disabled;
+  };
+  const setBusy=(busy:boolean)=>{
+    locked=busy;resetButton.disabled=busy;
+    syncDrawAvailability();
     if(instantCopy)instantCopy.disabled=busy||latestDraw.length===0;
-    if(centerButton) centerButton.disabled=busy;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
-    root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
+    root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"],[data-action="import-setup"]').forEach(el=>{el.disabled=busy;});
   };
   const updateModeLabels=()=>{
     const quantity=Number(asValue(get(root,'[data-role="batch"]')));
@@ -179,10 +184,21 @@ function init(root: HTMLElement) {
     const active=activeChoices();
     const total=active.reduce((sum,v)=>sum+v.entry.weight,0);
     list.replaceChildren();
-    caption.textContent=active.length
-      ? active.length+' eligible tickets · each chance updates after removing a winner.'
-      : 'No eligible tickets remain. Start over to begin a new round.';
-    active.forEach(({entry,index})=>{
+    if(!active.length){
+      caption.textContent='No eligible tickets remain. Start over to begin a new round.';
+      return;
+    }
+    if(invalidDraft){
+      caption.textContent='The draft is invalid. The last valid pool and no-repeat history are preserved; drawing is paused.';
+    }else if(active.length>100 && active.every(v=>v.entry.weight===active[0]!.entry.weight)){
+      caption.textContent=active.length+' eligible tickets · equal chance: '+(100/active.length).toFixed(4)+'% each. The simplified wheel is decorative; every eligible ticket remains in the draw.';
+      return;
+    }else if(active.length>100){
+      caption.textContent='Showing the first 100 of '+active.length+' eligible tickets. Probabilities are calculated against the full active pool.';
+    }else{
+      caption.textContent=active.length+' eligible tickets · exact chance per ticket, recalculated after each no-repeat draw.';
+    }
+    active.slice(0,100).forEach(({entry,index})=>{
       const item=document.createElement('li');
       // Duplicate names are independent tickets; show their original ticket indices.
       const percentage=(entry.weight/total*100).toFixed(2);
@@ -202,7 +218,7 @@ function init(root: HTMLElement) {
     if(abstract){
       const bands=12;
       disc.style.background='conic-gradient('+Array.from({length:bands},(_,i)=>COLORS[i%COLORS.length]+' '+(i*100/bands)+'% '+((i+1)*100/bands)+'%').join(',')+')';
-      overlay.textContent=active.length+' eligible choices · decorative wheel';
+      overlay.textContent=active.length+' eligible choices · decorative display only';
       return;
     }
     // Restore a valid label after an empty or simplified candidate pool.
@@ -250,6 +266,7 @@ function init(root: HTMLElement) {
       entries=next;
       appliedRemove=remove;
       invalidDraft=false;
+      syncDrawAvailability();
       // Editing a valid pool starts a new round; correcting an invalid draft
       // back to the identical pool resumes every already-picked ticket.
       if(changed || removalChanged)reset('Ready to draw.');
@@ -262,8 +279,11 @@ function init(root: HTMLElement) {
       // Do not destroy the last valid pool or the no-repeat ledger. Merely
       // suspend new draws until the user fixes the draft input.
       invalidDraft=true;
+      syncDrawAvailability();
       counter.textContent='Fix settings to continue';
       overlay.textContent='Invalid settings · round paused';
+      const probabilityCaption=get<HTMLElement>(root,'[data-role="probability-caption"]');
+      if(probabilityCaption)probabilityCaption.textContent='The draft is invalid. Your last valid candidate pool and no-repeat history are preserved; drawing is paused.';
       status(error instanceof Error?error.message:'Invalid choices.',true);
       return false;
     }
@@ -436,7 +456,7 @@ function init(root: HTMLElement) {
       if(target&&preset){target.value=preset;refresh();status('Example loaded. Edit any choice, then spin.');}
     });
   });
-  resetButton.addEventListener('click',()=>{if(!locked && refresh())reset();});
+  resetButton.addEventListener('click',()=>{if(!locked)reset();});
   get<HTMLSelectElement>(root,'[data-role="speed"]')?.addEventListener('change',()=>{
     if(!locked){applySpinSpeed();status('Spin duration updated.');}
   });
