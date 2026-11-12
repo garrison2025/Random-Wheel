@@ -31,10 +31,16 @@ describe('Cloudflare Pages official deployment indexing',()=>{
     expect(shouldIndexApprovedPages(origin,undefined,undefined,'main')).toBe(false);
     expect(shouldIndexApprovedPages(origin,undefined,'1',undefined)).toBe(false);
   });
-  it('supports explicit overrides without accidentally indexing preview',()=>{
-    expect(shouldIndexApprovedPages(origin,'false','1','main')).toBe(false);
+  it('never lets legacy noindex settings block the official Pages main site',()=>{
+    expect(shouldIndexApprovedPages(origin,'false','1','main')).toBe(true);
+    expect(shouldIndexApprovedPages(origin,'true','1','main')).toBe(true);
+    expect(shouldIndexApprovedPages(origin,undefined,'1','main')).toBe(true);
+  });
+  it('keeps preview builds blocked even if an index flag was copied there',()=>{
+    expect(shouldIndexApprovedPages(origin,'true','1','feature')).toBe(false);
+    expect(shouldIndexApprovedPages(origin,'false','1','feature')).toBe(false);
     expect(shouldIndexApprovedPages(origin,'true',undefined,undefined)).toBe(true);
-    expect(shouldIndexApprovedPages(origin,'true','1','feature')).toBe(true);
+    expect(shouldIndexApprovedPages(origin,'false',undefined,undefined)).toBe(false);
     expect(shouldIndexApprovedPages('https://random-wheel-58c.pages.dev','true','1','main')).toBe(false);
     expect(shouldIndexApprovedPages('https://www.numberspinner.com','true','1','main')).toBe(false);
   });
