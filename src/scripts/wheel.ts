@@ -458,7 +458,8 @@ function init(root: HTMLElement) {
     try {
       const text=await file.text();
       if(locked || generation!==drawGeneration || requestId!==importRequestId)return; // Ignore superseded imports.
-      const lines=parseImportedEntryLines(text,file.name);
+      const hasHeaderRow=get<HTMLInputElement>(root,'[data-role="csv-has-header"]')?.checked ?? false;
+      const lines=parseImportedEntryLines(text,file.name,hasHeaderRow);
       const target=get<HTMLTextAreaElement>(root,isWords?'[data-role="word-custom"]':'[data-role="entries"]');
       if(target){
         target.value=lines.join('\n');
