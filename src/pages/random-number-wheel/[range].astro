@@ -51,15 +51,13 @@ const taskInfo=NUMBER_TASK_INFO[page.max];
       <p>With all numbers included, step set to 1, and no exclusions, each of the {page.max} numbers has a 1 in {page.max} chance on a fresh draw. Excluding numbers or removing previous winners changes the set of available results for the next draw.</p>
       <h3>Can I use this without a wheel animation?</h3>
       <p>Yes. Quick Pick shows the result immediately. Choose Spin Wheel when you want a more visual reveal; for larger ranges the animation is simplified so the result is still selected from every eligible number.</p>
-      <div class="related">
-        <a href="/random-number-wheel/">Custom number range</a>
-        <a href="/random-number-wheel/1-3/">1–3</a>
-        <a href="/random-number-wheel/1-4/">1–4</a>
-        <a href="/random-number-wheel/1-5/">1–5</a>
-        <a href="/random-number-wheel/1-6/">1–6</a>
-        <a href="/random-number-wheel/1-20/">1–20</a>
-        <a href="/random-number-wheel/1-100/">1–100</a>
-      </div>
+      <h3>Try another number range</h3>
+      <nav class="related" aria-label="Related number picker tools">
+        <a href="/random-number-wheel/">Custom number range wheel</a>
+        {RANGE_PAGES.filter(candidate=>candidate.indexApproved!==false && candidate.slug!==page.slug).map(candidate=>(
+          <a href={'/random-number-wheel/'+candidate.slug+'/'}>Pick a number from 1 to {candidate.max}</a>
+        ))}
+      </nav>
     </div>
   </div></section>
 </BaseLayout>
