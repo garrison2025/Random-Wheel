@@ -17,10 +17,13 @@ const held = [
   '/random-word-wheel/', '/random-letter-wheel/', '/yes-or-no-wheel/',
   ...[2,7,8,10,15,30,50,200,1000,10000].map(n=>'/random-number-wheel/1-'+n+'/')
 ];
-const failures=[],checks=[];
-const report=(label,good,details='')=>{
-  checks.push({label,passed:good,details});
-  if(!good)failures.push(label+(details?': '+details:''));
+const failures=[],checks=[],recommendations=[];
+const report=(label,good,details='',required=true)=>{
+  checks.push({label,passed:good,details,required});
+  if(!good){
+    const message=label+(details?': '+details:'');
+    (required?failures:recommendations).push(message);
+  }
 };
 async function request(url,redirect='manual'){
   const response=await fetch(url,{redirect,headers:{'user-agent':'NumberSpinnerPostDeployAudit/1.0'},signal:AbortSignal.timeout(12000)});
@@ -73,15 +76,17 @@ async function checkRedirect(origin,tag){
     const {response}=await request(origin+suffix);
     const target=response.headers.get('location')||'';
     const permanentlyRedirected=response.status===301&&target===ROOT+suffix;
+    // The owner opted to defer canonical-host redirects. Keep the
+    // recommendation visible without failing verified core indexing.
     report(tag+' redirects to canonical',permanentlyRedirected,
-      'status '+response.status+' location='+target);
+      'status '+response.status+' location='+target,false);
     if(tag==='Production pages.dev alias'){
       const fallbackNoindex=(response.headers.get('x-robots-tag')||'').toLowerCase().includes('noindex');
       report('Legacy pages.dev alias has safe interim noindex or permanent redirect',
         permanentlyRedirected || fallbackNoindex,
         'status '+response.status+' x-robots-tag='+(response.headers.get('x-robots-tag')||''));
     }
-  }catch(error){report(tag+' redirects to canonical',false,String(error));}
+  }catch(error){report(tag+' redirects to canonical',false,String(error),false);}
 }
 console.log('Auditing Number Spinner HTTP release at '+ROOT);
 const routes=[...approved.map(path=>({path,indexable:true})),...held.map(path=>({path,indexable:false}))];
@@ -114,5 +119,6 @@ try{
 await checkRedirect('https://www.'+HOST,'www');
 await checkRedirect(PAGE_ALIAS,'Production pages.dev alias');
 console.log(JSON.stringify({origin:ROOT,checks:checks.length,passed:checks.filter(x=>x.passed).length,
-  failed:failures.length,failures},null,2));
+  failed:failures.length,failures,
+  recommendations:recommendations.length,advisories:recommendations},null,2));
 if(failures.length)process.exitCode=1;
