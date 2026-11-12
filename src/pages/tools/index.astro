@@ -4,7 +4,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { RANGE_PAGES } from '../../data/ranges';
 const priority=[100,3,4,5,6,20];
 const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).filter(Boolean);
-const otherRanges=RANGE_PAGES.filter(page=>page.indexApproved===false);
+// Show every range exactly once in the directory, including newly approved
+// 1–8 and 1–30 pages that are not in the six featured cards.
+const otherRanges=RANGE_PAGES.filter(page=>!priority.includes(page.max));
 ---
 <BaseLayout path="/tools/" title="Free Random Wheel Tools" description="Explore Number Spinner free random tools: custom spin the wheel, random number wheel, quick number pickers and classroom number draws.">
   <section class="hero"><div class="container"><span class="eyebrow">Tools directory</span><h1>Free Random Wheel & Number Picker Tools</h1><p>Explore custom names, words, letters, Yes/No decisions or an exact number range—all free and private.</p></div></section>

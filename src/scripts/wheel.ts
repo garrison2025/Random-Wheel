@@ -53,6 +53,8 @@ function init(root: HTMLElement) {
   let winningHistory:string[]=[];
   let latestDraw:string[]=[];
   let entries:Entry[]=[];
+  // The applied selection policy must match the pool represented by pickedIndices.
+  let appliedRemove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
   // Number presets must not inherit a custom range saved on a different URL.
   const savedKey='wheelcanvas.v1.'+(isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers'+(location.pathname==='/random-number-wheel/'?'':'.'+location.pathname.replace(/[^a-z0-9]+/gi,'_')));
   const speedMs=()=>{
@@ -214,9 +216,18 @@ function init(root: HTMLElement) {
       if(controls)controls.hidden=category?.value!=='custom';
     }
     try {
-      entries=readChoices();
-      if(!entries.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
-      reset('Ready to draw.');
+      const next=readChoices();
+      if(!next.some(e=>e.weight>0)) throw new Error('At least one choice must have a positive weight.');
+      const remove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
+      const changed=entries.length!==next.length || entries.some((entry,i)=>
+        entry.label!==next[i]?.label || entry.weight!==next[i]?.weight
+      );
+      const removalChanged=appliedRemove!==remove;
+      entries=next;
+      appliedRemove=remove;
+      // Non-semantic edits (e.g. a trailing newline) must not erase previous
+      // winners or restart a no-repeat round.
+      if(changed || removalChanged)reset('Ready to draw.');
       return true;
     } catch(error) {
       drawGeneration++;window.clearTimeout(spinTimer);spinTimer=undefined;setBusy(false);
@@ -445,7 +456,11 @@ function init(root: HTMLElement) {
     const category=get<HTMLSelectElement>(root,'[data-role="word-category"]');
     if(category && category.value!=='custom'){category.value='custom';}
   });
-  get<HTMLInputElement>(root,'[data-role="remove"]')?.addEventListener('change',()=>{if(!locked)reset('Removal setting changed; started a fresh round.');});
+  get<HTMLInputElement>(root,'[data-role="remove"]')?.addEventListener('change',()=>{
+    if(locked)return;
+    appliedRemove=get<HTMLInputElement>(root,'[data-role="remove"]')?.checked ?? false;
+    reset('Removal setting changed; started a fresh round.');
+  });
   root.querySelectorAll<HTMLSelectElement>('[data-role="letter-set"],[data-role="letter-case"],[data-role="decision-mode"],[data-role="word-category"]')
     .forEach(el=>el.addEventListener('change',()=>{if(!locked)refresh();}));
   get<HTMLInputElement>(root,'[data-role="file"]')?.addEventListener('change',async event=>{
@@ -504,9 +519,21 @@ function init(root: HTMLElement) {
     const c=value as Record<string,unknown>;
     const expected=isCustom?'custom':isLetters?'letters':isYesNo?'yesno':isWords?'words':'numbers';
     if(c.type!==expected)throw new Error('The setup is for a different tool.');
+    if(c.remove!==undefined && typeof c.remove!=='boolean')throw new Error('Invalid removal setting in saved setup.');
     const removal=get<HTMLInputElement>(root,'[data-role="remove"]');
     if(removal)removal.checked=c.remove===true;
-    const setText=(key:string,val:unknown)=>{const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');if(el&&typeof val==='string'&&val.length<12000)el.value=val;};
+    const setText=(key:string,val:unknown)=>{
+      if(val===undefined)return; // Older saved setups may omit newer optional fields.
+      if(typeof val!=='string' || val.length>=12000)throw new Error('Invalid '+key+' value in saved setup.');
+      const el=get<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(root,'[data-role="'+key+'"]');
+      if(el)el.value=val;
+    };
+    const restoreBatch=(val:unknown)=>{
+      if(val===undefined)return;
+      if(typeof val!=='string' || !val.trim() || !Number.isSafeInteger(Number(val)) || Number(val)<1 || Number(val)>100)
+        throw new Error('Invalid batch size in saved setup.');
+      setText('batch',val);
+    };
     if(typeof c.palette==='string')setPalette(c.palette);
     if(['fast','normal','slow'].includes(String(c.speed)))setText('speed',c.speed);
     if(isCustom)setText('entries',c.entries);
@@ -514,18 +541,21 @@ function init(root: HTMLElement) {
       if(['all','vowels','consonants','game'].includes(String(c.letterSet)))setText('letter-set',c.letterSet);
       if(['upper','lower'].includes(String(c.letterCase)))setText('letter-case',c.letterCase);
       setText('letter-exclude',c.letterExclude);
-      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
+      restoreBatch(c.batch);
     }else if(isYesNo){
       if(['yesno','yesnomaybe'].includes(String(c.decisionMode)))setText('decision-mode',c.decisionMode);
     }else if(isWords){
       if(['nouns','verbs','adjectives','classroom','story','custom'].includes(String(c.wordCategory)))setText('word-category',c.wordCategory);
       setText('word-custom',c.wordCustom);
-      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
+      restoreBatch(c.batch);
     }else{
       for(const key of ['min','max','step','excluded'])setText(key,c[key]);
-      if(typeof c.batch==='string'&&Number.isSafeInteger(Number(c.batch))&&Number(c.batch)>=1&&Number(c.batch)<=100)setText('batch',c.batch);
+      restoreBatch(c.batch);
     }
     if(!refresh())throw new Error('The saved or shared setup contains invalid choices or settings.');
+    // Successful parsing of entries alone is insufficient: a restored
+    // no-repeat batch must also fit its eligible candidate pool.
+    validateCurrentSetup();
   }
   function validateCurrentSetup(){
     const candidate=readChoices();
