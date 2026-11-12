@@ -67,7 +67,8 @@ async function checkPage(path,indexable){
     if(path==='/'){
       report('Homepage WebSite JSON-LD',websites.length===1
         && websites[0].name==='Number Spinner'
-        && websites[0].url===ROOT+'/');
+        && websites[0].url===ROOT+'/'
+        && websites[0].sameAs==='https://github.com/garrison2025/Random-Wheel');
       report('Homepage OG site name',/<meta\b[^>]*property=["']og:site_name["'][^>]*content=["']Number Spinner["']/i.test(body));
     }
     const geoToolPaths=new Set([
@@ -86,6 +87,8 @@ async function checkPage(path,indexable){
         && typeof app?.description==='string' && app.description.length>50
         && app.isAccessibleForFree===true
         && app.applicationCategory==='UtilitiesApplication'
+        && app.sameAs==='https://github.com/garrison2025/Random-Wheel'
+        && app.maintainer?.name==='Number Spinner'
         && Array.isArray(app.featureList) && app.featureList.length>=3
         && !('aggregateRating' in app) && !('review' in app));
     } else if(applications.length>0) report(label+' held/support page has no WebApplication',false);
