@@ -91,6 +91,8 @@ function init(root: HTMLElement) {
   }
   const setBusy=(busy:boolean)=>{
     locked=busy;pickButton.disabled=busy;resetButton.disabled=busy;
+    const instantButton=get<HTMLButtonElement>(root,'[data-action="instant-pick"]');
+    if(instantButton)instantButton.disabled=busy;
     if(centerButton) centerButton.disabled=busy;
     root.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('.sidebar input,.sidebar textarea,.sidebar select').forEach(el=>{el.disabled=busy;});
     root.querySelectorAll<HTMLButtonElement>('[data-template],[data-action="shuffle"]').forEach(el=>{el.disabled=busy;});
