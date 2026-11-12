@@ -110,8 +110,8 @@ test('Yes/No question is displayed locally and best-of-three tally stops at thre
   await expect(page.locator('[data-action=pick]')).toBeEnabled();
   expect((await page.locator('[data-tally]').allTextContents()).map(Number)).toEqual([0,0,0]);
 });
-test('Eight reviewed candidates are still explicitly noindex',async({request})=>{
-  const paths=['/random-number-wheel/1-2/','/random-number-wheel/1-8/','/random-number-wheel/1-10/','/random-number-wheel/1-15/','/random-number-wheel/1-30/','/random-number-wheel/1-1000/','/random-letter-wheel/','/yes-or-no-wheel/'];
+test('Six unreleased specialty workflows remain noindex in preview',async({request})=>{
+  const paths=['/random-number-wheel/1-2/','/random-number-wheel/1-10/','/random-number-wheel/1-15/','/random-number-wheel/1-1000/','/random-letter-wheel/','/yes-or-no-wheel/'];
   for(const path of paths){
     const res=await request.get(path);
     expect(res.ok()).toBe(true);
@@ -220,4 +220,15 @@ test('classroom keyboard shortcut and called-only CSV never expose future roll n
   await expect(task.locator('[data-task=export-called]')).toBeDisabled();
   await task.locator('[data-task=absent]').fill('5');
   await expect(task.locator('[data-task=export-called]')).toBeDisabled();
+});
+
+test('1-8 and 1-30 pilot pages have canonical URLs and real task widgets',async({page})=>{
+  for(const [max,task] of [[8,'stations'],[30,'attendance']] as const){
+    const path='/random-number-wheel/1-'+max+'/';
+    await page.goto(path);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://numberspinner.com'+path);
+    await expect(page.locator('[data-number-task="'+task+'"]')).toBeVisible();
+    await expect(page.locator('[data-number-task="'+task+'"] [data-task="generate"]')).toBeEnabled();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+  }
 });
