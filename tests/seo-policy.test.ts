@@ -1,23 +1,36 @@
 import {describe,it,expect} from 'vitest';
 import {resolveSeoPagePolicy} from '../src/lib/seo-policy';
 
-describe('independent release gate for index eligibility',()=>{
-  it('keeps preview pages noindex without canonical',()=>{
-    expect(resolveSeoPagePolicy(false,false,'','/')).toEqual({indexable:false,robots:'noindex, nofollow'});
+describe('approved page canonical and index separation',()=>{
+  it('always emits the official self canonical on an approved page, even in preview',()=>{
+    expect(resolveSeoPagePolicy(false,false,'https://numberspinner.com','/')).toEqual({
+      indexable:false,canonical:'https://numberspinner.com/',robots:'noindex, nofollow'
+    });
+    expect(resolveSeoPagePolicy(false,false,'https://numberspinner.com','/random-number-wheel/1-3/')).toEqual({
+      indexable:false,canonical:'https://numberspinner.com/random-number-wheel/1-3/',robots:'noindex, nofollow'
+    });
   });
-  it('keeps held candidate pages noindex and canonical-free even if official indexing is enabled',()=>{
-    for(const path of ['/random-letter-wheel/','/yes-or-no-wheel/','/random-number-wheel/1-8/']){
-      expect(resolveSeoPagePolicy(true,true,'https://numberspinner.com',path)).toEqual({indexable:false,robots:'noindex, follow'});
+  it('keeps held pages canonical-free and noindex in preview and production',()=>{
+    for(const path of ['/random-letter-wheel/','/yes-or-no-wheel/','/random-number-wheel/1-8/','/404/']){
+      expect(resolveSeoPagePolicy(false,true,'https://numberspinner.com',path))
+        .toEqual({indexable:false,robots:'noindex, nofollow'});
+      expect(resolveSeoPagePolicy(true,true,'https://numberspinner.com',path))
+        .toEqual({indexable:false,robots:'noindex, follow'});
     }
   });
-  it('emits canonical only for approved pages with valid official URL',()=>{
+  it('emits the official canonical and index for approved production pages',()=>{
     expect(resolveSeoPagePolicy(true,false,'https://numberspinner.com','/random-number-wheel/1-3/')).toEqual({
       indexable:true,canonical:'https://numberspinner.com/random-number-wheel/1-3/',
       robots:'index, follow, max-image-preview:large'
     });
   });
-  it('requires absolute HTTPS domain when indexing',()=>{
-    expect(()=>resolveSeoPagePolicy(true,false,'http://numberspinner.com','/')).toThrow();
-    expect(()=>resolveSeoPagePolicy(true,false,'https://numberspinner.com','wrong-path')).toThrow();
+  it('rejects wrong domains and broken paths on approved pages',()=>{
+    for(const domain of ['http://numberspinner.com','https://wheelcanvas.com','https://www.numberspinner.com']){
+      expect(()=>resolveSeoPagePolicy(false,false,domain,'/')).toThrow();
+      expect(()=>resolveSeoPagePolicy(true,false,domain,'/')).toThrow();
+    }
+    for(const path of ['wrong-path','//','/foo?x=1','/foo','/Foo/']){
+      expect(()=>resolveSeoPagePolicy(true,false,'https://numberspinner.com',path)).toThrow();
+    }
   });
 });
