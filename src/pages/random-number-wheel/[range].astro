@@ -40,7 +40,7 @@ const hasApprovedGuide=page.indexApproved!==false && Object.hasOwn(APPROVED_RANG
   {taskInfo && <NumberTaskStudio max={page.max as 2|8|10|15|30|1000}/>} 
   <section class="section"><div class="container">
     <div class="article">
-      <h2>What is the 1–{page.max} picker useful for?</h2>
+      <h2>{page.useHeading ?? `What is the 1–${page.max} picker useful for?`}</h2>
       <p>{page.context}</p>
       <h3>How to pick between 1 and {page.max}</h3>
       <p>{page.guide}</p>

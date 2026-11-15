@@ -7,13 +7,13 @@ import { RANGE_PAGES } from '../data/ranges';
 const priority=[100,3,4,5,6,20];
 const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).filter(Boolean);
 ---
-<BaseLayout title="Free Spin the Wheel & Random Picker" description="Spin a free decision wheel with your own names and choices. Fair browser-based random results, weighted entries, no-repeat picks and no signup." path="/">
+<BaseLayout title="Spin the Wheel: Free Random Name & Choice Picker" description="Spin a free custom wheel to pick a name or make a choice. Paste up to 100 entries, set weights, and remove winners for a draw without repeats." path="/">
   <section class="hero hero-home">
     <div class="container">
       <div class="hero-copy">
         <span class="eyebrow">✳ A LITTLE RANDOMNESS GOES A LONG WAY</span>
         <h1>Spin the wheel.<br/><span class="highlight">Settle anything.</span></h1>
-        <p>Names, decisions, lunch plans, team picks. Make your own colorful wheel and let chance do its thing.</p>
+        <p>Create a custom wheel to pick a random name, team or choice. Paste your list, then spin the wheel or get an instant result.</p>
         <div class="hero-points"><span>Spin for free</span><span>No signup</span><span>Your list stays yours</span></div>
       </div>
       <div class="hero-side"><span class="badge-star" aria-hidden="true">✴</span><span><strong>100%</strong><br/>FREE TO PLAY</span></div>
@@ -24,15 +24,15 @@ const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).f
   <section class="section">
     <div class="container">
       <span class="eyebrow">QUICK STARTS</span>
-      <h2 class="section-title">Not sure where to start?</h2>
-      <p class="section-intro">Skip the setup with our ready-to-use number pickers. Start with the range you want and spin.</p>
+      <h2 class="section-title">Choose a random picker</h2>
+      <p class="section-intro">Choose a number range, pick a random letter or word, or spin for a Yes or No decision.</p>
       <div class="tool-grid">
         <a class="tool-card" href="/random-number-wheel/"><span class="icon-tile" aria-hidden="true">✳</span><b>Random Number Wheel</b><p>Choose any custom number range with exclusions and steps.</p><span class="go">Make a number wheel ↗</span></a>
         <a class="tool-card" href="/random-letter-wheel/"><span class="icon-tile" aria-hidden="true">AᐧZ</span><b>Random Letter Wheel</b><p>Pick from A–Z, vowels or consonants.</p><span class="go">Spin letters ↗</span></a>
         <a class="tool-card" href="/yes-or-no-wheel/"><span class="icon-tile" aria-hidden="true">Y/N</span><b>Yes / No Wheel</b><p>Make a balanced binary decision or add Maybe.</p><span class="go">Spin Yes / No ↗</span></a>
         <a class="tool-card" href="/random-word-wheel/"><span class="icon-tile" aria-hidden="true">Aa</span><b>Random Word Wheel</b><p>Pick curated nouns, verbs and story ideas or your own words.</p><span class="go">Try a word wheel ↗</span></a>
         {primaryRanges.map(p=>(
-          <a class="tool-card" href={'/random-number-wheel/'+p.slug+'/'}><span class="icon-tile" aria-hidden="true">#{p.max}</span><b>Pick a number 1–{p.max}</b><p>{p.example}</p><span class="go">Pick now ↗</span></a>
+          <a class="tool-card" href={'/random-number-wheel/'+p.slug+'/'}><span class="icon-tile" aria-hidden="true">#{p.max}</span><b>{p.linkLabel ?? `Pick a Number 1–${p.max}`}</b><p>{p.example}</p><span class="go">Pick now ↗</span></a>
         ))}
       </div>
       <p class="tool-directory-cta"><a href="/tools/">Browse all 21 free wheel tools and number ranges →</a></p>
@@ -50,7 +50,7 @@ const primaryRanges=priority.map(max=>RANGE_PAGES.find(page=>page.max===max)!).f
         <li>Copy or export the results, or save the configuration locally for later use.</li>
       </ol>
       <h3>Are weighted entries supported?</h3>
-      <p>Yes. Add <strong>| 3</strong> after an option to give it three times the weight of an option with weight 1. The wheel segments visually reflect their relative probability.</p>
+      <p>Yes. Add <strong>| 3</strong> after an option to give it three times the weight of an option with weight 1. On smaller wheels, the size of each sector reflects its weight. Open View exact draw probabilities to check the chance for each eligible entry.</p>
       <h3>What does the free random wheel support?</h3>
       <ul>
         <li>Pick from 1–100 custom entries, with optional integer weights.</li>
